@@ -8,16 +8,24 @@
 </head>
 <body class="min-h-screen bg-eac-bg">
 
-    <header class="bg-eac-navy text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a th:href="@{/home}" class="flex items-center gap-3">
-                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-9 h-9">
-                <span class="font-bold text-lg tracking-wide">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
+    <header class="bg-white border-b border-eac-border relative">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+            <a th:href="@{/home}" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
             </a>
-            <div class="flex items-center gap-4 text-sm">
-                <a th:href="@{/browse}" class="hover:text-eac-red transition">Browse</a>
-                <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition rounded-md px-4 py-2 font-medium">Sign Out</a>
-            </div>
+            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</a>
+            </nav>
+            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+            <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
+            <a th:href="@{/logout}" class="block bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5 text-center mt-2">Sign Out</a>
         </div>
     </header>
 
@@ -78,6 +86,16 @@
                class="w-9 h-9 flex items-center justify-center rounded-md text-sm transition"></a>
         </div>
     </main>
+
+    <script>
+        var navToggle = document.getElementById('navToggle');
+        var navPanel = document.getElementById('navPanel');
+        if (navToggle && navPanel) {
+            navToggle.addEventListener('click', function () {
+                navPanel.classList.toggle('hidden');
+            });
+        }
+    </script>
 
 </body>
 </html>

@@ -3,6 +3,12 @@ package ph.edu.eac.filedirectory.user;
 import jakarta.persistence.*;
 import java.time.Instant;
 
+/**
+ * A registered account - email + password, restricted to @eac.edu.ph (see
+ * eac.allowed-email-domain / RegistrationController). New accounts start
+ * unverified; emailVerified flips true once the emailed verification link
+ * is clicked - see EmailVerificationToken / PasswordAuthenticationProvider.
+ */
 @Entity
 @Table(name = "app_users")
 public class AppUser {
@@ -11,16 +17,18 @@ public class AppUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Google's stable "sub" claim - unique per Google account. */
-    @Column(nullable = false, unique = true, updatable = false)
-    private String googleSub;
-
     @Column(nullable = false, unique = true)
     private String email;
 
     private String fullName;
 
-    private String pictureUrl;
+    /** BCrypt hash. */
+    @Column(nullable = false, length = 100)
+    private String passwordHash;
+
+    /** Starts false until the emailed verification link is clicked. */
+    @Column(nullable = false)
+    private boolean emailVerified = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -35,19 +43,18 @@ public class AppUser {
         // JPA
     }
 
-    public AppUser(String googleSub, String email, String fullName, String pictureUrl) {
-        this.googleSub = googleSub;
-        this.email = email;
-        this.fullName = fullName;
-        this.pictureUrl = pictureUrl;
+    /** Registration - starts unverified until the emailed link is clicked. */
+    public static AppUser registerManually(String email, String fullName, String passwordHash) {
+        AppUser user = new AppUser();
+        user.email = email;
+        user.fullName = fullName;
+        user.passwordHash = passwordHash;
+        user.emailVerified = false;
+        return user;
     }
 
     public Long getId() {
         return id;
-    }
-
-    public String getGoogleSub() {
-        return googleSub;
     }
 
     public String getEmail() {
@@ -62,12 +69,20 @@ public class AppUser {
         this.fullName = fullName;
     }
 
-    public String getPictureUrl() {
-        return pictureUrl;
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public Role getRole() {

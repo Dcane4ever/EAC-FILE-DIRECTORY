@@ -10,4 +10,11 @@
   --color-eac-text: #1a1a1a;
   --color-eac-text-light: #666666;
   --color-eac-border: #e8e8e8;
+
+  /* Added for the post-login landing page: EAC maroon (primary dark brand
+     color, headings) and a soft EAC yellow accent (hero illustration only). */
+  --color-eac-maroon: #6b1118;
+  --color-eac-yellow: #f0c419;
+  --color-eac-yellow-soft: #fdf3d7;
+  --color-eac-red-soft: #fdeceb;
 }

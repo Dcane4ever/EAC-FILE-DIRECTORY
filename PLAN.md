@@ -18,7 +18,7 @@ academic files — browsable by department/program/category, taggable, searchabl
 |---|---|
 | **Branding** | Keep existing EAC look — real assets now in hand (see §6). Emilio Aguinaldo College: deep maroon/red + navy palette, shield emblem, "Excellence in Education" tagline. |
 | **Access control** | Any user with a valid `@eac.edu.ph` email can log in. No student/faculty/staff tiering for *access* — one shared audience. |
-| **Auth method** | Google Sign-In (OAuth2), restricted to the `eac.edu.ph` Google Workspace domain (`hd` parameter + server-side domain check). No custom password system. |
+| **Auth method** | Manual registration with email + password, restricted to `@eac.edu.ph` addresses (server-side domain check at registration and login). New accounts must click an emailed verification link before they can sign in. *(Originally planned as Google Sign-In/OAuth2 — dropped in favor of self-registration; see §7.)* |
 | **Uploads** | Any logged-in user can submit a file, but it stays in a **pending** state until an admin/moderator **approves** it. Nothing goes public unmoderated. |
 | **Organization** | Hybrid: browse by **Department/Course**, browse by **Category/Type** (Research Paper, Thesis, Book, Code, PPTX, PDF, etc.), plus **tags** and **full-text/metadata search** across everything — like a ResearchGate/Scribd hybrid. |
 | **Departments/Courses source** | Extracted from the real `eacdb` registrar dump (`departments`, `programs`, `courses` tables), **not** live-linked. One-time (repeatable) seed script into our own fresh database. Real hierarchy confirmed — see §4a. |
@@ -38,7 +38,7 @@ Even though *access* is uniform, the app still needs role-based *permissions* fo
 - **MODERATOR/ADMIN** — approve/reject pending uploads, edit metadata, manage categories/departments/tags, remove content, view reports.
 - **SUPERADMIN** (optional, small set) — manage other admins, system settings, view audit logs.
 
-Role is stored in our own app DB, not derived from Google — first login creates a `USER` record; role upgrades are manual (admin promotes another admin).
+Role is stored in our own app DB — registration creates a `USER` record; role upgrades are manual (admin promotes another admin).
 
 ---
 
@@ -55,8 +55,8 @@ Role is stored in our own app DB, not derived from Google — first login create
 │  ┌────────────┐ ┌───────────────┐ ┌─────────────────────┐ │
 │  │ Spring       │ │ REST/MVC       │ │ File storage service │ │
 │  │ Security     │ │ Controllers    │ │ (local disk I/O)     │ │
-│  │ + Google     │ │ Services       │ │                       │ │
-│  │ OAuth2       │ │ Repositories   │ │                       │ │
+│  │ (email+pwd   │ │ Services       │ │                       │ │
+│  │ + verify)    │ │ Repositories   │ │                       │ │
 │  └────────────┘ └───────────────┘ └─────────────────────┘ │
 └──────────┬──────────────────────────────┬──────────────────┘
            │ JDBC                          │ filesystem
@@ -93,7 +93,8 @@ Sample departments actually in the DB: School of Engineering and Technology (`EN
 
 ## 4. Data Model (draft)
 
-- **users** — id, google_sub, email, full_name, role, created_at, last_login
+- **users** — id, email, full_name, password_hash, email_verified, role, created_at, last_login
+- **email_verification_tokens** — id, token, user_id (FK), expires_at, used, created_at
 - **departments** — id, code, name, source_department_id (nullable link back to eacdb, for traceability)
 - **programs** — id, department_id (FK), code, name, level, source_program_id
 - **courses** — id, department_id (FK), program_id (nullable FK), code, title, source_course_id
@@ -108,7 +109,7 @@ Sample departments actually in the DB: School of Engineering and Technology (`EN
 
 ## 5. Key Features (MVP scope)
 
-1. Google Sign-In restricted to `@eac.edu.ph`, auto-provision user on first login.
+1. Registration with email + password, restricted to `@eac.edu.ph`, gated on a clicked email-verification link before login.
 2. Browse by Department → Category (tree navigation).
 3. Search + filter by tag, category, department, file type, uploader.
 4. File detail page: preview (where feasible — PDF inline viewer), metadata, download, tags.
@@ -137,7 +138,7 @@ Extracted from the live EAC enrollment login page (`eacmnl`):
 | `--border-color` | `#e8e8e8` | Borders/dividers |
 
 - Logo: shield emblem (`emblem.png`), school name "Emilio Aguinaldo College", tagline "Excellence in Education".
-- Layout pattern: split-screen login (branding panel with emblem + photo on one side, form on the other) — we'll echo this for our own login page, swapping password fields for **"Sign in with Google"** restricted to `eac.edu.ph`.
+- Layout pattern: split-screen login (branding panel with emblem + photo on one side, form on the other) — echoed for our own login/register pages, with a plain email + password form restricted to `@eac.edu.ph`.
 - These become **Tailwind theme tokens** (`tailwind.config.js` `extend.colors`) so every component pulls from one source — no hardcoded hex scattered across templates.
 - Font: page currently uses system/serif-ish bold headings via Font Awesome + custom CSS, no external webfont detected — we'll match weight/spacing rather than import a specific typeface unless you confirm one.
 
@@ -148,8 +149,8 @@ Extracted from the live EAC enrollment login page (`eacmnl`):
 - [ ] **Full school name + logo/colors** for confirming branding direction later.
 - [ ] **List of Schools/Departments/Courses** from employer (to shape the `departments`/`courses` seed and category structure, e.g. SET).
 - [ ] **Frontend approach**: server-rendered Thymeleaf (simplest, fastest to stand up on Tomcat, easiest to theme later) vs. separate SPA frontend calling a REST API (more flexible, more setup). → *Recommend Thymeleaf for speed today given the "build it today" goal; revisit if you want a richer interactive UI later.*
-- [ ] **Google OAuth credentials**: need a Google Cloud project + OAuth Client ID/Secret configured for `eac.edu.ph` domain restriction. You'll need admin access to create this (or IT will need to).
 - [ ] **Server specs/access** for the Tomcat box (Java version installed, disk space for uploads, whether we can deploy WARs directly).
+- [ ] **Production SMTP account** for registration verification emails (currently a personal Gmail + App Password in `.env` for dev — decide whether to keep that or switch to an EAC-owned mailbox before real launch).
 - [ ] **Max file size / allowed file types** policy (e.g. cap at 100MB, whitelist pdf/docx/pptx/zip/code archives).
 - [ ] Confirm registrar DB **connection details** (host/creds) for the one-time extraction script — or if you'll just hand me a CSV/SQL dump of departments & courses instead of connecting directly.
 
@@ -157,17 +158,19 @@ Extracted from the live EAC enrollment login page (`eacmnl`):
 
 ## 8. Build Order (today)
 
-1. [x] Scaffold Spring Boot project (Web, Security, Data JPA, Thymeleaf, MySQL driver, OAuth2 Client).
+1. [x] Scaffold Spring Boot project (Web, Security, Data JPA, Thymeleaf, MySQL driver).
 2. [x] Set up `eac_directory` MySQL schema + JPA entities (§4) — `Department`/`Program`/`Course`/`Category`/`Tag`/`FileEntity` + repositories, package-per-feature under `taxonomy/` and `file/`.
-3. [x] Wire Google OAuth2 login restricted to `eac.edu.ph`, auto-provision `users`.
+3. [x] Wire email+password registration/login restricted to `eac.edu.ph`, gated on a clicked email-verification link (Gmail SMTP) — `RegistrationController`, `PasswordAuthenticationProvider`, `EacUserDetails`. *(Originally Google OAuth2; replaced with self-registration — see §1.)*
 4. [x] Seed departments/programs/courses from the **real** `eacdb` registrar dump (not placeholders) — see `tools/eacdb-extract/README.md` for the repeatable extraction process; `DataSeeder` loads the generated SQL under `src/main/resources/seed/` at startup, per-table, only if that table is empty. Confirmed row counts match the dump exactly: 18 departments / 34 programs / 1053 courses, zero orphaned FKs. Starter category list (9 types) seeded alongside.
 5. [x] Build upload flow (file → disk via `FileStorageService` (SHA-256 checksum, sanitized filenames, path-traversal guard), metadata → DB, status = PENDING) — `/upload` form + `UploadController`.
 6. [x] Build browse/search pages (department → program → course tree, category filter, tag/text search via `FileRepository.search`) — `/browse` + `BrowseController`, plus `/files/{id}` detail + `/files/{id}/download`.
 7. [x] Build admin approval queue — `/admin/queue`, approve/reject with optional rejection reason, gated by `ROLE_ADMIN`/`ROLE_MODERATOR` (see `SecurityConfig`).
-8. [x] Apply placeholder theme — real EAC branding tokens already wired (§6), all new pages (`browse`, `upload`, `my-uploads`, `file-detail`, `admin/queue`) follow the same Tailwind theme + header pattern as `home.html`/`auth/login.html`.
-9. [ ] Package as WAR, smoke-test locally, document deployment steps for the Tomcat server. *(Ran locally via `spring-boot:run` against a real `eac_directory` MySQL DB — full request cycle confirmed working: login gate, `/browse`, `/upload`, `/my-uploads`, `/admin/queue` all correctly route/redirect. Still open: actual WAR packaging + Tomcat deploy dry-run, and real Google OAuth credentials — see §7.)*
+8. [x] Apply placeholder theme — real EAC branding tokens already wired (§6), all new pages (`browse`, `upload`, `my-uploads`, `file-detail`, `admin/queue`) follow the same Tailwind theme + header pattern as `home.html`/`auth/login.html`. *(Post-login landing page revamp planned next — see below.)*
+9. [ ] Package as WAR, smoke-test locally, document deployment steps for the Tomcat server. *(Ran locally via `spring-boot:run` against a real `eac_directory` MySQL DB — full request cycle confirmed working: login gate, `/browse`, `/upload`, `/my-uploads`, `/admin/queue` all correctly route/redirect. Still open: actual WAR packaging + Tomcat deploy dry-run.)*
 
-**Also still open (§7):** Google OAuth Client ID/Secret (placeholder values only — sign-in will fail until real ones are set, see `.env.example`), Tomcat server specs/access, max file size/type policy beyond the current 100MB cap.
+**Also still open (§7):** Tomcat server specs/access, max file size/type policy beyond the current 100MB cap, production SMTP account decision.
+
+**Next up:** revamp the visual design of the post-login landing page (`home.html`) — specifics TBD.
 
 ---
 

@@ -5,14 +5,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ph.edu.eac.filedirectory.file.*;
-import ph.edu.eac.filedirectory.security.EacOAuth2User;
+import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.taxonomy.*;
 import ph.edu.eac.filedirectory.user.AppUser;
 
@@ -55,14 +54,14 @@ public class UploadController {
     }
 
     @GetMapping("/my-uploads")
-    public String myUploads(@AuthenticationPrincipal OAuth2User principal,
+    public String myUploads(@AuthenticationPrincipal EacUserDetails principal,
                              @RequestParam(defaultValue = "0") int page,
                              Model model) {
-        if (!(principal instanceof EacOAuth2User eacUser)) {
+        if (principal == null) {
             return "redirect:/login";
         }
         Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<FileEntity> files = fileRepository.findByUploaderOrderByCreatedAtDesc(eacUser.getAppUser(), pageable);
+        Page<FileEntity> files = fileRepository.findByUploaderOrderByCreatedAtDesc(principal.getAppUser(), pageable);
         model.addAttribute("files", files);
         return "my-uploads";
     }
@@ -88,13 +87,13 @@ public class UploadController {
                                 @RequestParam Long categoryId,
                                 @RequestParam(required = false) String tags,
                                 @RequestParam("file") MultipartFile file,
-                                @AuthenticationPrincipal OAuth2User principal,
+                                @AuthenticationPrincipal EacUserDetails principal,
                                 RedirectAttributes redirectAttributes) {
 
-        if (!(principal instanceof EacOAuth2User eacUser)) {
+        if (principal == null) {
             return "redirect:/login";
         }
-        AppUser uploader = eacUser.getAppUser();
+        AppUser uploader = principal.getAppUser();
 
         if (file.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please choose a file to upload.");

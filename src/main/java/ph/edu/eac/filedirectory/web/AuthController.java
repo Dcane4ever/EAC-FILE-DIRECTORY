@@ -13,8 +13,11 @@ public class AuthController {
                          @RequestParam(value = "logout", required = false) String logout,
                          Model model) {
         if (error != null) {
+            // Spring Security's formLogin doesn't let us distinguish the exact
+            // AuthenticationException reason from this redirect alone (bad
+            // password, unverified email, wrong domain all land here).
             model.addAttribute("errorMessage",
-                    "Sign-in failed. Only @eac.edu.ph accounts may access this directory.");
+                    "Sign-in failed. Check your email/password, that your email is verified, and that you're using an @eac.edu.ph account.");
         }
         if (logout != null) {
             model.addAttribute("infoMessage", "You have been signed out.");

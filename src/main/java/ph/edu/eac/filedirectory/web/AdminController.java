@@ -5,7 +5,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
-import ph.edu.eac.filedirectory.security.EacOAuth2User;
+import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.user.AppUser;
 
 import java.time.Instant;
@@ -43,7 +42,7 @@ public class AdminController {
     }
 
     @PostMapping("/files/{id}/approve")
-    public String approve(@PathVariable Long id, @AuthenticationPrincipal OAuth2User principal, RedirectAttributes redirectAttributes) {
+    public String approve(@PathVariable Long id, @AuthenticationPrincipal EacUserDetails principal, RedirectAttributes redirectAttributes) {
         AppUser moderator = requireModerator(principal);
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -61,7 +60,7 @@ public class AdminController {
     @PostMapping("/files/{id}/reject")
     public String reject(@PathVariable Long id,
                           @RequestParam(required = false) String reason,
-                          @AuthenticationPrincipal OAuth2User principal,
+                          @AuthenticationPrincipal EacUserDetails principal,
                           RedirectAttributes redirectAttributes) {
         AppUser moderator = requireModerator(principal);
         FileEntity file = fileRepository.findById(id)
@@ -77,10 +76,10 @@ public class AdminController {
         return "redirect:/admin/queue";
     }
 
-    private AppUser requireModerator(OAuth2User principal) {
-        if (!(principal instanceof EacOAuth2User eacUser)) {
+    private AppUser requireModerator(EacUserDetails principal) {
+        if (principal == null) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        return eacUser.getAppUser();
+        return principal.getAppUser();
     }
 }

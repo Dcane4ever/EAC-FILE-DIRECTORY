@@ -7,7 +7,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -19,7 +18,7 @@ import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.FileStorageService;
-import ph.edu.eac.filedirectory.security.EacOAuth2User;
+import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.user.AppUser;
 import ph.edu.eac.filedirectory.user.Role;
 
@@ -43,7 +42,7 @@ public class FileDetailController {
     }
 
     @GetMapping("/files/{id}")
-    public String detail(@PathVariable Long id, @AuthenticationPrincipal OAuth2User principal, Model model) {
+    public String detail(@PathVariable Long id, @AuthenticationPrincipal EacUserDetails principal, Model model) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -55,7 +54,7 @@ public class FileDetailController {
 
     @GetMapping("/files/{id}/download")
     @Transactional
-    public ResponseEntity<Resource> download(@PathVariable Long id, @AuthenticationPrincipal OAuth2User principal) {
+    public ResponseEntity<Resource> download(@PathVariable Long id, @AuthenticationPrincipal EacUserDetails principal) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -79,14 +78,14 @@ public class FileDetailController {
         }
     }
 
-    private void requireViewable(FileEntity file, OAuth2User principal) {
+    private void requireViewable(FileEntity file, EacUserDetails principal) {
         if (file.getStatus() == FileStatus.APPROVED) {
             return;
         }
-        if (!(principal instanceof EacOAuth2User eacUser)) {
+        if (principal == null) {
             throw new AccessDeniedException("Sign-in required");
         }
-        AppUser user = eacUser.getAppUser();
+        AppUser user = principal.getAppUser();
         boolean isOwner = user.getId().equals(file.getUploader().getId());
         boolean isModerator = user.getRole() == Role.MODERATOR || user.getRole() == Role.ADMIN;
         if (!isOwner && !isModerator) {

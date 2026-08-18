@@ -9,11 +9,12 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * TEST-ONLY security chain, active only under the "test" profile. Replaces
- * SecurityConfig's Google OAuth2 login with the simple @eac.edu.ph email
- * form at /dev-login (see DevLoginController) so the app can be exercised
- * locally without real Google Cloud OAuth credentials. Every other rule
- * (admin gating, everything-else-authenticated) mirrors SecurityConfig
- * exactly, so what you click through here matches production behavior.
+ * SecurityConfig's real email+password login with a one-click @eac.edu.ph
+ * email form at /dev-login (see DevLoginController) so the app can be
+ * clicked through locally without registering + verifying an email every
+ * time. Every other rule (admin gating, everything-else-authenticated)
+ * mirrors SecurityConfig exactly, so what you click through here matches
+ * production behavior.
  */
 @Configuration
 @EnableWebSecurity
@@ -24,7 +25,7 @@ public class DevSecurityConfig {
     public SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/dev-login", "/dev-login/**", "/access-denied", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/dev-login", "/dev-login/**", "/register", "/verify", "/access-denied", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "MODERATOR")
                 .anyRequest().authenticated()
             )

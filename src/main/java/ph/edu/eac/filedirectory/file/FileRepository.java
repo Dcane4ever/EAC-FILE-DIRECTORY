@@ -11,6 +11,14 @@ public interface FileRepository extends JpaRepository<FileEntity, Long> {
 
     Page<FileEntity> findByStatus(FileStatus status, Pageable pageable);
 
+    long countByStatus(FileStatus status);
+
+    long countByStatusAndCategoryId(FileStatus status, Long categoryId);
+
+    long countByStatusAndCategoryIdIn(FileStatus status, java.util.Collection<Long> categoryIds);
+
+    long countByStatusAndDepartmentId(FileStatus status, Long departmentId);
+
     Page<FileEntity> findByUploaderOrderByCreatedAtDesc(AppUser uploader, Pageable pageable);
 
     Page<FileEntity> findByStatusAndDepartmentId(FileStatus status, Long departmentId, Pageable pageable);
