@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg">
+
+    <!-- Top nav -->
+    <header class="bg-eac-navy text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a th:href="@{/home}" class="flex items-center gap-3">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-9 h-9">
+                <span class="font-bold text-lg tracking-wide">EAC File Directory</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a th:href="@{/upload}" class="hover:text-eac-red transition">Upload</a>
+                <a th:href="@{/my-uploads}" class="hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/admin/queue}" sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="hover:text-eac-red transition">Admin Queue</a>
+                <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition rounded-md px-4 py-2 font-medium">Sign Out</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search bar -->
+    <section class="bg-white border-b border-eac-border">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <form th:action="@{/browse}" method="get" class="flex max-w-2xl">
+                <input type="text" name="q" th:value="${q}" placeholder="Search by title, tag, course, or author..."
+                       class="flex-1 rounded-l-lg border border-eac-border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 rounded-r-lg">
+                    Search
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+
+        <!-- Sidebar: taxonomy tree -->
+        <aside class="space-y-6">
+
+            <div class="bg-white rounded-xl border border-eac-border p-5">
+                <h2 class="font-bold text-eac-navy mb-3 text-sm uppercase tracking-wide">Schools / Departments</h2>
+                <ul class="space-y-1 text-sm">
+                    <li>
+                        <a th:href="@{/browse}"
+                           th:classappend="${selectedDepartmentId == null} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
+                           class="block py-1 transition">All Departments</a>
+                    </li>
+                    <li th:each="dept : ${departments}">
+                        <a th:href="@{/browse(departmentId=${dept.id})}"
+                           th:text="${dept.name}"
+                           th:classappend="${selectedDepartmentId == dept.id} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
+                           class="block py-1 transition"></a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-xl border border-eac-border p-5" th:if="${!programs.isEmpty()}">
+                <h2 class="font-bold text-eac-navy mb-3 text-sm uppercase tracking-wide">Programs</h2>
+                <ul class="space-y-1 text-sm">
+                    <li th:each="prog : ${programs}">
+                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${prog.id})}"
+                           th:text="${prog.code + ' - ' + prog.name}"
+                           th:classappend="${selectedProgramId == prog.id} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
+                           class="block py-1 transition"></a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-xl border border-eac-border p-5" th:if="${!courses.isEmpty()}">
+                <h2 class="font-bold text-eac-navy mb-3 text-sm uppercase tracking-wide">Courses</h2>
+                <ul class="space-y-1 text-sm max-h-64 overflow-y-auto">
+                    <li th:each="c : ${courses}">
+                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, courseId=${c.id})}"
+                           th:text="${c.code + ' - ' + c.title}"
+                           th:classappend="${selectedCourseId == c.id} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
+                           class="block py-1 transition"></a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-xl border border-eac-border p-5">
+                <h2 class="font-bold text-eac-navy mb-3 text-sm uppercase tracking-wide">Category</h2>
+                <ul class="space-y-1 text-sm">
+                    <li>
+                        <a th:href="@{/browse}"
+                           th:classappend="${selectedCategoryId == null} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
+                           class="block py-1 transition">All Categories</a>
+                    </li>
+                    <li th:each="cat : ${categories}">
+                        <a th:href="@{/browse(categoryId=${cat.id})}"
+                           th:text="${cat.name}"
+                           th:classappend="${selectedCategoryId == cat.id} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
+                           class="block py-1 transition"></a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Results -->
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-xl font-bold text-eac-navy" th:text="${files.totalElements} + ' file(s) found'"></h1>
+            </div>
+
+            <div th:if="${files.empty}" class="rounded-xl border border-dashed border-eac-border bg-white p-10 text-center text-eac-text-light">
+                <p class="font-medium">No approved files match this view yet.</p>
+                <p class="text-sm mt-1">Be the first to <a th:href="@{/upload}" class="text-eac-red hover:underline">upload one</a>.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" th:unless="${files.empty}">
+                <a th:each="file : ${files.content}" th:href="@{/files/{id}(id=${file.id})}"
+                   class="block bg-white rounded-xl border border-eac-border p-5 hover:shadow-md hover:border-eac-red/40 transition">
+                    <div class="flex items-center gap-2 text-xs text-eac-text-light mb-2">
+                        <span class="bg-eac-navy/5 text-eac-navy px-2 py-0.5 rounded font-medium" th:text="${file.category.name}"></span>
+                        <span th:text="${file.department.code}"></span>
+                    </div>
+                    <h3 class="font-semibold text-eac-text mb-1" th:text="${file.title}"></h3>
+                    <p class="text-sm text-eac-text-light line-clamp-2" th:text="${file.description}"></p>
+                    <div class="mt-3 flex items-center justify-between text-xs text-eac-text-light">
+                        <span th:text="${file.uploader.fullName}"></span>
+                        <span th:text="${file.downloadCount} + ' downloads'"></span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-center gap-2 mt-8" th:if="${files.totalPages > 1}">
+                <a th:each="p : ${#numbers.sequence(0, files.totalPages - 1)}"
+                   th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${selectedProgramId}, courseId=${selectedCourseId}, categoryId=${selectedCategoryId}, q=${q}, page=${p})}"
+                   th:text="${p + 1}"
+                   th:classappend="${p == files.number} ? 'bg-eac-red text-white' : 'bg-white text-eac-text border border-eac-border hover:border-eac-red'"
+                   class="w-9 h-9 flex items-center justify-center rounded-md text-sm transition"></a>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>

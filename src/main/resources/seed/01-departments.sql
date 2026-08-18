@@ -1,0 +1,20 @@
+-- Auto-generated from eacdb registrar dump. Do not hand-edit; re-run extraction to refresh.
+INSERT INTO departments (source_department_id, code, name) VALUES
+(1, 'ENGR', 'School of Engineering and Technology'),
+(2, 'SAS', 'School of Arts and Sciences'),
+(3, 'GEN', 'General Education'),
+(4, 'NURS', 'Marian School of Nursing'),
+(5, 'NUTR', 'School of Nutrition and Dietetics'),
+(7, 'BUS', 'School of Business Education'),
+(8, 'CRIM', 'School of Criminology'),
+(9, 'DENT', 'School of Dentistry'),
+(11, 'HOSP', 'School of Hospitality & Tourism Management'),
+(12, 'MED', 'School of Medical Technology'),
+(13, 'PHAR', 'School of Pharmacy'),
+(14, 'PHYS', 'School of Physical, Occupational, & Respiratory Therapy'),
+(15, 'RAD', 'School of Radiologic Technology'),
+(16, 'EDUC', 'School of Teacher Education'),
+(47, 'MIDW', 'School of Midwifery & Caregiving'),
+(48, 'SOM', 'School of Medicine'),
+(49, 'GS', 'Graduate School'),
+(50, 'ETEEAP', 'Expanded Tertiary Education Equivalency and Accreditation Program');

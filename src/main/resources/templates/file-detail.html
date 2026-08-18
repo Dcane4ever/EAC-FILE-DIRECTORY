@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${file.title} + ' - EAC File Directory'">File - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg">
+
+    <header class="bg-eac-navy text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a th:href="@{/home}" class="flex items-center gap-3">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-9 h-9">
+                <span class="font-bold text-lg tracking-wide">EAC File Directory</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a th:href="@{/browse}" class="hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/upload}" class="hover:text-eac-red transition">Upload</a>
+                <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition rounded-md px-4 py-2 font-medium">Sign Out</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 py-10">
+        <a th:href="@{/browse}" class="text-sm text-eac-text-light hover:text-eac-red">&larr; Back to Browse</a>
+
+        <div class="bg-white rounded-xl border border-eac-border p-8 mt-4">
+            <div class="flex items-center gap-2 text-xs text-eac-text-light mb-3">
+                <span class="bg-eac-navy/5 text-eac-navy px-2 py-0.5 rounded font-medium" th:text="${file.category.name}"></span>
+                <span th:text="${file.department.name}"></span>
+                <span th:if="${file.program != null}" th:text="'· ' + ${file.program.code}"></span>
+                <span th:if="${file.course != null}" th:text="'· ' + ${file.course.code}"></span>
+                <span th:if="${file.status.name() != 'APPROVED'}"
+                      class="font-semibold px-2 py-0.5 rounded-full"
+                      th:classappend="${file.status.name() == 'REJECTED'} ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'"
+                      th:text="${file.status}"></span>
+            </div>
+
+            <h1 class="text-2xl font-bold text-eac-navy mb-2" th:text="${file.title}"></h1>
+            <p class="text-eac-text-light mb-6" th:text="${file.description}"></p>
+
+            <div class="flex flex-wrap gap-2 mb-6" th:if="${!file.tags.isEmpty()}">
+                <span th:each="tag : ${file.tags}" th:text="${'#' + tag.name}"
+                      class="text-xs bg-eac-bg border border-eac-border text-eac-text-light px-2 py-1 rounded-full"></span>
+            </div>
+
+            <dl class="grid grid-cols-2 gap-4 text-sm mb-6">
+                <div>
+                    <dt class="text-eac-text-light">Uploaded by</dt>
+                    <dd class="font-medium text-eac-text" th:text="${file.uploader.fullName}"></dd>
+                </div>
+                <div>
+                    <dt class="text-eac-text-light">File size</dt>
+                    <dd class="font-medium text-eac-text" th:text="${#numbers.formatDecimal(file.fileSize / 1024.0 / 1024.0, 1, 2)} + ' MB'"></dd>
+                </div>
+                <div>
+                    <dt class="text-eac-text-light">Downloads</dt>
+                    <dd class="font-medium text-eac-text" th:text="${file.downloadCount}"></dd>
+                </div>
+                <div>
+                    <dt class="text-eac-text-light">Uploaded on</dt>
+                    <dd class="font-medium text-eac-text" th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy')}"></dd>
+                </div>
+            </dl>
+
+            <a th:href="@{/files/{id}/download(id=${file.id})}"
+               class="inline-block bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 py-3 rounded-lg">
+                Download &ndash; <span th:text="${file.originalFilename}"></span>
+            </a>
+        </div>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg">
+
+    <header class="bg-eac-navy text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a th:href="@{/home}" class="flex items-center gap-3">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-9 h-9">
+                <span class="font-bold text-lg tracking-wide">EAC File Directory</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a th:href="@{/browse}" class="hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/my-uploads}" class="hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition rounded-md px-4 py-2 font-medium">Sign Out</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-6 py-10">
+        <h1 class="text-2xl font-bold text-eac-navy mb-1">Upload a File</h1>
+        <p class="text-eac-text-light text-sm mb-6">Your upload stays <strong>pending</strong> until a moderator approves it.</p>
+
+        <div th:if="${errorMessage}" class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/upload}" method="post" enctype="multipart/form-data" class="bg-white rounded-xl border border-eac-border p-6 space-y-5">
+
+            <div>
+                <label class="block text-sm font-medium text-eac-text mb-1">Title</label>
+                <input type="text" name="title" required
+                       class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-eac-text mb-1">Description</label>
+                <textarea name="description" rows="4"
+                          class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-eac-text mb-1">School / Department</label>
+                    <select id="departmentSelect" name="departmentId" required
+                            class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                        <option value="" disabled selected>Select...</option>
+                        <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"></option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-eac-text mb-1">Category</label>
+                    <select name="categoryId" required
+                            class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                        <option value="" disabled selected>Select...</option>
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-eac-text mb-1">Program <span class="text-eac-text-light font-normal">(optional)</span></label>
+                    <select id="programSelect" name="programId"
+                            class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-eac-text mb-1">Course <span class="text-eac-text-light font-normal">(optional)</span></label>
+                    <select id="courseSelect" name="courseId"
+                            class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                        <option value="">None</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-eac-text mb-1">Tags <span class="text-eac-text-light font-normal">(comma-separated)</span></label>
+                <input type="text" name="tags" placeholder="machine-learning, thesis-2026"
+                       class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-eac-text mb-1">File</label>
+                <input type="file" name="file" required
+                       class="w-full text-sm text-eac-text-light file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-eac-navy file:text-white hover:file:bg-eac-navy-secondary file:cursor-pointer">
+            </div>
+
+            <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold py-3 rounded-lg">
+                Submit for Review
+            </button>
+        </form>
+    </main>
+
+    <script th:inline="javascript">
+        const departmentSelect = document.getElementById('departmentSelect');
+        const programSelect = document.getElementById('programSelect');
+        const courseSelect = document.getElementById('courseSelect');
+
+        departmentSelect.addEventListener('change', async () => {
+            const departmentId = departmentSelect.value;
+            programSelect.innerHTML = '<option value="">None</option>';
+            courseSelect.innerHTML = '<option value="">None</option>';
+            if (!departmentId) return;
+
+            const [programs, courses] = await Promise.all([
+                fetch(`/api/programs?departmentId=${departmentId}`).then(r => r.json()),
+                fetch(`/api/courses?departmentId=${departmentId}`).then(r => r.json())
+            ]);
+            for (const p of programs) {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.code} - ${p.name}`;
+                programSelect.appendChild(opt);
+            }
+            for (const c of courses) {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.code} - ${c.title}`;
+                courseSelect.appendChild(opt);
+            }
+        });
+    </script>
+
+</body>
+</html>

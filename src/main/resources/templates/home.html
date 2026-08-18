@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +16,10 @@
                 <span class="font-bold text-lg tracking-wide">EAC File Directory</span>
             </div>
             <div class="flex items-center gap-4 text-sm">
+                <a th:href="@{/browse}" class="hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/upload}" class="hover:text-eac-red transition">Upload</a>
+                <a th:href="@{/my-uploads}" class="hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/admin/queue}" sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="hover:text-eac-red transition">Admin Queue</a>
                 <span th:if="${user}" th:text="${user.email}" class="text-neutral-300"></span>
                 <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition rounded-md px-4 py-2 font-medium">Sign Out</a>
             </div>
@@ -28,21 +32,31 @@
             <h1 class="text-3xl md:text-4xl font-bold text-eac-navy mb-2">Welcome to the EAC File Directory</h1>
             <p class="text-eac-text-light mb-8">Research papers, theses, books, code, and presentations — organized by school, program, and course.</p>
 
-            <div class="max-w-2xl mx-auto flex">
-                <input type="text" placeholder="Search by title, tag, course, or author..."
+            <form th:action="@{/browse}" method="get" class="max-w-2xl mx-auto flex">
+                <input type="text" name="q" placeholder="Search by title, tag, course, or author..."
                        class="flex-1 rounded-l-lg border border-eac-border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                <button class="bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 rounded-r-lg">
+                <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 rounded-r-lg">
                     Search
                 </button>
-            </div>
+            </form>
         </div>
     </section>
 
-    <!-- Placeholder content -->
+    <!-- Quick links -->
     <main class="max-w-7xl mx-auto px-6 py-12">
-        <div class="rounded-xl border border-dashed border-eac-border bg-white p-10 text-center text-eac-text-light">
-            <p class="font-medium text-eac-text mb-1">Browse by School / Program / Course, Category, and Tags is coming next.</p>
-            <p class="text-sm">You're signed in and this page is protected — the login gate is live.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a th:href="@{/browse}" class="block bg-white rounded-xl border border-eac-border p-6 hover:shadow-md hover:border-eac-red/40 transition">
+                <h3 class="font-bold text-eac-navy mb-1">Browse the Directory</h3>
+                <p class="text-sm text-eac-text-light">By school, program, course, category, or tag.</p>
+            </a>
+            <a th:href="@{/upload}" class="block bg-white rounded-xl border border-eac-border p-6 hover:shadow-md hover:border-eac-red/40 transition">
+                <h3 class="font-bold text-eac-navy mb-1">Upload a File</h3>
+                <p class="text-sm text-eac-text-light">Research, thesis, code, slides — reviewed before it goes public.</p>
+            </a>
+            <a th:href="@{/my-uploads}" class="block bg-white rounded-xl border border-eac-border p-6 hover:shadow-md hover:border-eac-red/40 transition">
+                <h3 class="font-bold text-eac-navy mb-1">My Uploads</h3>
+                <p class="text-sm text-eac-text-light">Track the status of what you've submitted.</p>
+            </a>
         </div>
     </main>
 

@@ -157,16 +157,18 @@ Extracted from the live EAC enrollment login page (`eacmnl`):
 
 ## 8. Build Order (today)
 
-1. Scaffold Spring Boot project (Web, Security, Data JPA, Thymeleaf, MySQL driver, OAuth2 Client).
-2. Set up `eac_directory` MySQL schema + JPA entities (§4).
-3. Wire Google OAuth2 login restricted to `eac.edu.ph`, auto-provision `users`.
-4. Seed departments/categories with placeholder data (real list swapped in once you send it).
-5. Build upload flow (file → disk, metadata → DB, status = PENDING).
-6. Build browse/search pages (department tree, category filter, tag/search bar).
-7. Build admin approval queue.
-8. Apply placeholder theme; leave clear hooks for real EAC branding swap-in.
-9. Package as WAR, smoke-test locally, document deployment steps for the Tomcat server.
+1. [x] Scaffold Spring Boot project (Web, Security, Data JPA, Thymeleaf, MySQL driver, OAuth2 Client).
+2. [x] Set up `eac_directory` MySQL schema + JPA entities (§4) — `Department`/`Program`/`Course`/`Category`/`Tag`/`FileEntity` + repositories, package-per-feature under `taxonomy/` and `file/`.
+3. [x] Wire Google OAuth2 login restricted to `eac.edu.ph`, auto-provision `users`.
+4. [x] Seed departments/programs/courses from the **real** `eacdb` registrar dump (not placeholders) — see `tools/eacdb-extract/README.md` for the repeatable extraction process; `DataSeeder` loads the generated SQL under `src/main/resources/seed/` at startup, per-table, only if that table is empty. Confirmed row counts match the dump exactly: 18 departments / 34 programs / 1053 courses, zero orphaned FKs. Starter category list (9 types) seeded alongside.
+5. [x] Build upload flow (file → disk via `FileStorageService` (SHA-256 checksum, sanitized filenames, path-traversal guard), metadata → DB, status = PENDING) — `/upload` form + `UploadController`.
+6. [x] Build browse/search pages (department → program → course tree, category filter, tag/text search via `FileRepository.search`) — `/browse` + `BrowseController`, plus `/files/{id}` detail + `/files/{id}/download`.
+7. [x] Build admin approval queue — `/admin/queue`, approve/reject with optional rejection reason, gated by `ROLE_ADMIN`/`ROLE_MODERATOR` (see `SecurityConfig`).
+8. [x] Apply placeholder theme — real EAC branding tokens already wired (§6), all new pages (`browse`, `upload`, `my-uploads`, `file-detail`, `admin/queue`) follow the same Tailwind theme + header pattern as `home.html`/`auth/login.html`.
+9. [ ] Package as WAR, smoke-test locally, document deployment steps for the Tomcat server. *(Ran locally via `spring-boot:run` against a real `eac_directory` MySQL DB — full request cycle confirmed working: login gate, `/browse`, `/upload`, `/my-uploads`, `/admin/queue` all correctly route/redirect. Still open: actual WAR packaging + Tomcat deploy dry-run, and real Google OAuth credentials — see §7.)*
+
+**Also still open (§7):** Google OAuth Client ID/Secret (placeholder values only — sign-in will fail until real ones are set, see `.env.example`), Tomcat server specs/access, max file size/type policy beyond the current 100MB cap.
 
 ---
 
-*Once you confirm the frontend approach (§7) and drop in the departments/courses list whenever it's ready, we start scaffolding.*
+*Core MVP scope (§5) is now built end-to-end: login → browse/search → upload → admin approval → download. Next real blockers are the two items above (OAuth credentials, Tomcat access) rather than more app code.*
