@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EAC File Directory - Sign In</title>
+    <title>EAC File Directory - Admin Sign In</title>
     <link rel="stylesheet" th:href="@{/css/output.css}">
 </head>
 <body class="min-h-screen bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center p-4">
 
-    <!-- Toast: brief side notification (e.g. "Successfully logged out"), separate from the inline banners below which stay for messages tied to the form itself. -->
+    <!-- Toast: brief side notification (e.g. "Successfully logged out") -->
     <div th:if="${toastMessage}" id="toast"
          class="fixed top-5 right-5 z-50 flex items-center gap-3 bg-white border border-green-200 shadow-lg rounded-xl px-4 py-3 text-sm text-eac-text transition-all duration-300"
          role="status" aria-live="polite">
@@ -18,9 +18,9 @@
 
     <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
 
-        <!-- Branding panel -->
-        <div class="md:w-1/2 bg-eac-red relative p-10 flex flex-col items-center justify-center text-center text-white"
-             style="background: linear-gradient(135deg, #b31217 0%, #8b0e12 100%);">
+        <!-- Branding panel - EAC Maroon (darker than the student login's red) to visually mark this as the admin area -->
+        <div class="md:w-1/2 bg-eac-maroon relative p-10 flex flex-col items-center justify-center text-center text-white"
+             style="background: linear-gradient(135deg, #6b1118 0%, #3f0a0e 100%);">
             <img th:src="@{/images/emblem.png}" alt="Emilio Aguinaldo College" class="w-28 h-28 mb-4 drop-shadow-lg">
             <h2 class="text-2xl font-bold tracking-wide">Emilio Aguinaldo College</h2>
             <p class="text-sm text-red-100 mt-1 mb-6">Excellence in Education</p>
@@ -32,47 +32,43 @@
 
         <!-- Sign-in panel -->
         <div class="md:w-1/2 p-10 flex flex-col justify-center">
-            <h1 class="text-3xl font-bold text-eac-navy mb-1">EAC File Directory</h1>
-            <p class="text-eac-text-light mb-8">Research, papers, code, and academic resources — all in one place.</p>
+            <div class="flex items-center gap-2 mb-1">
+                <h1 class="text-3xl font-bold text-eac-maroon">EAC File Directory</h1>
+                <span class="text-xs font-bold uppercase tracking-wide bg-eac-maroon text-white px-2 py-1 rounded-full">Admin</span>
+            </div>
+            <p class="text-eac-text-light mb-8">Approval queue and account management for moderators and administrators.</p>
 
-            <h2 class="text-xl font-semibold text-eac-text border-b-2 border-eac-red inline-block pb-1 mb-6 w-fit">
-                Sign In
+            <h2 class="text-xl font-semibold text-eac-text border-b-2 border-eac-maroon inline-block pb-1 mb-6 w-fit">
+                Admin Sign In
             </h2>
 
             <div th:if="${errorMessage}" class="mb-6 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">
                 <span th:text="${errorMessage}"></span>
             </div>
-            <div th:if="${infoMessage}" class="mb-6 flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-800 text-sm px-4 py-3">
-                <span th:text="${infoMessage}"></span>
-            </div>
 
+            <!-- Same processing URL as the student login (/login) - same accounts, same password check, see SecurityConfig -->
             <form th:action="@{/login}" method="post" class="space-y-3">
                 <div>
                     <label class="block text-sm font-medium text-eac-text mb-1">Email</label>
                     <input type="email" name="email" required placeholder="yourname@eac.edu.ph"
-                           class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                           class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-maroon/40">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-eac-text mb-1">Password</label>
                     <input type="password" name="password" required
-                           class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                           class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-maroon/40">
                 </div>
-                <button type="submit" class="w-full bg-eac-navy hover:bg-eac-navy-secondary transition text-white font-semibold py-3 rounded-lg">
+                <button type="submit" class="w-full bg-eac-maroon hover:bg-eac-maroon/90 transition text-white font-semibold py-3 rounded-lg">
                     Sign In
                 </button>
             </form>
 
-            <p class="text-sm text-eac-text-light mt-4 text-center">
-                No account? <a th:href="@{/register}" class="text-eac-red font-medium hover:underline">Register with your @eac.edu.ph email</a>
-            </p>
-
-            <p class="text-xs text-eac-text-light mt-4 text-center">
-                Access is restricted to <span class="font-medium">@eac.edu.ph</span> accounts —
-                students, faculty, and staff.
+            <p class="text-xs text-eac-text-light mt-6 text-center">
+                Not an administrator or moderator? <a th:href="@{/login}" class="text-eac-red font-medium hover:underline">Go to the regular sign-in</a>
             </p>
 
             <div class="mt-8 pt-6 border-t border-eac-border text-center text-sm text-eac-text-light">
-                Trouble signing in? Contact the IT administrator.
+                Trouble signing in? Contact another administrator.
             </div>
         </div>
     </div>

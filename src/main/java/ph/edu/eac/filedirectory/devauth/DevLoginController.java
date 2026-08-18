@@ -91,6 +91,9 @@ public class DevLoginController {
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
 
-        return "redirect:/home";
+        // Match RoleBasedLoginSuccessHandler's real-login behavior: staff
+        // land on the admin dashboard, everyone else on the student home.
+        boolean isStaff = user.getRole() == Role.ADMIN || user.getRole() == Role.MODERATOR;
+        return isStaff ? "redirect:/admin/home" : "redirect:/home";
     }
 }

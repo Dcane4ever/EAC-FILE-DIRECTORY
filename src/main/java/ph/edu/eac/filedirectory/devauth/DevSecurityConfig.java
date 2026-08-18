@@ -26,8 +26,16 @@ public class DevSecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/dev-login", "/dev-login/**", "/register", "/verify", "/access-denied", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/admin/users/**", "/admin/departments/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "MODERATOR")
                 .anyRequest().authenticated()
+            )
+            // No formLogin() here since there's no password check in this
+            // profile - but an explicit entry point still gets an
+            // unauthenticated visitor redirected to /dev-login instead of a
+            // bare 403, matching SecurityConfig's real loginPage() behavior.
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(new org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint("/dev-login"))
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")

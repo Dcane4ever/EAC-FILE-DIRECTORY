@@ -18,7 +18,9 @@
                 <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
                 <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
                 <div class="h-6 w-px bg-eac-border"></div>
-                <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
             </nav>
             <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
                 <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
@@ -27,93 +29,316 @@
         <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
             <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
-            <a th:href="@{/logout}" class="block bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5 text-center mt-2">Sign Out</a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
         </div>
     </header>
 
-    <main class="max-w-2xl mx-auto px-6 py-10">
-        <h1 class="text-2xl font-bold text-eac-navy mb-1">Upload a File</h1>
-        <p class="text-eac-text-light text-sm mb-6">Your upload stays <strong>pending</strong> until a moderator approves it.</p>
+    <main class="max-w-3xl mx-auto px-6 py-10 sm:py-14">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-eac-maroon mb-2">Upload a File</h1>
+            <p class="text-eac-text-light text-sm">Your upload stays <strong class="text-eac-maroon font-semibold">pending</strong> until a moderator approves it.</p>
+        </div>
 
         <div th:if="${errorMessage}" class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm" th:text="${errorMessage}"></div>
 
-        <form th:action="@{/upload}" method="post" enctype="multipart/form-data" class="bg-white rounded-xl border border-eac-border p-6 space-y-5">
+        <form th:action="@{/upload}" method="post" enctype="multipart/form-data"
+              class="bg-white rounded-2xl border border-eac-border shadow-sm p-6 sm:p-8 space-y-6">
 
+            <!-- Title -->
             <div>
-                <label class="block text-sm font-medium text-eac-text mb-1">Title</label>
-                <input type="text" name="title" required
-                       class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-eac-text mb-1">Description</label>
-                <textarea name="description" rows="4"
-                          class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40"></textarea>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">School / Department</label>
-                    <select id="departmentSelect" name="departmentId" required
-                            class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                        <option value="" disabled selected>Select...</option>
-                        <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"></option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">Category</label>
-                    <select name="categoryId" required
-                            class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                        <option value="" disabled selected>Select...</option>
-                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
-                    </select>
+                <label class="block text-sm font-semibold text-eac-text mb-1.5">Title</label>
+                <div class="relative">
+                    <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-eac-red">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/></svg>
+                    </span>
+                    <input type="text" name="title" required placeholder="Enter the title of your file"
+                           class="w-full rounded-lg border border-eac-border pl-10 pr-3 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40">
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">Program <span class="text-eac-text-light font-normal">(optional)</span></label>
-                    <select id="programSelect" name="programId"
-                            class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                        <option value="">None</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">Course <span class="text-eac-text-light font-normal">(optional)</span></label>
-                    <select id="courseSelect" name="courseId"
-                            class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                        <option value="">None</option>
-                    </select>
+            <!-- Description -->
+            <div>
+                <label class="block text-sm font-semibold text-eac-text mb-1.5">Description</label>
+                <div class="relative">
+                    <span class="pointer-events-none absolute left-3 top-3 text-eac-red">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+                    </span>
+                    <textarea name="description" rows="4" placeholder="Provide a brief description about your file..."
+                              class="w-full rounded-lg border border-eac-border pl-10 pr-3 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40 resize-y"></textarea>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-eac-text mb-1">Tags <span class="text-eac-text-light font-normal">(comma-separated)</span></label>
-                <input type="text" name="tags" placeholder="machine-learning, thesis-2026"
-                       class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+            <!-- School / Department + Category -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-eac-text mb-1.5">School / Department</label>
+                    <!-- Searchable combobox: real <select> stays the source of truth
+                         (kept in the DOM, visually hidden) so required-field
+                         validation and the departmentSelect 'change' listener below
+                         keep working unchanged. See initCombobox(). -->
+                    <div class="combobox relative" data-combobox="departmentCombo">
+                        <select id="departmentSelect" name="departmentId" required tabindex="-1" aria-hidden="true" class="sr-only">
+                            <option value="" disabled selected>Select school / department</option>
+                            <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"></option>
+                        </select>
+                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-eac-red">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+                        </span>
+                        <input type="text" autocomplete="off" placeholder="Search or select school / department"
+                               class="combobox-input w-full rounded-lg border border-eac-border pl-10 pr-9 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40">
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-eac-text-light">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </span>
+                        <ul class="combobox-list hidden absolute z-20 mt-1 w-full max-h-60 overflow-y-auto rounded-lg border border-eac-border bg-white shadow-lg py-1 text-sm"></ul>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-eac-text mb-1.5">Category</label>
+                    <div class="combobox relative" data-combobox="categoryCombo">
+                        <select name="categoryId" required tabindex="-1" aria-hidden="true" class="sr-only">
+                            <option value="" disabled selected>Select category</option>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                        </select>
+                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-eac-red">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+                        </span>
+                        <input type="text" autocomplete="off" placeholder="Search or select category"
+                               class="combobox-input w-full rounded-lg border border-eac-border pl-10 pr-9 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40">
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-eac-text-light">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </span>
+                        <ul class="combobox-list hidden absolute z-20 mt-1 w-full max-h-60 overflow-y-auto rounded-lg border border-eac-border bg-white shadow-lg py-1 text-sm"></ul>
+                    </div>
+                </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-eac-text mb-1">File</label>
-                <input type="file" name="file" required
-                       class="w-full text-sm text-eac-text-light file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-eac-navy file:text-white hover:file:bg-eac-navy-secondary file:cursor-pointer">
+            <!-- Program + Course -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-eac-text mb-1.5">Program <span class="text-eac-text-light font-normal">(optional)</span></label>
+                    <div class="combobox relative" data-combobox="programCombo">
+                        <select id="programSelect" name="programId" tabindex="-1" aria-hidden="true" class="sr-only">
+                            <option value="">None</option>
+                        </select>
+                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-eac-red">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                        </span>
+                        <input type="text" autocomplete="off" placeholder="Search or select program" disabled
+                               class="combobox-input w-full rounded-lg border border-eac-border pl-10 pr-9 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40 disabled:bg-eac-bg disabled:cursor-not-allowed">
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-eac-text-light">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </span>
+                        <ul class="combobox-list hidden absolute z-20 mt-1 w-full max-h-60 overflow-y-auto rounded-lg border border-eac-border bg-white shadow-lg py-1 text-sm"></ul>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-eac-text mb-1.5">Course <span class="text-eac-text-light font-normal">(optional)</span></label>
+                    <div class="combobox relative" data-combobox="courseCombo">
+                        <select id="courseSelect" name="courseId" tabindex="-1" aria-hidden="true" class="sr-only">
+                            <option value="">None</option>
+                        </select>
+                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-eac-red">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+                        </span>
+                        <input type="text" autocomplete="off" placeholder="Search or select course" disabled
+                               class="combobox-input w-full rounded-lg border border-eac-border pl-10 pr-9 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40 disabled:bg-eac-bg disabled:cursor-not-allowed">
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-eac-text-light">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </span>
+                        <ul class="combobox-list hidden absolute z-20 mt-1 w-full max-h-60 overflow-y-auto rounded-lg border border-eac-border bg-white shadow-lg py-1 text-sm"></ul>
+                    </div>
+                </div>
             </div>
 
-            <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold py-3 rounded-lg">
+            <!-- Tags -->
+            <div>
+                <div class="flex items-baseline justify-between mb-1.5">
+                    <label class="block text-sm font-semibold text-eac-text">Tags <span class="text-eac-text-light font-normal">(comma-separated)</span></label>
+                    <span id="tagsCount" class="text-xs text-eac-text-light">0 / 5</span>
+                </div>
+                <!-- Chip-style tag input: typing then pressing comma or Enter
+                     turns the current word into a removable pill, capped at
+                     MAX_TAGS (see UploadController - the same cap is enforced
+                     server-side, this is just UX). The real "tags" field
+                     stays a plain comma-separated hidden input kept in sync
+                     on every change, so UploadController's resolveTags(...)
+                     parsing needs no changes at all. -->
+                <div id="tagsBox"
+                     class="flex flex-wrap items-center gap-1.5 w-full rounded-lg border border-eac-border pl-3 pr-3 py-2 text-sm focus-within:ring-2 focus-within:ring-eac-red/40 focus-within:border-eac-red/40">
+                    <span class="text-eac-red shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+                    </span>
+                    <span id="tagChips" class="flex flex-wrap items-center gap-1.5"></span>
+                    <input type="text" id="tagsTextInput" autocomplete="off" placeholder="e.g., machine-learning, thesis-2026, ai"
+                           class="flex-1 min-w-[10rem] border-0 outline-none py-0.5 text-sm placeholder:text-eac-text-light/70">
+                    <input type="hidden" name="tags" id="tagsHidden">
+                </div>
+                <p id="tagsMaxHint" class="hidden text-xs text-eac-red mt-1">Maximum of 5 tags reached - remove one to add another.</p>
+            </div>
+
+            <!-- File -->
+            <div>
+                <label class="block text-sm font-semibold text-eac-text mb-1.5">File</label>
+                <label for="fileInput"
+                       class="relative flex items-center gap-4 rounded-xl border border-dashed border-eac-red/30 bg-eac-red-soft px-5 py-4 cursor-pointer hover:border-eac-red/50 transition">
+                    <span class="flex items-center justify-center w-11 h-11 rounded-full bg-white text-eac-red shrink-0">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                    </span>
+                    <span class="flex-1 min-w-0">
+                        <span id="fileChosenLabel" class="block font-semibold text-eac-text">Choose a file</span>
+                        <span id="fileHintLabel" class="block text-xs text-eac-text-light">PDF, DOCX, PPTX, ZIP up to 50MB</span>
+                    </span>
+                    <span class="shrink-0 rounded-lg border border-eac-border bg-white px-4 py-2 text-sm font-semibold text-eac-red">
+                        Choose file
+                    </span>
+                    <input id="fileInput" type="file" name="file" required class="sr-only">
+                </label>
+            </div>
+
+            <button type="submit"
+                    class="w-full flex items-center justify-center gap-2 bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
                 Submit for Review
             </button>
         </form>
     </main>
 
     <script th:inline="javascript">
+        // Searchable combobox: progressively enhances a <select> with a text
+        // input you can type into to filter long lists (departments,
+        // categories, programs, courses), while the underlying <select>
+        // stays the real form control - name/required/validation and any
+        // existing 'change' listeners on it keep working exactly as before.
+        // Call refresh() again after repopulating a <select>'s <option>s
+        // (used for the department -> program/course dependency below).
+        function initCombobox(root) {
+            const select = root.querySelector('select');
+            const input = root.querySelector('.combobox-input');
+            const list = root.querySelector('.combobox-list');
+            let options = [];
+            let activeIndex = -1;
+
+            function labelFor(opt) {
+                return opt.textContent.trim();
+            }
+
+            function readOptions() {
+                options = Array.from(select.options).filter(o => o.value !== '');
+                syncInputFromSelect();
+            }
+
+            function syncInputFromSelect() {
+                const selected = select.options[select.selectedIndex];
+                input.value = selected && selected.value !== '' ? labelFor(selected) : '';
+            }
+
+            function closeList() {
+                list.classList.add('hidden');
+                activeIndex = -1;
+            }
+
+            function renderList(filterText) {
+                const query = filterText.trim().toLowerCase();
+                const matches = options.filter(o => labelFor(o).toLowerCase().includes(query));
+                list.innerHTML = '';
+
+                if (matches.length === 0) {
+                    const empty = document.createElement('li');
+                    empty.className = 'px-3 py-2 text-eac-text-light';
+                    empty.textContent = 'No matches found';
+                    list.appendChild(empty);
+                } else {
+                    matches.forEach((opt) => {
+                        const item = document.createElement('li');
+                        item.textContent = labelFor(opt);
+                        item.dataset.value = opt.value;
+                        item.className = 'px-3 py-2 cursor-pointer hover:bg-eac-red-soft text-eac-text' +
+                            (opt.value === select.value ? ' bg-eac-red-soft font-medium text-eac-red' : '');
+                        item.addEventListener('mousedown', (e) => {
+                            // mousedown (not click) so it fires before the input's blur
+                            e.preventDefault();
+                            selectOption(opt);
+                        });
+                        list.appendChild(item);
+                    });
+                }
+                list.classList.remove('hidden');
+                activeIndex = -1;
+            }
+
+            function selectOption(opt) {
+                select.value = opt.value;
+                input.value = labelFor(opt);
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                closeList();
+            }
+
+            input.addEventListener('focus', () => {
+                if (input.disabled) return;
+                const selected = select.options[select.selectedIndex];
+                const selectedLabel = selected ? labelFor(selected) : '';
+                renderList(input.value === selectedLabel ? '' : input.value);
+            });
+            input.addEventListener('input', () => renderList(input.value));
+            input.addEventListener('blur', () => {
+                // Delay so a pending mousedown-selection can still land first.
+                setTimeout(() => {
+                    syncInputFromSelect();
+                    closeList();
+                }, 150);
+            });
+            input.addEventListener('keydown', (e) => {
+                const items = Array.from(list.children).filter(li => li.dataset.value !== undefined);
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (list.classList.contains('hidden')) { renderList(''); return; }
+                    activeIndex = Math.min(activeIndex + 1, items.length - 1);
+                    highlight(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIndex = Math.max(activeIndex - 1, 0);
+                    highlight(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (activeIndex >= 0 && items[activeIndex]) {
+                        const opt = options.find(o => o.value === items[activeIndex].dataset.value);
+                        if (opt) selectOption(opt);
+                    }
+                } else if (e.key === 'Escape') {
+                    closeList();
+                }
+            });
+
+            function highlight(items) {
+                items.forEach((li, i) => li.classList.toggle('bg-eac-red-soft', i === activeIndex));
+                if (items[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
+            }
+
+            readOptions();
+            return { refresh: readOptions };
+        }
+
+        const comboboxes = {};
+        document.querySelectorAll('[data-combobox]').forEach((root) => {
+            comboboxes[root.dataset.combobox] = initCombobox(root);
+        });
+
         const departmentSelect = document.getElementById('departmentSelect');
         const programSelect = document.getElementById('programSelect');
         const courseSelect = document.getElementById('courseSelect');
+        const programComboInput = document.querySelector('[data-combobox="programCombo"] .combobox-input');
+        const courseComboInput = document.querySelector('[data-combobox="courseCombo"] .combobox-input');
 
         departmentSelect.addEventListener('change', async () => {
             const departmentId = departmentSelect.value;
             programSelect.innerHTML = '<option value="">None</option>';
             courseSelect.innerHTML = '<option value="">None</option>';
+            comboboxes.programCombo.refresh();
+            comboboxes.courseCombo.refresh();
+            programComboInput.disabled = true;
+            courseComboInput.disabled = true;
             if (!departmentId) return;
 
             const [programs, courses] = await Promise.all([
@@ -131,6 +356,130 @@
                 opt.value = c.id;
                 opt.textContent = `${c.code} - ${c.title}`;
                 courseSelect.appendChild(opt);
+            }
+            comboboxes.programCombo.refresh();
+            comboboxes.courseCombo.refresh();
+            programComboInput.disabled = false;
+            courseComboInput.disabled = false;
+        });
+
+        // Tags chip input: Enter or comma turns the current word into a
+        // removable pill, capped at MAX_TAGS (kept in lockstep with
+        // UploadController.MAX_TAGS - this is UX only, the real limit is
+        // enforced server-side). tagsHidden (name="tags") is kept as the
+        // same plain comma-separated string the form always submitted, so
+        // UploadController.resolveTags(...) doesn't need any changes.
+        const MAX_TAGS = 5;
+        const tagsBox = document.getElementById('tagsBox');
+        const tagChips = document.getElementById('tagChips');
+        const tagsTextInput = document.getElementById('tagsTextInput');
+        const tagsHidden = document.getElementById('tagsHidden');
+        const tagsCount = document.getElementById('tagsCount');
+        const tagsMaxHint = document.getElementById('tagsMaxHint');
+        let tags = [];
+
+        function atMaxTags() {
+            return tags.length >= MAX_TAGS;
+        }
+
+        function syncTagsHidden() {
+            tagsHidden.value = tags.join(', ');
+        }
+
+        function updateTagsMeta() {
+            tagsCount.textContent = tags.length + ' / ' + MAX_TAGS;
+            tagsCount.classList.toggle('text-eac-red', atMaxTags());
+            tagsCount.classList.toggle('font-semibold', atMaxTags());
+            tagsMaxHint.classList.toggle('hidden', !atMaxTags());
+            tagsTextInput.disabled = atMaxTags();
+            tagsTextInput.placeholder = atMaxTags() ? '' : 'e.g., machine-learning, thesis-2026, ai';
+        }
+
+        function renderTagChips() {
+            tagChips.innerHTML = '';
+            tags.forEach((tag, index) => {
+                const chip = document.createElement('span');
+                chip.className = 'inline-flex items-center gap-1 rounded-full bg-eac-red-soft text-eac-red text-xs font-medium pl-2.5 pr-1.5 py-1';
+                chip.textContent = tag;
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.setAttribute('aria-label', 'Remove tag ' + tag);
+                remove.className = 'flex items-center justify-center w-4 h-4 rounded-full hover:bg-eac-red/20 transition';
+                remove.innerHTML = '<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+                remove.addEventListener('click', () => {
+                    tags.splice(index, 1);
+                    renderTagChips();
+                    syncTagsHidden();
+                    updateTagsMeta();
+                    tagsTextInput.focus();
+                });
+
+                chip.appendChild(remove);
+                tagChips.appendChild(chip);
+            });
+            updateTagsMeta();
+        }
+
+        function commitTag() {
+            const raw = tagsTextInput.value.trim().replace(/,+$/, '').trim();
+            tagsTextInput.value = '';
+            if (!raw || atMaxTags()) return;
+            if (!tags.some(t => t.toLowerCase() === raw.toLowerCase())) {
+                tags.push(raw);
+                renderTagChips();
+                syncTagsHidden();
+            }
+        }
+
+        tagsTextInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                commitTag();
+            } else if (e.key === 'Backspace' && tagsTextInput.value === '' && tags.length > 0) {
+                tags.pop();
+                renderTagChips();
+                syncTagsHidden();
+            }
+        });
+        // Typing/pasting a comma mid-string (not just pressing the , key)
+        // should still split into chips immediately, e.g. a pasted list -
+        // but never past MAX_TAGS; anything left over stays in the box.
+        tagsTextInput.addEventListener('input', () => {
+            if (tagsTextInput.value.includes(',')) {
+                const parts = tagsTextInput.value.split(',');
+                const remainder = parts.pop();
+                for (const part of parts) {
+                    if (atMaxTags()) break;
+                    const raw = part.trim();
+                    if (raw && !tags.some(t => t.toLowerCase() === raw.toLowerCase())) {
+                        tags.push(raw);
+                    }
+                }
+                tagsTextInput.value = atMaxTags() ? '' : remainder;
+                renderTagChips();
+                syncTagsHidden();
+            }
+        });
+        // Commit whatever's left in the text box when focus leaves, so a
+        // typed tag isn't silently dropped just because the user clicked
+        // away instead of pressing Enter/comma.
+        tagsTextInput.addEventListener('blur', () => commitTag());
+        tagsBox.addEventListener('click', (e) => {
+            if (e.target === tagsBox || e.target === tagChips) tagsTextInput.focus();
+        });
+        updateTagsMeta();
+
+        const fileInput = document.getElementById('fileInput');
+        const fileChosenLabel = document.getElementById('fileChosenLabel');
+        const fileHintLabel = document.getElementById('fileHintLabel');
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files && fileInput.files.length > 0) {
+                fileChosenLabel.textContent = fileInput.files[0].name;
+                fileHintLabel.textContent = 'Click to replace this file';
+            } else {
+                fileChosenLabel.textContent = 'Choose a file';
+                fileHintLabel.textContent = 'PDF, DOCX, PPTX, ZIP up to 50MB';
             }
         });
 

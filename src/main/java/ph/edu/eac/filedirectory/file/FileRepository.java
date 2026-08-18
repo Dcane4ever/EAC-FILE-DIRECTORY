@@ -7,9 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ph.edu.eac.filedirectory.user.AppUser;
 
+import java.util.List;
+
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
 
     Page<FileEntity> findByStatus(FileStatus status, Pageable pageable);
+
+    List<FileEntity> findByStatusOrderByCreatedAtAsc(FileStatus status);
 
     long countByStatus(FileStatus status);
 

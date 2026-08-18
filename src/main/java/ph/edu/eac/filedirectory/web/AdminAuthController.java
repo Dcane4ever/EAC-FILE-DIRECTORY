@@ -5,23 +5,28 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * Separate admin-facing login page at /admin/login. Same accounts, same
+ * password check as the student /login (both POST to the shared /login
+ * processing URL - see SecurityConfig) - this is only a distinct entry
+ * point/page, not a separate auth mechanism. An admin/moderator can still
+ * sign in via the regular /login too; RoleBasedLoginSuccessHandler routes
+ * them to /admin/home either way.
+ */
 @Controller
-public class AuthController {
+public class AdminAuthController {
 
-    @GetMapping("/login")
+    @GetMapping("/admin/login")
     public String login(@RequestParam(value = "error", required = false) String error,
                          @RequestParam(value = "logout", required = false) String logout,
                          Model model) {
         if (error != null) {
-            // Spring Security's formLogin doesn't let us distinguish the exact
-            // AuthenticationException reason from this redirect alone (bad
-            // password, unverified email, wrong domain all land here).
             model.addAttribute("errorMessage",
-                    "Sign-in failed. Check your email/password, that your email is verified, and that you're using an @eac.edu.ph account.");
+                    "Sign-in failed. Check your email/password and that your email is verified.");
         }
         if (logout != null) {
             model.addAttribute("toastMessage", "Successfully logged out");
         }
-        return "auth/login";
+        return "auth/admin-login";
     }
 }

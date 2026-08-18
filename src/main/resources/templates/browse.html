@@ -19,9 +19,10 @@
                 <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
                 <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
                 <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
-                <a th:href="@{/admin/queue}" sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="text-eac-text hover:text-eac-red transition">Admin Queue</a>
                 <div class="h-6 w-px bg-eac-border"></div>
-                <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
             </nav>
             <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
                 <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
@@ -31,8 +32,9 @@
             <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
             <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
             <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
-            <a th:href="@{/admin/queue}" sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="block text-eac-text hover:text-eac-red transition">Admin Queue</a>
-            <a th:href="@{/logout}" class="block bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5 text-center mt-2">Sign Out</a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
         </div>
     </header>
 

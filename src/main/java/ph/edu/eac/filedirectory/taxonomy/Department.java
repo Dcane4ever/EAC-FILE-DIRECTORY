@@ -26,6 +26,15 @@ public class Department {
     @Column(nullable = false, length = 100)
     private String name;
 
+    /**
+     * When true, new uploads to this department skip the moderation queue
+     * and are marked APPROVED immediately on submission - see
+     * UploadController.submitUpload. Off by default; an admin opts a
+     * department in from the approval queue page.
+     */
+    @Column(nullable = false)
+    private boolean autoApprove = false;
+
     protected Department() {
         // JPA
     }
@@ -54,5 +63,13 @@ public class Department {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isAutoApprove() {
+        return autoApprove;
+    }
+
+    public void setAutoApprove(boolean autoApprove) {
+        this.autoApprove = autoApprove;
     }
 }

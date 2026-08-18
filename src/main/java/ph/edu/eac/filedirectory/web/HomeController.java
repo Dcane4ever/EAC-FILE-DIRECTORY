@@ -69,12 +69,24 @@ public class HomeController {
     @GetMapping("/home")
     public String home(@AuthenticationPrincipal EacUserDetails principal, Model model) {
         if (principal != null) {
+            // Staff (MODERATOR/ADMIN) get their own landing page - see
+            // AdminHomeController / RoleBasedLoginSuccessHandler. Keeps the
+            // separation total: an admin account never sees the student
+            // browse/upload experience, even by navigating here directly.
+            if (isStaff(principal)) {
+                return "redirect:/admin/home";
+            }
             model.addAttribute("user", principal.getAppUser());
         }
         model.addAttribute("stats", buildStats());
         model.addAttribute("schools", buildFeaturedSchools());
         model.addAttribute("popularSearches", buildPopularSearches());
         return "home";
+    }
+
+    private boolean isStaff(EacUserDetails principal) {
+        var role = principal.getAppUser().getRole();
+        return role == ph.edu.eac.filedirectory.user.Role.ADMIN || role == ph.edu.eac.filedirectory.user.Role.MODERATOR;
     }
 
     /**
