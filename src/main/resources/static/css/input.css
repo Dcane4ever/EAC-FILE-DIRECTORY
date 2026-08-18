@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  /* EAC brand tokens - extracted from the live enrollment login page */
+  --color-eac-red: #b31217;
+  --color-eac-red-hover: #8b0e12;
+  --color-eac-navy: #1a1a2e;
+  --color-eac-navy-secondary: #16213e;
+  --color-eac-bg: #f8f9fa;
+  --color-eac-text: #1a1a1a;
+  --color-eac-text-light: #666666;
+  --color-eac-border: #e8e8e8;
+}

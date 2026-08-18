@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EAC File Directory - Home</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg">
+
+    <!-- Top nav -->
+    <header class="bg-eac-navy text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-9 h-9">
+                <span class="font-bold text-lg tracking-wide">EAC File Directory</span>
+            </div>
+            <div class="flex items-center gap-4 text-sm">
+                <span th:if="${user}" th:text="${user.email}" class="text-neutral-300"></span>
+                <a th:href="@{/logout}" class="bg-eac-red hover:bg-eac-red-hover transition rounded-md px-4 py-2 font-medium">Sign Out</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero / search -->
+    <section class="bg-white border-b border-eac-border">
+        <div class="max-w-7xl mx-auto px-6 py-12 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-eac-navy mb-2">Welcome to the EAC File Directory</h1>
+            <p class="text-eac-text-light mb-8">Research papers, theses, books, code, and presentations — organized by school, program, and course.</p>
+
+            <div class="max-w-2xl mx-auto flex">
+                <input type="text" placeholder="Search by title, tag, course, or author..."
+                       class="flex-1 rounded-l-lg border border-eac-border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                <button class="bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 rounded-r-lg">
+                    Search
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Placeholder content -->
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div class="rounded-xl border border-dashed border-eac-border bg-white p-10 text-center text-eac-text-light">
+            <p class="font-medium text-eac-text mb-1">Browse by School / Program / Course, Category, and Tags is coming next.</p>
+            <p class="text-sm">You're signed in and this page is protected — the login gate is live.</p>
+        </div>
+    </main>
+
+</body>
+</html>
