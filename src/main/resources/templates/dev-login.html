@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEV LOGIN - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+        <div class="bg-amber-500 text-white text-center text-xs font-bold uppercase tracking-wide py-2">
+            Test-only login &mdash; not the real sign-in
+        </div>
+
+        <div class="p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <div>
+                    <h1 class="text-lg font-bold text-eac-navy">EAC File Directory</h1>
+                    <p class="text-xs text-eac-text-light">Dev login (test profile only)</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-eac-text-light mb-6">
+                This bypasses Google OAuth so the app can be clicked through locally.
+                Only active when the app runs with <code class="bg-eac-bg px-1 rounded">--spring.profiles.active=test</code>.
+                It is not part of the real login and is never enabled in production.
+            </p>
+
+            <div th:if="${errorMessage}" class="mb-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3" th:text="${errorMessage}"></div>
+            <div th:if="${logout}" class="mb-4 rounded-lg border border-blue-200 bg-blue-50 text-blue-800 text-sm px-4 py-3">Signed out.</div>
+
+            <form th:action="@{/dev-login}" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-eac-text mb-1">Email</label>
+                    <input type="email" name="email" required placeholder="'yourname@' + ${allowedDomain}"
+                           th:placeholder="'yourname@' + ${allowedDomain}"
+                           class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                    <p class="text-xs text-eac-text-light mt-1" th:text="'Must end in @' + ${allowedDomain}"></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-eac-text mb-1">Role (only applied on first login)</label>
+                    <select name="role" class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                        <option value="USER" selected>USER</option>
+                        <option value="MODERATOR">MODERATOR</option>
+                        <option value="ADMIN">ADMIN</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-eac-navy hover:bg-eac-navy-secondary transition text-white font-semibold py-3 rounded-lg">
+                    Sign In (dev)
+                </button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

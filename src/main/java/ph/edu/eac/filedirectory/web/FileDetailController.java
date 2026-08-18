@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,7 @@ public class FileDetailController {
     }
 
     @GetMapping("/files/{id}")
-    public String detail(@PathVariable Long id, OAuth2User principal, Model model) {
+    public String detail(@PathVariable Long id, @AuthenticationPrincipal OAuth2User principal, Model model) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -54,7 +55,7 @@ public class FileDetailController {
 
     @GetMapping("/files/{id}/download")
     @Transactional
-    public ResponseEntity<Resource> download(@PathVariable Long id, OAuth2User principal) {
+    public ResponseEntity<Resource> download(@PathVariable Long id, @AuthenticationPrincipal OAuth2User principal) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 

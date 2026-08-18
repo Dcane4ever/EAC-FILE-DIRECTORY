@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,7 +43,7 @@ public class AdminController {
     }
 
     @PostMapping("/files/{id}/approve")
-    public String approve(@PathVariable Long id, OAuth2User principal, RedirectAttributes redirectAttributes) {
+    public String approve(@PathVariable Long id, @AuthenticationPrincipal OAuth2User principal, RedirectAttributes redirectAttributes) {
         AppUser moderator = requireModerator(principal);
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -60,7 +61,7 @@ public class AdminController {
     @PostMapping("/files/{id}/reject")
     public String reject(@PathVariable Long id,
                           @RequestParam(required = false) String reason,
-                          OAuth2User principal,
+                          @AuthenticationPrincipal OAuth2User principal,
                           RedirectAttributes redirectAttributes) {
         AppUser moderator = requireModerator(principal);
         FileEntity file = fileRepository.findById(id)

@@ -2,13 +2,20 @@ package ph.edu.eac.filedirectory.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import ph.edu.eac.filedirectory.security.EacOAuth2UserService;
 
+/**
+ * Real, permanent security chain (Google OAuth2, restricted to eac.edu.ph).
+ * Disabled under the "test" profile, where DevSecurityConfig takes over with
+ * a form-based dev login instead - see ph.edu.eac.filedirectory.devauth.
+ */
 @Configuration
 @EnableWebSecurity
+@Profile("!test")
 public class SecurityConfig {
 
     private final EacOAuth2UserService oAuth2UserService;

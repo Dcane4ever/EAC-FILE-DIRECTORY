@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -54,7 +55,7 @@ public class UploadController {
     }
 
     @GetMapping("/my-uploads")
-    public String myUploads(OAuth2User principal,
+    public String myUploads(@AuthenticationPrincipal OAuth2User principal,
                              @RequestParam(defaultValue = "0") int page,
                              Model model) {
         if (!(principal instanceof EacOAuth2User eacUser)) {
@@ -87,7 +88,7 @@ public class UploadController {
                                 @RequestParam Long categoryId,
                                 @RequestParam(required = false) String tags,
                                 @RequestParam("file") MultipartFile file,
-                                OAuth2User principal,
+                                @AuthenticationPrincipal OAuth2User principal,
                                 RedirectAttributes redirectAttributes) {
 
         if (!(principal instanceof EacOAuth2User eacUser)) {

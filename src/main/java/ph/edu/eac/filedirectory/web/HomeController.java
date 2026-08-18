@@ -1,5 +1,6 @@
 package ph.edu.eac.filedirectory.web;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,7 +16,7 @@ public class HomeController {
     }
 
     @GetMapping("/home")
-    public String home(OAuth2User principal, Model model) {
+    public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal instanceof EacOAuth2User eacUser) {
             model.addAttribute("user", eacUser.getAppUser());
         }
