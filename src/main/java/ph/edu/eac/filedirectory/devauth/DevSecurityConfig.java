@@ -25,7 +25,11 @@ public class DevSecurityConfig {
     public SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/dev-login", "/dev-login/**", "/register", "/verify", "/access-denied", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/dev-login", "/dev-login/**", "/register", "/verify", "/resend-verification", "/forgot-password", "/reset-password", "/access-denied", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                // See SecurityConfig's matching rule for why this can't sit
+                // behind the normal authenticated() gate - same reasoning
+                // applies in this profile too.
+                .requestMatchers("/files/*/onlyoffice-content").permitAll()
                 .requestMatchers("/admin/users/**", "/admin/departments/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "MODERATOR")
                 .anyRequest().authenticated()

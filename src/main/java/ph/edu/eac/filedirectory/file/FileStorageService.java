@@ -8,6 +8,7 @@ import ph.edu.eac.filedirectory.taxonomy.Department;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -35,6 +36,29 @@ public class FileStorageService {
     }
 
     public record StoredFile(String relativePath, long size, String checksumSha256) {
+    }
+
+    /**
+     * SHA-256 of the upload's content without writing anything to disk -
+     * see UploadController's duplicate-detection check, which needs to know
+     * the checksum before deciding whether to actually store the file.
+     * MultipartFile.getInputStream() is safe to call more than once (Spring's
+     * multipart implementations back it with a temp file or byte array, not
+     * a single-use stream), so this doesn't interfere with store() reading
+     * the same upload afterward.
+     */
+    public String computeChecksum(MultipartFile upload) {
+        try (InputStream in = upload.getInputStream()) {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (var digestIn = new java.security.DigestInputStream(in, digest)) {
+                digestIn.transferTo(OutputStream.nullOutputStream());
+            }
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read uploaded file", e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 
     public StoredFile store(MultipartFile upload, Department department) {

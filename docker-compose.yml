@@ -1,0 +1,59 @@
+# Local-development-only: runs ONLYOFFICE Document Server as a standalone
+# service. This does NOT containerize the Spring Boot app itself - that
+# keeps deploying exactly as before (mvnw -> WAR -> external Tomcat, see
+# HELP.md / the project's normal build). ONLYOFFICE is a separate service
+# this app talks to over plain HTTP, in dev and in production alike - see
+# OnlyOfficeProperties and application.properties' "ONLYOFFICE preview"
+# section for the two different URLs involved (browser-facing vs.
+# server-facing) and why they're configured separately.
+#
+# Start:   docker compose up -d
+# Stop:    docker compose down
+# Logs:    docker compose logs -f onlyoffice
+#
+# Production does not use this file at all - see README/PLAN.md for what to
+# configure on a real ONLYOFFICE Document Server host instead (same
+# JWT_ENABLED/JWT_SECRET environment variables, just not through Compose).
+
+services:
+  onlyoffice:
+    image: onlyoffice/documentserver:8.3
+    restart: unless-stopped
+    ports:
+      # Changed from the original 8082 - keep this in sync with
+      # ONLYOFFICE_URL in .env (the app's browser-facing config) whenever
+      # this changes again; the two values are independent and nothing
+      # enforces they match except this comment.
+      - "8085:80"
+    environment:
+      JWT_ENABLED: "true"
+      # Must exactly match onlyoffice.jwt.secret (ONLYOFFICE_JWT_SECRET in
+      # .env) - the app and this Document Server sign/verify with the same
+      # shared secret. Compose reads ONLYOFFICE_JWT_SECRET from your shell
+      # environment or a .env file in this same directory (Docker Compose's
+      # own .env convention - a different file from this project's
+      # Spring-config .env, though they can be the same physical file since
+      # the key name doesn't collide with anything Spring reads directly).
+      JWT_SECRET: "${ONLYOFFICE_JWT_SECRET:?Set ONLYOFFICE_JWT_SECRET before starting - see .env.example}"
+    volumes:
+      # Named volumes so converted-document caches/logs survive a
+      # `docker compose down` (not `down -v`) - avoids ONLYOFFICE
+      # re-converting everything after every restart during dev.
+      - onlyoffice-data:/var/www/onlyoffice/Data
+      - onlyoffice-logs:/var/log/onlyoffice
+    extra_hosts:
+      # Lets this container resolve "host.docker.internal" to the host
+      # machine running Tomcat - Docker Desktop (Windows/Mac) already
+      # provides this automatically, but plain Docker Engine on Linux does
+      # NOT unless told to (this line is what tells it to, harmless/already
+      # a no-op on Docker Desktop). Required because "localhost" from
+      # INSIDE this container means the container itself, not your host -
+      # see ONLYOFFICE_APP_BASE_URL in .env.example, which must be set to
+      # http://host.docker.internal:8084 for local dev (not the
+      # onlyoffice.app-base-url default of localhost:8084, which only works
+      # for a browser-facing URL, not this server-to-server one).
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  onlyoffice-data:
+  onlyoffice-logs:

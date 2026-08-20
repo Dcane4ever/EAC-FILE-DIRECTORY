@@ -3,6 +3,7 @@ package ph.edu.eac.filedirectory.seed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -21,8 +22,14 @@ import java.util.List;
  * tools/eacdb-extract/README.md) and a starter category list, on first boot
  * only. Never overwrites existing rows, so it's safe to leave enabled
  * permanently and re-run on every startup.
+ *
+ * Disabled under the "junit" test profile (see application-junit.properties)
+ * - JUnit tests run against a throwaway in-memory H2 database and should
+ * build their own small fixtures rather than pay for seeding ~1000+ rows of
+ * real registrar data on every test-context boot.
  */
 @Component
+@Profile("!junit")
 public class DataSeeder implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);

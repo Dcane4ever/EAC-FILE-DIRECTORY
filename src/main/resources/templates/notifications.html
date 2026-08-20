@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg">
+
+    <header class="bg-white border-b border-eac-border relative">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+            <a th:href="@{/home}" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory</span>
+            </a>
+            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
+                <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
+                <a th:href="@{/notifications}" class="text-eac-red font-semibold">Notifications</a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
+            </nav>
+            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+            <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
+            <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
+            <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
+            <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
+            <a th:href="@{/notifications}" class="block text-eac-red font-semibold">Notifications</a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 py-10">
+        <div class="flex items-center justify-between mb-1">
+            <h1 class="text-2xl font-bold text-eac-navy">Notifications</h1>
+            <form th:if="${unreadCount > 0}" th:action="@{/notifications/mark-all-read}" method="post">
+                <button type="submit" class="text-sm text-eac-red font-medium hover:underline">Mark all as read</button>
+            </form>
+        </div>
+        <p class="text-eac-text-light text-sm mb-6">
+            <span th:if="${unreadCount > 0}" th:text="${unreadCount} + ' unread'"></span>
+            <span th:unless="${unreadCount > 0}">You're all caught up.</span>
+        </p>
+
+        <div th:if="${notifications.empty}" class="rounded-xl border border-dashed border-eac-border bg-white p-10 text-center text-eac-text-light">
+            <p class="font-medium">No notifications yet.</p>
+            <p class="text-sm mt-1">You'll see updates here when your uploads are reviewed or your account changes.</p>
+        </div>
+
+        <div class="space-y-2" th:unless="${notifications.empty}">
+            <div th:each="n : ${notifications.content}"
+                 class="bg-white rounded-xl border p-4 flex items-start gap-3"
+                 th:classappend="${n.read} ? 'border-eac-border' : 'border-eac-red/30 bg-eac-red-soft/40'">
+
+                <span class="mt-1.5 w-2 h-2 rounded-full shrink-0"
+                      th:classappend="${n.read} ? 'bg-transparent' : 'bg-eac-red'"></span>
+
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-eac-text" th:text="${n.message}"></p>
+                    <p class="text-xs text-eac-text-light mt-1" th:text="${#temporals.format(n.createdAt, 'MMM d, yyyy h:mm a')}"></p>
+                </div>
+
+                <form th:if="${!n.read}" th:action="@{/notifications/{id}/read(id=${n.id})}" method="post" class="shrink-0">
+                    <input type="hidden" name="redirectTo" th:value="${n.targetUrl}">
+                    <button type="submit" class="text-xs font-medium text-eac-red hover:underline whitespace-nowrap"
+                            th:text="${n.targetUrl != null} ? 'View' : 'Mark read'"></button>
+                </form>
+                <a th:if="${n.read and n.targetUrl != null}" th:href="@{${n.targetUrl}}"
+                   class="text-xs font-medium text-eac-text-light hover:text-eac-red whitespace-nowrap shrink-0">View</a>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-center gap-2 mt-8" th:if="${notifications.totalPages > 1}">
+            <a th:each="p : ${#numbers.sequence(0, notifications.totalPages - 1)}"
+               th:href="@{/notifications(page=${p})}"
+               th:text="${p + 1}"
+               th:classappend="${p == notifications.number} ? 'bg-eac-red text-white' : 'bg-white text-eac-text border border-eac-border hover:border-eac-red'"
+               class="w-9 h-9 flex items-center justify-center rounded-md text-sm transition"></a>
+        </div>
+    </main>
+
+    <script>
+        var navToggle = document.getElementById('navToggle');
+        var navPanel = document.getElementById('navPanel');
+        if (navToggle && navPanel) {
+            navToggle.addEventListener('click', function () {
+                navPanel.classList.toggle('hidden');
+            });
+        }
+    </script>
+
+</body>
+</html>

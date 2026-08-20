@@ -17,6 +17,8 @@
             <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
                 <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
                 <a th:href="@{/admin/users}" class="text-eac-red font-semibold">Manage Users</a>
+                <a th:href="@{/admin/users/audit-log}" class="text-eac-text hover:text-eac-red transition">Audit Log</a>
+                <a th:href="@{/admin/users/settings}" class="text-eac-text hover:text-eac-red transition">Settings</a>
                 <div class="h-6 w-px bg-eac-border"></div>
                 <form th:action="@{/logout}" method="post">
                     <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
@@ -29,6 +31,8 @@
         <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/admin/queue}" class="block text-eac-text hover:text-eac-red transition">Approval Queue</a>
             <a th:href="@{/admin/users}" class="block text-eac-red font-semibold">Manage Users</a>
+            <a th:href="@{/admin/users/audit-log}" class="block text-eac-text hover:text-eac-red transition">Audit Log</a>
+            <a th:href="@{/admin/users/settings}" class="block text-eac-text hover:text-eac-red transition">Settings</a>
             <form th:action="@{/logout}" method="post" class="mt-2">
                 <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
             </form>

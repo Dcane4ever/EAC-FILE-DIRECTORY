@@ -30,8 +30,12 @@ public class AppUser {
     @Column(nullable = false)
     private boolean emailVerified = false;
 
+    // length=32 so this maps as VARCHAR, not a native MySQL ENUM - see
+    // AuditEvent.action's comment for why a native ENUM column is a trap
+    // for any enum that gains new constants after the table already exists
+    // in a real MySQL schema.
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 32)
     private Role role = Role.USER;
 
     @Column(nullable = false, updatable = false)

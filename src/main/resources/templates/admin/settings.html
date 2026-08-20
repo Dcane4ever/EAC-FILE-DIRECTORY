@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg">
+
+    <header class="bg-white border-b border-eac-border relative">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+            <a th:href="@{/admin/home}" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
+            </a>
+            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
+                <a th:href="@{/admin/users}" class="text-eac-text hover:text-eac-red transition">Manage Users</a>
+                <a th:href="@{/admin/users/audit-log}" class="text-eac-text hover:text-eac-red transition">Audit Log</a>
+                <a th:href="@{/admin/users/settings}" class="text-eac-red font-semibold">Settings</a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
+            </nav>
+            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+            <a th:href="@{/admin/queue}" class="block text-eac-text hover:text-eac-red transition">Approval Queue</a>
+            <a th:href="@{/admin/users}" class="block text-eac-text hover:text-eac-red transition">Manage Users</a>
+            <a th:href="@{/admin/users/audit-log}" class="block text-eac-text hover:text-eac-red transition">Audit Log</a>
+            <a th:href="@{/admin/users/settings}" class="block text-eac-red font-semibold">Settings</a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 py-10">
+        <h1 class="text-2xl font-bold text-eac-navy mb-1">Settings</h1>
+        <p class="text-eac-text-light text-sm mb-6">System-wide behavior that applies to every upload, regardless of department.</p>
+
+        <div th:if="${infoMessage}" class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm" th:text="${infoMessage}"></div>
+
+        <div class="bg-white rounded-xl border border-eac-border p-6">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="font-semibold text-eac-text mb-1">Allow duplicate file uploads</h2>
+                    <p class="text-sm text-eac-text-light max-w-md">
+                        When off (default), an upload whose content exactly matches an existing file is flagged -
+                        the uploader sees a link to the existing file and must explicitly confirm before it's stored.
+                        When on, that check is skipped entirely.
+                    </p>
+                </div>
+                <form th:action="@{/admin/users/settings/duplicate-uploads}" method="post" class="shrink-0">
+                    <input type="hidden" name="allowed" th:value="${!allowDuplicateUploads}">
+                    <button type="submit"
+                            class="relative inline-flex h-7 w-12 items-center rounded-full transition"
+                            th:classappend="${allowDuplicateUploads} ? 'bg-eac-red' : 'bg-eac-border'">
+                        <span class="inline-block h-5 w-5 transform rounded-full bg-white transition"
+                              th:classappend="${allowDuplicateUploads} ? 'translate-x-6' : 'translate-x-1'"></span>
+                    </button>
+                </form>
+            </div>
+            <p class="text-xs mt-3" th:text="${allowDuplicateUploads} ? 'Currently ON - duplicates are allowed without confirmation.' : 'Currently OFF - duplicates are flagged and require confirmation.'"
+               th:classappend="${allowDuplicateUploads} ? 'text-eac-red font-medium' : 'text-eac-text-light'"></p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-eac-border p-6 mt-4">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="font-semibold text-eac-text mb-1">Allow moderator/admin fallback on access requests</h2>
+                    <p class="text-sm text-eac-text-light max-w-md">
+                        The uploader always gets the first chance to approve or deny a request for their file.
+                        When on, a moderator or admin may step in and decide instead, but only once the request
+                        has gone unanswered for several days. When off (default), only the uploader can ever decide.
+                    </p>
+                </div>
+                <form th:action="@{/admin/users/settings/moderator-access-fallback}" method="post" class="shrink-0">
+                    <input type="hidden" name="allowed" th:value="${!allowModeratorAccessRequestFallback}">
+                    <button type="submit"
+                            class="relative inline-flex h-7 w-12 items-center rounded-full transition"
+                            th:classappend="${allowModeratorAccessRequestFallback} ? 'bg-eac-red' : 'bg-eac-border'">
+                        <span class="inline-block h-5 w-5 transform rounded-full bg-white transition"
+                              th:classappend="${allowModeratorAccessRequestFallback} ? 'translate-x-6' : 'translate-x-1'"></span>
+                    </button>
+                </form>
+            </div>
+            <p class="text-xs mt-3" th:text="${allowModeratorAccessRequestFallback} ? 'Currently ON - moderators/admins may decide unanswered requests after the fallback window.' : 'Currently OFF - only the uploader can decide access requests.'"
+               th:classappend="${allowModeratorAccessRequestFallback} ? 'text-eac-red font-medium' : 'text-eac-text-light'"></p>
+        </div>
+    </main>
+
+    <script>
+        var navToggle = document.getElementById('navToggle');
+        var navPanel = document.getElementById('navPanel');
+        if (navToggle && navPanel) {
+            navToggle.addEventListener('click', function () {
+                navPanel.classList.toggle('hidden');
+            });
+        }
+    </script>
+
+</body>
+</html>

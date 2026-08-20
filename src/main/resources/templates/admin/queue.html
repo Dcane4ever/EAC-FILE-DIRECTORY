@@ -17,6 +17,8 @@
             <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
                 <a th:href="@{/admin/queue}" class="text-eac-red font-semibold border-b-2 border-eac-red pb-1 -mb-1">Approval Queue</a>
                 <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Manage Users</a>
+                <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Audit Log</a>
+                <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Settings</a>
                 <div class="h-6 w-px bg-eac-border"></div>
                 <form th:action="@{/logout}" method="post">
                     <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
@@ -29,6 +31,8 @@
         <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/admin/queue}" class="block text-eac-red font-semibold">Approval Queue</a>
             <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Manage Users</a>
+            <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Audit Log</a>
+            <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Settings</a>
             <form th:action="@{/logout}" method="post" class="mt-2">
                 <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
             </form>
@@ -177,38 +181,51 @@
 
                     <!-- Expandable file list -->
                     <div th:id="'dept-' + ${iter.index}" th:unless="${group.files.empty}" class="hidden border-t border-eac-border bg-eac-bg/40 p-4 space-y-3">
+                        <label class="flex items-center gap-2 text-xs font-semibold text-eac-text-light px-1">
+                            <input type="checkbox" class="select-dept-all rounded border-eac-border text-eac-red focus:ring-eac-red/40"
+                                   th:onchange="'toggleDeptSelection(' + ${iter.index} + ', this.checked)'">
+                            Select all in this department
+                        </label>
                         <div th:each="file : ${group.files}" class="bg-white rounded-lg border border-eac-border p-5">
-                            <div class="flex items-start justify-between gap-4">
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-2 text-xs text-eac-text-light mb-1">
-                                        <span class="bg-eac-navy/5 text-eac-navy px-2 py-0.5 rounded font-medium" th:text="${file.category.name}"></span>
+                            <div class="flex items-start gap-3">
+                                <input type="checkbox" th:value="${file.id}"
+                                       th:data-dept-index="${iter.index}"
+                                       class="file-select mt-1.5 rounded border-eac-border text-eac-red focus:ring-eac-red/40 shrink-0"
+                                       onchange="updateBulkBar()">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2 text-xs text-eac-text-light mb-1">
+                                                <span class="bg-eac-navy/5 text-eac-navy px-2 py-0.5 rounded font-medium" th:text="${file.category.name}"></span>
+                                            </div>
+                                            <h3 class="font-semibold text-eac-text" th:text="${file.title}"></h3>
+                                            <p class="text-sm text-eac-text-light mt-1" th:text="${file.description}"></p>
+                                            <p class="text-xs text-eac-text-light mt-2">
+                                                <span th:text="${file.uploader.fullName} + ' (' + ${file.uploader.email} + ')'"></span>
+                                                &middot;
+                                                <span th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy HH:mm')}"></span>
+                                                &middot;
+                                                <span th:text="${#numbers.formatDecimal(file.fileSize / 1024.0 / 1024.0, 1, 2)} + ' MB'"></span>
+                                            </p>
+                                        </div>
+                                        <a th:href="@{/files/{id}(id=${file.id})}" class="text-sm text-eac-red hover:underline whitespace-nowrap">Preview &rarr;</a>
                                     </div>
-                                    <h3 class="font-semibold text-eac-text" th:text="${file.title}"></h3>
-                                    <p class="text-sm text-eac-text-light mt-1" th:text="${file.description}"></p>
-                                    <p class="text-xs text-eac-text-light mt-2">
-                                        <span th:text="${file.uploader.fullName} + ' (' + ${file.uploader.email} + ')'"></span>
-                                        &middot;
-                                        <span th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy HH:mm')}"></span>
-                                        &middot;
-                                        <span th:text="${#numbers.formatDecimal(file.fileSize / 1024.0 / 1024.0, 1, 2)} + ' MB'"></span>
-                                    </p>
-                                </div>
-                                <a th:href="@{/files/{id}(id=${file.id})}" class="text-sm text-eac-red hover:underline whitespace-nowrap">Preview &rarr;</a>
-                            </div>
 
-                            <div class="flex items-center gap-3 mt-4 pt-4 border-t border-eac-border">
-                                <form th:action="@{/admin/files/{id}/approve(id=${file.id})}" method="post">
-                                    <button type="submit" class="bg-green-600 hover:bg-green-700 transition text-white text-sm font-semibold px-4 py-2 rounded-lg">
-                                        Approve
-                                    </button>
-                                </form>
-                                <form th:action="@{/admin/files/{id}/reject(id=${file.id})}" method="post" class="flex items-center gap-2 flex-1">
-                                    <input type="text" name="reason" placeholder="Rejection reason (optional)"
-                                           class="flex-1 rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                                    <button type="submit" class="bg-white border border-red-300 text-red-600 hover:bg-red-50 transition text-sm font-semibold px-4 py-2 rounded-lg">
-                                        Reject
-                                    </button>
-                                </form>
+                                    <div class="flex items-center gap-3 mt-4 pt-4 border-t border-eac-border">
+                                        <form th:action="@{/admin/files/{id}/approve(id=${file.id})}" method="post">
+                                            <button type="submit" class="bg-green-600 hover:bg-green-700 transition text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                                                Approve
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/admin/files/{id}/reject(id=${file.id})}" method="post" class="flex items-center gap-2 flex-1">
+                                            <input type="text" name="reason" placeholder="Rejection reason (optional)"
+                                                   class="flex-1 rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                                            <button type="submit" class="bg-white border border-red-300 text-red-600 hover:bg-red-50 transition text-sm font-semibold px-4 py-2 rounded-lg">
+                                                Reject
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -252,6 +269,54 @@
         </main>
     </div>
 
+    <!-- Bulk action bar - hidden until at least one file checkbox is
+         checked (see updateBulkBar()). Both forms submit the same set of
+         checked file IDs; approve fires immediately, reject opens the
+         reason modal first so one reason applies to the whole batch (see
+         AdminController.bulkReject). -->
+    <div id="bulkBar" class="hidden fixed bottom-0 left-0 right-0 z-40 bg-eac-navy text-white shadow-2xl">
+        <div class="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+            <p class="text-sm font-medium">
+                <span id="bulkCount">0</span> file(s) selected
+                <button type="button" onclick="clearSelection()" class="ml-2 text-xs text-white/70 hover:text-white underline">Clear</button>
+            </p>
+            <div class="flex items-center gap-3">
+                <form id="bulkApproveForm" th:action="@{/admin/files/bulk-approve}" method="post"></form>
+                <button type="button" onclick="submitBulk('bulkApproveForm')"
+                        class="bg-green-600 hover:bg-green-700 transition text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                    Approve Selected
+                </button>
+                <button type="button" id="openBulkRejectModal" onclick="openBulkRejectModal()"
+                        class="bg-white/10 hover:bg-white/20 transition text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                    Reject Selected
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk reject reason modal -->
+    <div id="bulkRejectModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl border border-eac-border max-w-sm w-full p-6">
+            <h2 class="text-lg font-bold text-eac-navy mb-1">Reject Selected Files</h2>
+            <p class="text-sm text-eac-text-light mb-4">
+                This reason applies to all <span id="bulkRejectCount">0</span> selected file(s).
+            </p>
+            <form id="bulkRejectForm" th:action="@{/admin/files/bulk-reject}" method="post">
+                <input type="text" name="reason" placeholder="Rejection reason (optional)"
+                       class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                <div class="flex items-center gap-3">
+                    <button type="submit" class="flex-1 bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold py-2.5 rounded-lg">
+                        Reject All Selected
+                    </button>
+                    <button type="button" onclick="document.getElementById('bulkRejectModal').classList.add('hidden')"
+                            class="text-sm text-eac-text-light hover:text-eac-text px-3">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         var navToggle = document.getElementById('navToggle');
         var navPanel = document.getElementById('navPanel');
@@ -267,6 +332,74 @@
             if (!panel) return; // department has no pending files, nothing to expand
             panel.classList.toggle('hidden');
             if (chevron) chevron.classList.toggle('rotate-180');
+        }
+
+        // Bulk moderation - see AdminController.bulkApprove/bulkReject.
+        // Selection is intentionally scoped to what's currently rendered
+        // (this page/filter view) and resets on navigation - it doesn't
+        // persist across pagination or a department filter change, which
+        // matches how the file checkboxes themselves are scoped.
+        function checkedFileIds() {
+            return Array.from(document.querySelectorAll('.file-select:checked')).map(function (cb) { return cb.value; });
+        }
+
+        function updateBulkBar() {
+            var ids = checkedFileIds();
+            var bar = document.getElementById('bulkBar');
+            document.getElementById('bulkCount').textContent = ids.length;
+            bar.classList.toggle('hidden', ids.length === 0);
+
+            // Keep each department's "select all" checkbox in sync (checked
+            // only if every file checkbox in that department is checked).
+            document.querySelectorAll('.select-dept-all').forEach(function (selectAll, index) {
+                var deptCheckboxes = document.querySelectorAll('.file-select[data-dept-index="' + index + '"]');
+                var allChecked = deptCheckboxes.length > 0 && Array.from(deptCheckboxes).every(function (cb) { return cb.checked; });
+                selectAll.checked = allChecked;
+            });
+        }
+
+        function toggleDeptSelection(index, checked) {
+            document.querySelectorAll('.file-select[data-dept-index="' + index + '"]').forEach(function (cb) {
+                cb.checked = checked;
+            });
+            updateBulkBar();
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.file-select, .select-dept-all').forEach(function (cb) { cb.checked = false; });
+            updateBulkBar();
+        }
+
+        function fileIdInputs(ids) {
+            return ids.map(function (id) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'fileIds';
+                input.value = id;
+                return input;
+            });
+        }
+
+        function submitBulk(formId) {
+            var ids = checkedFileIds();
+            if (ids.length === 0) return;
+            var form = document.getElementById(formId);
+            fileIdInputs(ids).forEach(function (input) { form.appendChild(input); });
+            form.submit();
+        }
+
+        // Bulk reject goes through the reason modal first (see the
+        // "Reject Selected" button above) - fileIds are attached to that
+        // form right before it submits, same as submitBulk() does for
+        // approve, since the ids aren't known until the modal is opened.
+        document.getElementById('bulkRejectForm').addEventListener('submit', function () {
+            var ids = checkedFileIds();
+            fileIdInputs(ids).forEach((input) => this.appendChild(input));
+        });
+
+        function openBulkRejectModal() {
+            document.getElementById('bulkRejectCount').textContent = checkedFileIds().length;
+            document.getElementById('bulkRejectModal').classList.remove('hidden');
         }
     </script>
 

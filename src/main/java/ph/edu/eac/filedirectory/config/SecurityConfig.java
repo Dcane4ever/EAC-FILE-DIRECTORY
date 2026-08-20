@@ -11,6 +11,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import ph.edu.eac.filedirectory.audit.AuditService;
+import ph.edu.eac.filedirectory.security.AuditingLogoutSuccessHandler;
 import ph.edu.eac.filedirectory.security.PasswordAuthenticationProvider;
 import ph.edu.eac.filedirectory.security.RoleBasedLoginSuccessHandler;
 
@@ -35,9 +37,11 @@ import ph.edu.eac.filedirectory.security.RoleBasedLoginSuccessHandler;
 public class SecurityConfig {
 
     private final PasswordAuthenticationProvider passwordAuthenticationProvider;
+    private final AuditService auditService;
 
-    public SecurityConfig(PasswordAuthenticationProvider passwordAuthenticationProvider) {
+    public SecurityConfig(PasswordAuthenticationProvider passwordAuthenticationProvider, AuditService auditService) {
         this.passwordAuthenticationProvider = passwordAuthenticationProvider;
+        this.auditService = auditService;
     }
 
     @Bean
@@ -49,8 +53,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/login/**", "/register", "/verify", "/access-denied", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/login", "/login/**", "/register", "/verify", "/resend-verification", "/forgot-password", "/reset-password", "/access-denied", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                 .requestMatchers("/admin/login").permitAll()
+                // ONLYOFFICE Document Server fetches a file's bytes as a
+                // plain server-to-server HTTP GET - it does not carry the
+                // viewing user's browser session, so this can't sit behind
+                // the normal authenticated() gate below. Its own security
+                // is a short-lived, single-file, cryptographically signed
+                // token (see OnlyOfficeController/OnlyOfficeService) minted
+                // only after /onlyoffice-config already ran the exact same
+                // requireViewable check every other file-serving endpoint
+                // uses - permitAll() here does not mean "anyone can fetch
+                // any file", it means "this endpoint enforces its own
+                // token-based authorization instead of a session-based one".
+                .requestMatchers("/files/*/onlyoffice-content").permitAll()
                 // User/role management and the auto-approve toggle are ADMIN-only
                 // - a MODERATOR can approve uploads but should not be able to
                 // promote/demote accounts or turn off moderation for a department.
@@ -71,7 +87,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
+                .logoutSuccessHandler(auditingLogoutSuccessHandler("/login?logout"))
                 .permitAll()
             );
 
@@ -88,5 +104,11 @@ public class SecurityConfig {
                 .addEntryPointFor(new LoginUrlAuthenticationEntryPoint("/admin/login"), PathPatternRequestMatcher.pathPattern("/admin/**"))
                 .defaultEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
                 .build();
+    }
+
+    private AuditingLogoutSuccessHandler auditingLogoutSuccessHandler(String targetUrl) {
+        AuditingLogoutSuccessHandler handler = new AuditingLogoutSuccessHandler(auditService);
+        handler.setDefaultTargetUrl(targetUrl);
+        return handler;
     }
 }

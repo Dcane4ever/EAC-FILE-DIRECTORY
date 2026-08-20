@@ -19,6 +19,12 @@
                 <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
                 <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
                 <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
+                <a th:href="@{/notifications}" class="relative text-eac-text hover:text-eac-red transition">
+                    Notifications
+                    <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}"
+                          class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
+                </a>
                 <div class="h-6 w-px bg-eac-border"></div>
                 <form th:action="@{/logout}" method="post">
                     <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
@@ -32,40 +38,95 @@
             <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
             <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
             <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
+            <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
+            <a th:href="@{/notifications}" class="block text-eac-text hover:text-eac-red transition">
+                Notifications
+                <span th:if="${unreadNotificationCount > 0}" th:text="'(' + ${unreadNotificationCount} + ')'" class="text-eac-red font-semibold"></span>
+            </a>
             <form th:action="@{/logout}" method="post" class="mt-2">
                 <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
             </form>
         </div>
     </header>
 
-    <!-- Search bar -->
+    <!-- Filter bar - every field is AND-combined server-side (see
+         FileSpecifications); submitting this form keeps every filter
+         together rather than replacing one with another. -->
     <section class="bg-white border-b border-eac-border">
         <div class="max-w-7xl mx-auto px-6 py-6">
-            <form th:action="@{/browse}" method="get" class="flex max-w-2xl">
-                <input type="text" name="q" th:value="${q}" placeholder="Search by title, tag, course, or author..."
-                       class="flex-1 rounded-l-lg border border-eac-border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 rounded-r-lg">
-                    Search
-                </button>
+            <form th:action="@{/browse}" method="get" class="space-y-3">
+                <!-- Preserve taxonomy selections made via the sidebar when this form is submitted. -->
+                <input type="hidden" name="departmentId" th:value="${selectedDepartmentId}">
+                <input type="hidden" name="programId" th:value="${selectedProgramId}">
+                <input type="hidden" name="courseId" th:value="${selectedCourseId}">
+                <input type="hidden" name="categoryId" th:value="${selectedCategoryId}">
+                <input type="hidden" name="uploaderId" th:value="${uploaderId}">
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" name="q" th:value="${q}" placeholder="Search by title, tag, course, or author..."
+                           class="flex-1 rounded-lg border border-eac-border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 py-3 rounded-lg whitespace-nowrap">
+                        Search
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <input type="text" name="tag" th:value="${tag}" placeholder="Filter by tag"
+                           class="rounded-lg border border-eac-border px-3 py-2 text-sm w-36 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+
+                    <select name="year" class="rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                        <option value="">Any year</option>
+                        <option th:each="y : ${yearOptions}" th:value="${y}" th:text="${y}" th:selected="${y == year}"></option>
+                    </select>
+
+                    <select name="fileType" class="rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                        <option value="">Any file type</option>
+                        <option th:each="ft : ${fileTypeOptions}" th:value="${ft}" th:text="${#strings.toUpperCase(ft)}" th:selected="${ft == fileType}"></option>
+                    </select>
+
+                    <select name="sort" class="rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                        <option th:each="opt : ${sortOptions}" th:value="${opt}" th:text="${opt.label}" th:selected="${opt.name() == sort}"></option>
+                    </select>
+
+                    <button type="submit" class="text-sm text-eac-red font-medium hover:underline">Apply</button>
+                </div>
+
+                <!-- Active filter chips - tag/uploader can only be set by
+                     clicking through from a file/tag elsewhere, so surface
+                     them here with a way to clear each independently. -->
+                <div class="flex flex-wrap items-center gap-2" th:if="${tag != null or uploaderId != null}">
+                    <span th:if="${tag}" class="inline-flex items-center gap-1.5 text-xs bg-eac-red-soft text-eac-red px-3 py-1 rounded-full">
+                        Tag: <span th:text="${tag}"></span>
+                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${selectedProgramId}, courseId=${selectedCourseId}, categoryId=${selectedCategoryId}, year=${year}, fileType=${fileType}, uploaderId=${uploaderId}, q=${q}, sort=${sort})}"
+                           class="font-bold hover:text-eac-maroon">&times;</a>
+                    </span>
+                    <span th:if="${uploaderId}" class="inline-flex items-center gap-1.5 text-xs bg-eac-red-soft text-eac-red px-3 py-1 rounded-full">
+                        By: <span th:text="${uploaderName}"></span>
+                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${selectedProgramId}, courseId=${selectedCourseId}, categoryId=${selectedCategoryId}, tag=${tag}, year=${year}, fileType=${fileType}, q=${q}, sort=${sort})}"
+                           class="font-bold hover:text-eac-maroon">&times;</a>
+                    </span>
+                </div>
             </form>
         </div>
     </section>
 
     <main class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
 
-        <!-- Sidebar: taxonomy tree -->
+        <!-- Sidebar: taxonomy tree - every link preserves the other active
+             filters (search text, tag, year, file type, uploader, sort) so
+             clicking a department doesn't silently drop a search you typed. -->
         <aside class="space-y-6">
 
             <div class="bg-white rounded-xl border border-eac-border p-5">
                 <h2 class="font-bold text-eac-navy mb-3 text-sm uppercase tracking-wide">Schools / Departments</h2>
                 <ul class="space-y-1 text-sm">
                     <li>
-                        <a th:href="@{/browse}"
+                        <a th:href="@{/browse(categoryId=${selectedCategoryId}, tag=${tag}, year=${year}, fileType=${fileType}, uploaderId=${uploaderId}, q=${q}, sort=${sort})}"
                            th:classappend="${selectedDepartmentId == null} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
                            class="block py-1 transition">All Departments</a>
                     </li>
                     <li th:each="dept : ${departments}">
-                        <a th:href="@{/browse(departmentId=${dept.id})}"
+                        <a th:href="@{/browse(departmentId=${dept.id}, categoryId=${selectedCategoryId}, tag=${tag}, year=${year}, fileType=${fileType}, uploaderId=${uploaderId}, q=${q}, sort=${sort})}"
                            th:text="${dept.name}"
                            th:classappend="${selectedDepartmentId == dept.id} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
                            class="block py-1 transition"></a>
@@ -77,7 +138,7 @@
                 <h2 class="font-bold text-eac-navy mb-3 text-sm uppercase tracking-wide">Programs</h2>
                 <ul class="space-y-1 text-sm">
                     <li th:each="prog : ${programs}">
-                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${prog.id})}"
+                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${prog.id}, categoryId=${selectedCategoryId}, tag=${tag}, year=${year}, fileType=${fileType}, uploaderId=${uploaderId}, q=${q}, sort=${sort})}"
                            th:text="${prog.code + ' - ' + prog.name}"
                            th:classappend="${selectedProgramId == prog.id} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
                            class="block py-1 transition"></a>
@@ -89,7 +150,7 @@
                 <h2 class="font-bold text-eac-navy mb-3 text-sm uppercase tracking-wide">Courses</h2>
                 <ul class="space-y-1 text-sm max-h-64 overflow-y-auto">
                     <li th:each="c : ${courses}">
-                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, courseId=${c.id})}"
+                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, courseId=${c.id}, categoryId=${selectedCategoryId}, tag=${tag}, year=${year}, fileType=${fileType}, uploaderId=${uploaderId}, q=${q}, sort=${sort})}"
                            th:text="${c.code + ' - ' + c.title}"
                            th:classappend="${selectedCourseId == c.id} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
                            class="block py-1 transition"></a>
@@ -101,12 +162,12 @@
                 <h2 class="font-bold text-eac-navy mb-3 text-sm uppercase tracking-wide">Category</h2>
                 <ul class="space-y-1 text-sm">
                     <li>
-                        <a th:href="@{/browse}"
+                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, tag=${tag}, year=${year}, fileType=${fileType}, uploaderId=${uploaderId}, q=${q}, sort=${sort})}"
                            th:classappend="${selectedCategoryId == null} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
                            class="block py-1 transition">All Categories</a>
                     </li>
                     <li th:each="cat : ${categories}">
-                        <a th:href="@{/browse(categoryId=${cat.id})}"
+                        <a th:href="@{/browse(departmentId=${selectedDepartmentId}, categoryId=${cat.id}, tag=${tag}, year=${year}, fileType=${fileType}, uploaderId=${uploaderId}, q=${q}, sort=${sort})}"
                            th:text="${cat.name}"
                            th:classappend="${selectedCategoryId == cat.id} ? 'text-eac-red font-semibold' : 'text-eac-text hover:text-eac-red'"
                            class="block py-1 transition"></a>
@@ -132,9 +193,14 @@
                     <div class="flex items-center gap-2 text-xs text-eac-text-light mb-2">
                         <span class="bg-eac-navy/5 text-eac-navy px-2 py-0.5 rounded font-medium" th:text="${file.category.name}"></span>
                         <span th:text="${file.department.code}"></span>
+                        <span th:text="${#temporals.format(file.createdAt, 'yyyy')}"></span>
                     </div>
                     <h3 class="font-semibold text-eac-text mb-1" th:text="${file.title}"></h3>
                     <p class="text-sm text-eac-text-light line-clamp-2" th:text="${file.description}"></p>
+                    <div class="flex flex-wrap gap-1 mt-2" th:if="${!file.tags.isEmpty()}">
+                        <span th:each="t : ${file.tags}" th:text="${'#' + t.name}"
+                              class="text-xs text-eac-text-light bg-eac-bg px-2 py-0.5 rounded-full"></span>
+                    </div>
                     <div class="mt-3 flex items-center justify-between text-xs text-eac-text-light">
                         <span th:text="${file.uploader.fullName}"></span>
                         <span th:text="${file.downloadCount} + ' downloads'"></span>
@@ -142,10 +208,10 @@
                 </a>
             </div>
 
-            <!-- Pagination -->
+            <!-- Pagination - carries every active filter, not just page. -->
             <div class="flex items-center justify-center gap-2 mt-8" th:if="${files.totalPages > 1}">
                 <a th:each="p : ${#numbers.sequence(0, files.totalPages - 1)}"
-                   th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${selectedProgramId}, courseId=${selectedCourseId}, categoryId=${selectedCategoryId}, q=${q}, page=${p})}"
+                   th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${selectedProgramId}, courseId=${selectedCourseId}, categoryId=${selectedCategoryId}, tag=${tag}, year=${year}, fileType=${fileType}, uploaderId=${uploaderId}, q=${q}, sort=${sort}, page=${p})}"
                    th:text="${p + 1}"
                    th:classappend="${p == files.number} ? 'bg-eac-red text-white' : 'bg-white text-eac-text border border-eac-border hover:border-eac-red'"
                    class="w-9 h-9 flex items-center justify-center rounded-md text-sm transition"></a>

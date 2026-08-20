@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EAC File Directory - Resend Verification Email</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-10">
+        <div class="flex flex-col items-center text-center mb-6">
+            <img th:src="@{/images/emblem.png}" alt="EAC" class="w-16 h-16 mb-3">
+            <h1 class="text-2xl font-bold text-eac-navy">Resend verification email</h1>
+            <p class="text-eac-text-light text-sm mt-1">
+                Didn't get the email, or did the link expire? Enter your @eac.edu.ph email for a new one.
+            </p>
+        </div>
+
+        <div th:if="${errorMessage}" class="mb-6 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">
+            <span th:text="${errorMessage}"></span>
+        </div>
+        <div th:if="${infoMessage}" class="mb-6 flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-800 text-sm px-4 py-3">
+            <span th:text="${infoMessage}"></span>
+        </div>
+
+        <form th:action="@{/resend-verification}" method="post" class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-eac-text mb-1">Email</label>
+                <input type="email" name="email" required placeholder="yourname@eac.edu.ph"
+                       class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+            </div>
+            <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold py-3 rounded-lg">
+                Resend Verification Email
+            </button>
+        </form>
+
+        <p class="text-sm text-eac-text-light mt-6 text-center">
+            <a th:href="@{/login}" class="text-eac-red font-medium hover:underline">&larr; Back to Sign In</a>
+        </p>
+    </div>
+
+</body>
+</html>

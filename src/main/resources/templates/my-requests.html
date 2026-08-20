@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Requests - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg">
+
+    <header class="bg-white border-b border-eac-border relative">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+            <a th:href="@{/home}" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory</span>
+            </a>
+            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
+                <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/my-requests}" class="text-eac-red font-semibold">My Requests</a>
+                <a th:href="@{/notifications}" class="relative text-eac-text hover:text-eac-red transition">
+                    Notifications
+                    <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}"
+                          class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
+                </a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
+            </nav>
+            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+            <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
+            <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
+            <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
+            <a th:href="@{/my-requests}" class="block text-eac-red font-semibold">My Requests</a>
+            <a th:href="@{/notifications}" class="block text-eac-text hover:text-eac-red transition">
+                Notifications
+                <span th:if="${unreadNotificationCount > 0}" th:text="'(' + ${unreadNotificationCount} + ')'" class="text-eac-red font-semibold"></span>
+            </a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-6 py-10">
+        <h1 class="text-2xl font-bold text-eac-navy mb-1">My Requests</h1>
+        <p class="text-eac-text-light text-sm mb-6">Files you've requested access to, and where each request stands.</p>
+
+        <div th:if="${infoMessage}" class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm" th:text="${infoMessage}"></div>
+        <div th:if="${errorMessage}" class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm" th:text="${errorMessage}"></div>
+
+        <div th:if="${requests.empty}" class="rounded-xl border border-dashed border-eac-border bg-white p-10 text-center text-eac-text-light">
+            <p class="font-medium">You haven't requested access to anything yet.</p>
+            <p class="text-sm mt-1"><a th:href="@{/browse}" class="text-eac-red hover:underline">Browse files</a> to find something you need.</p>
+        </div>
+
+        <div class="space-y-3" th:unless="${requests.empty}">
+            <div th:each="req : ${requests.content}" class="bg-white rounded-xl border border-eac-border p-5 flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                    <a th:href="@{/files/{id}(id=${req.file.id})}" class="font-semibold text-eac-text hover:text-eac-red transition" th:text="${req.file.title}"></a>
+                    <p class="text-xs text-eac-text-light mt-1" th:text="'Requested ' + ${#temporals.format(req.createdAt, 'MMM d, yyyy')}"></p>
+                    <p th:if="${req.status.name() == 'DENIED' and req.decisionNote != null}"
+                       class="text-xs text-red-600 mt-1" th:text="'Reason: ' + ${req.decisionNote}"></p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <a th:if="${req.status.name() == 'APPROVED' and grantTokensByRequestId.get(req.id) != null}"
+                       th:href="@{/files/access-requests/{id}/download(id=${req.id}, token=${grantTokensByRequestId.get(req.id).token})}"
+                       class="text-sm font-semibold text-eac-red hover:underline whitespace-nowrap">Download</a>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap"
+                          th:classappend="${req.status.name() == 'APPROVED'} ? 'bg-green-100 text-green-700' : (${req.status.name() == 'DENIED'} ? 'bg-red-100 text-red-700' : (${req.status.name() == 'EXPIRED'} ? 'bg-gray-100 text-gray-600' : 'bg-amber-100 text-amber-700'))"
+                          th:text="${req.status}"></span>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${requests.totalPages > 1}" class="flex items-center justify-center gap-2 mt-8 text-sm">
+            <a th:if="${!requests.first}" th:href="@{/my-requests(page=${requests.number - 1})}"
+               class="px-3 py-1.5 rounded-lg border border-eac-border text-eac-text hover:border-eac-red/40 transition">Previous</a>
+            <span class="text-eac-text-light" th:text="'Page ' + (${requests.number} + 1) + ' of ' + ${requests.totalPages}"></span>
+            <a th:if="${!requests.last}" th:href="@{/my-requests(page=${requests.number + 1})}"
+               class="px-3 py-1.5 rounded-lg border border-eac-border text-eac-text hover:border-eac-red/40 transition">Next</a>
+        </div>
+    </main>
+
+    <script>
+        var navToggle = document.getElementById('navToggle');
+        var navPanel = document.getElementById('navPanel');
+        if (navToggle && navPanel) {
+            navToggle.addEventListener('click', function () {
+                navPanel.classList.toggle('hidden');
+            });
+        }
+    </script>
+
+</body>
+</html>

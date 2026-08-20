@@ -71,6 +71,39 @@
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- ONLYOFFICE preview (see ph.edu.eac.filedirectory.onlyoffice): signs
+		     the config sent to the Document Server and verifies its callback
+		     JWT. jjwt is split into an API (compile-time, what OnlyOfficeService
+		     codes against) plus impl/jackson (runtime-only, matches this
+		     project's existing runtime-scoped mysql-connector-j pattern above -
+		     nothing in our own code references the impl classes directly). -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.12.6</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- In-memory DB for the "junit" test profile only (see
+		     src/test/resources/application-junit.properties) - keeps JUnit
+		     tests from reading/writing the real local MySQL eac_directory
+		     schema that application.properties points at. Never used at
+		     runtime. -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>

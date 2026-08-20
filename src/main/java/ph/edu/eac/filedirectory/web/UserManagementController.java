@@ -5,15 +5,21 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ph.edu.eac.filedirectory.audit.AuditService;
+import ph.edu.eac.filedirectory.notification.NotificationService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
+import ph.edu.eac.filedirectory.security.ratelimit.RateLimiter;
 import ph.edu.eac.filedirectory.user.AppUser;
 import ph.edu.eac.filedirectory.user.AppUserRepository;
 import ph.edu.eac.filedirectory.user.Role;
+
+import java.time.Duration;
 
 /**
  * Admin-only account/role management - see SecurityConfig, /admin/users/**
@@ -26,7 +32,10 @@ import ph.edu.eac.filedirectory.user.Role;
  * from). A system-wide cap of MAX_ADMINS keeps ADMIN a genuinely small,
  * deliberate set, whether reached by promotion or direct creation.
  * Granting ADMIN (either path) requires the acting admin to re-enter their
- * own current password as confirmation.
+ * own current password as confirmation - that confirmation step is
+ * rate-limited per acting-admin-account (see verifyOwnPassword), since it's
+ * otherwise a password-guessing surface against whoever is currently
+ * signed in as an admin.
  */
 @Controller
 @RequestMapping("/admin/users")
@@ -35,15 +44,27 @@ public class UserManagementController {
     /** System-wide cap on ADMIN-role accounts, enforced whether reached by promotion or direct creation. */
     private static final int MAX_ADMINS = 3;
 
+    private static final int MAX_PASSWORD_CONFIRM_ATTEMPTS = 5;
+    private static final Duration PASSWORD_CONFIRM_WINDOW = Duration.ofMinutes(15);
+
     private final AppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationService notificationService;
+    private final RateLimiter rateLimiter;
+    private final AuditService auditService;
     private final String allowedDomain;
 
     public UserManagementController(AppUserRepository userRepository,
                                      PasswordEncoder passwordEncoder,
+                                     NotificationService notificationService,
+                                     RateLimiter rateLimiter,
+                                     AuditService auditService,
                                      @Value("${eac.allowed-email-domain}") String allowedDomain) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.notificationService = notificationService;
+        this.rateLimiter = rateLimiter;
+        this.auditService = auditService;
         this.allowedDomain = allowedDomain.toLowerCase();
     }
 
@@ -58,6 +79,7 @@ public class UserManagementController {
     }
 
     @PostMapping("/{id}/role")
+    @Transactional
     public String changeRole(@PathVariable Long id,
                               @RequestParam Role role,
                               @RequestParam(required = false) String confirmPassword,
@@ -91,8 +113,15 @@ public class UserManagementController {
             }
         }
 
+        Role previousRole = target.getRole();
+        boolean roleActuallyChanged = previousRole != role;
         target.setRole(role);
         userRepository.save(target);
+
+        if (roleActuallyChanged) {
+            notificationService.roleChanged(target, role.name());
+            auditService.roleChanged(actingAdmin, target, previousRole.name(), role.name());
+        }
 
         redirectAttributes.addFlashAttribute("infoMessage",
                 target.getEmail() + " is now " + role.name() + ".");
@@ -100,6 +129,7 @@ public class UserManagementController {
     }
 
     @PostMapping("/create")
+    @Transactional
     public String create(@RequestParam String fullName,
                           @RequestParam String email,
                           @RequestParam String password,
@@ -145,13 +175,19 @@ public class UserManagementController {
         user.setRole(role);
         userRepository.save(user);
 
+        auditService.accountCreatedByAdmin(actingAdmin, user, role.name());
+
         redirectAttributes.addFlashAttribute("infoMessage",
                 "Account created for " + user.getEmail() + " (" + role.name() + ", pre-verified).");
         return "redirect:/admin/users";
     }
 
-    /** Confirms the acting admin's own current password - required before granting ADMIN, either via promotion or direct creation. */
+    /** Confirms the acting admin's own current password - required before granting ADMIN, either via promotion or direct creation. Rate-limited per acting-admin-account so this can't be used to brute-force a signed-in admin's password. */
     private String verifyOwnPassword(AppUser actingAdmin, String confirmPassword) {
+        String rateLimitKey = "admin-password-confirm:" + actingAdmin.getId();
+        if (!rateLimiter.allow(rateLimitKey, MAX_PASSWORD_CONFIRM_ATTEMPTS, PASSWORD_CONFIRM_WINDOW)) {
+            return "Too many incorrect attempts. Please wait before trying again.";
+        }
         if (confirmPassword == null || confirmPassword.isBlank()) {
             return "Re-enter your password to confirm granting ADMIN access.";
         }

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Log - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg">
+
+    <header class="bg-white border-b border-eac-border relative">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+            <a th:href="@{/admin/home}" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
+            </a>
+            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
+                <a th:href="@{/admin/users}" class="text-eac-text hover:text-eac-red transition">Manage Users</a>
+                <a th:href="@{/admin/users/audit-log}" class="text-eac-red font-semibold">Audit Log</a>
+                <a th:href="@{/admin/users/settings}" class="text-eac-text hover:text-eac-red transition">Settings</a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
+            </nav>
+            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+            <a th:href="@{/admin/queue}" class="block text-eac-text hover:text-eac-red transition">Approval Queue</a>
+            <a th:href="@{/admin/users}" class="block text-eac-text hover:text-eac-red transition">Manage Users</a>
+            <a th:href="@{/admin/users/audit-log}" class="block text-eac-red font-semibold">Audit Log</a>
+            <a th:href="@{/admin/users/settings}" class="block text-eac-text hover:text-eac-red transition">Settings</a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-10">
+        <h1 class="text-2xl font-bold text-eac-navy mb-1">Audit Log</h1>
+        <p class="text-eac-text-light text-sm mb-6" th:text="${events.totalElements} + ' event(s)'"></p>
+
+        <!-- Filters -->
+        <form th:action="@{/admin/users/audit-log}" method="get"
+              class="bg-white rounded-xl border border-eac-border p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-eac-text-light mb-1">Actor email</label>
+                <input type="text" name="actorEmail" th:value="${actorEmail}" placeholder="name@eac.edu.ph"
+                       class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-eac-text-light mb-1">Action</label>
+                <select name="action" class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                    <option value="">All actions</option>
+                    <option th:each="a : ${actions}" th:value="${a}" th:text="${a}" th:selected="${a == selectedAction}"></option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-eac-text-light mb-1">Target type</label>
+                <select name="targetType" class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+                    <option value="">All types</option>
+                    <option th:each="t : ${targetTypes}" th:value="${t}" th:text="${t}" th:selected="${t == selectedTargetType}"></option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-eac-text-light mb-1">From</label>
+                <input type="date" name="from" th:value="${from}"
+                       class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-eac-text-light mb-1">To</label>
+                <input type="date" name="to" th:value="${to}"
+                       class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+            </div>
+            <div class="sm:col-span-2 lg:col-span-5 flex items-center gap-3 pt-1">
+                <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-semibold px-5 py-2 rounded-lg">
+                    Apply Filters
+                </button>
+                <a th:href="@{/admin/users/audit-log}" class="text-sm text-eac-text-light hover:text-eac-red">Clear</a>
+            </div>
+        </form>
+
+        <div th:if="${events.empty}" class="rounded-xl border border-dashed border-eac-border bg-white p-10 text-center text-eac-text-light">
+            <p class="font-medium">No matching events.</p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-eac-border overflow-hidden" th:unless="${events.empty}">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-eac-border bg-eac-bg/60 text-left text-xs text-eac-text-light uppercase tracking-wide">
+                            <th class="px-4 py-3 font-medium whitespace-nowrap">When</th>
+                            <th class="px-4 py-3 font-medium whitespace-nowrap">Action</th>
+                            <th class="px-4 py-3 font-medium whitespace-nowrap">Actor</th>
+                            <th class="px-4 py-3 font-medium whitespace-nowrap">Target</th>
+                            <th class="px-4 py-3 font-medium">Details</th>
+                            <th class="px-4 py-3 font-medium whitespace-nowrap">IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="e : ${events.content}" class="border-b border-eac-border last:border-0 align-top">
+                            <td class="px-4 py-3 text-eac-text-light whitespace-nowrap" th:text="${#temporals.format(e.createdAt, 'MMM d, yyyy h:mm:ss a')}"></td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
+                                      th:classappend="${#strings.contains(e.action.name(), 'FAILURE') or #strings.contains(e.action.name(), 'REJECTED')}
+                                                       ? 'bg-red-100 text-red-700'
+                                                       : (${#strings.contains(e.action.name(), 'APPROVED') or #strings.contains(e.action.name(), 'SUCCESS')}
+                                                          ? 'bg-green-100 text-green-700' : 'bg-eac-navy/5 text-eac-navy')"
+                                      th:text="${e.action}"></span>
+                            </td>
+                            <td class="px-4 py-3 text-eac-text whitespace-nowrap" th:text="${e.actorEmail} ?: '—'"></td>
+                            <td class="px-4 py-3 text-eac-text-light whitespace-nowrap">
+                                <span th:if="${e.targetType.name() != 'NONE'}" th:text="${e.targetType} + ' #' + ${e.targetId}"></span>
+                                <span th:unless="${e.targetType.name() != 'NONE'}">—</span>
+                            </td>
+                            <td class="px-4 py-3 text-eac-text-light">
+                                <div th:if="${e.metadata}" th:text="${e.metadata}"></div>
+                                <div th:if="${e.previousValue != null or e.newValue != null}" class="text-xs mt-0.5">
+                                    <span th:if="${e.previousValue}" th:text="${e.previousValue}"></span>
+                                    <span th:if="${e.previousValue != null and e.newValue != null}"> &rarr; </span>
+                                    <span th:if="${e.newValue}" th:text="${e.newValue}"></span>
+                                </div>
+                                <div th:if="${e.reason}" class="text-xs text-eac-text-light italic mt-0.5" th:text="'Reason: ' + ${e.reason}"></div>
+                            </td>
+                            <td class="px-4 py-3 text-eac-text-light whitespace-nowrap" th:text="${e.ipAddress} ?: '—'"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-center gap-2 mt-8" th:if="${events.totalPages > 1}">
+            <a th:each="p : ${#numbers.sequence(0, events.totalPages - 1)}"
+               th:href="@{/admin/users/audit-log(page=${p}, actorEmail=${actorEmail}, action=${selectedAction}, targetType=${selectedTargetType}, from=${from}, to=${to})}"
+               th:text="${p + 1}"
+               th:classappend="${p == events.number} ? 'bg-eac-red text-white' : 'bg-white text-eac-text border border-eac-border hover:border-eac-red'"
+               class="w-9 h-9 flex items-center justify-center rounded-md text-sm transition"></a>
+        </div>
+    </main>
+
+    <script>
+        var navToggle = document.getElementById('navToggle');
+        var navPanel = document.getElementById('navPanel');
+        if (navToggle && navPanel) {
+            navToggle.addEventListener('click', function () {
+                navPanel.classList.toggle('hidden');
+            });
+        }
+    </script>
+
+</body>
+</html>

@@ -17,6 +17,12 @@
             <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
                 <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
                 <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
+                <a th:href="@{/notifications}" class="relative text-eac-text hover:text-eac-red transition">
+                    Notifications
+                    <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}"
+                          class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
+                </a>
                 <div class="h-6 w-px bg-eac-border"></div>
                 <form th:action="@{/logout}" method="post">
                     <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
@@ -29,6 +35,11 @@
         <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
             <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
+            <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
+            <a th:href="@{/notifications}" class="block text-eac-text hover:text-eac-red transition">
+                Notifications
+                <span th:if="${unreadNotificationCount > 0}" th:text="'(' + ${unreadNotificationCount} + ')'" class="text-eac-red font-semibold"></span>
+            </a>
             <form th:action="@{/logout}" method="post" class="mt-2">
                 <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
             </form>
@@ -43,6 +54,21 @@
 
         <div th:if="${errorMessage}" class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm" th:text="${errorMessage}"></div>
 
+        <!-- Duplicate warning (see UploadController - SHA-256 checksum
+             matched an existing file). The form is re-rendered directly
+             rather than redirected so title/description/etc. survive the
+             round trip; only the file input can't be preserved by the
+             server (browsers never allow that), so the uploader re-attaches
+             the same file and checks the box below to confirm. -->
+        <div th:if="${duplicateOf}" class="mb-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
+            <p class="font-semibold mb-1">This file already exists in the directory.</p>
+            <p>
+                It looks identical to
+                <a th:href="@{/files/{id}(id=${duplicateOf.id})}" target="_blank" class="underline font-medium hover:text-amber-900" th:text="${'“' + duplicateOf.title + '”'}"></a>
+                (uploaded by <span th:text="${duplicateOf.uploader.fullName}"></span>). Re-attach your file below and check the box to upload it anyway.
+            </p>
+        </div>
+
         <form th:action="@{/upload}" method="post" enctype="multipart/form-data"
               class="bg-white rounded-2xl border border-eac-border shadow-sm p-6 sm:p-8 space-y-6">
 
@@ -53,7 +79,7 @@
                     <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-eac-red">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/></svg>
                     </span>
-                    <input type="text" name="title" required placeholder="Enter the title of your file"
+                    <input type="text" name="title" required placeholder="Enter the title of your file" th:value="${title}"
                            class="w-full rounded-lg border border-eac-border pl-10 pr-3 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40">
                 </div>
             </div>
@@ -66,7 +92,7 @@
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
                     </span>
                     <textarea name="description" rows="4" placeholder="Provide a brief description about your file..."
-                              class="w-full rounded-lg border border-eac-border pl-10 pr-3 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40 resize-y"></textarea>
+                              class="w-full rounded-lg border border-eac-border pl-10 pr-3 py-2.5 text-sm placeholder:text-eac-text-light/70 focus:outline-none focus:ring-2 focus:ring-eac-red/40 focus:border-eac-red/40 resize-y" th:text="${description}"></textarea>
                 </div>
             </div>
 
@@ -80,8 +106,8 @@
                          keep working unchanged. See initCombobox(). -->
                     <div class="combobox relative" data-combobox="departmentCombo">
                         <select id="departmentSelect" name="departmentId" required tabindex="-1" aria-hidden="true" class="sr-only">
-                            <option value="" disabled selected>Select school / department</option>
-                            <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"></option>
+                            <option value="" disabled th:selected="${selectedDepartmentId == null}">Select school / department</option>
+                            <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}" th:selected="${d.id == selectedDepartmentId}"></option>
                         </select>
                         <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-eac-red">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
@@ -98,8 +124,8 @@
                     <label class="block text-sm font-semibold text-eac-text mb-1.5">Category</label>
                     <div class="combobox relative" data-combobox="categoryCombo">
                         <select name="categoryId" required tabindex="-1" aria-hidden="true" class="sr-only">
-                            <option value="" disabled selected>Select category</option>
-                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                            <option value="" disabled th:selected="${selectedCategoryId == null}">Select category</option>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == selectedCategoryId}"></option>
                         </select>
                         <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-eac-red">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
@@ -173,7 +199,7 @@
                     <span id="tagChips" class="flex flex-wrap items-center gap-1.5"></span>
                     <input type="text" id="tagsTextInput" autocomplete="off" placeholder="e.g., machine-learning, thesis-2026, ai"
                            class="flex-1 min-w-[10rem] border-0 outline-none py-0.5 text-sm placeholder:text-eac-text-light/70">
-                    <input type="hidden" name="tags" id="tagsHidden">
+                    <input type="hidden" name="tags" id="tagsHidden" th:value="${tags}">
                 </div>
                 <p id="tagsMaxHint" class="hidden text-xs text-eac-red mt-1">Maximum of 5 tags reached - remove one to add another.</p>
             </div>
@@ -188,19 +214,67 @@
                     </span>
                     <span class="flex-1 min-w-0">
                         <span id="fileChosenLabel" class="block font-semibold text-eac-text">Choose a file</span>
-                        <span id="fileHintLabel" class="block text-xs text-eac-text-light">PDF, DOCX, PPTX, ZIP up to 50MB</span>
+                        <span id="fileHintLabel" class="block text-xs text-eac-text-light" th:text="${allowedExtensionsLabel} + ' up to 100MB'">PDF, DOCX, PPTX, ZIP up to 100MB</span>
                     </span>
                     <span class="shrink-0 rounded-lg border border-eac-border bg-white px-4 py-2 text-sm font-semibold text-eac-red">
                         Choose file
                     </span>
-                    <input id="fileInput" type="file" name="file" required class="sr-only">
+                    <input id="fileInput" type="file" name="file" required class="sr-only"
+                           th:accept="${acceptAttribute}">
                 </label>
             </div>
+
+            <!-- Access requests: how a request from someone who isn't the
+                 uploader/staff should be decided (see AccessDecisionPolicy).
+                 MANUAL (review each one yourself) is the default and matches
+                 today's Access Requests flow unchanged. -->
+            <div>
+                <label class="block text-sm font-semibold text-eac-text mb-1.5">When someone requests access to this file</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <label class="flex items-start gap-2 rounded-lg border border-eac-border px-3 py-2.5 text-sm cursor-pointer has-[:checked]:border-eac-red/50 has-[:checked]:bg-eac-red-soft transition">
+                        <input type="radio" name="accessDecisionPolicy" value="MANUAL"
+                               th:checked="${selectedAccessDecisionPolicy == null or selectedAccessDecisionPolicy.name() == 'MANUAL'}"
+                               class="mt-0.5 text-eac-red focus:ring-eac-red/40">
+                        <span>
+                            <span class="block font-medium text-eac-text">Review manually</span>
+                            <span class="block text-xs text-eac-text-light">Decide each request yourself (default)</span>
+                        </span>
+                    </label>
+                    <label class="flex items-start gap-2 rounded-lg border border-eac-border px-3 py-2.5 text-sm cursor-pointer has-[:checked]:border-eac-red/50 has-[:checked]:bg-eac-red-soft transition">
+                        <input type="radio" name="accessDecisionPolicy" value="AUTO_APPROVE"
+                               th:checked="${selectedAccessDecisionPolicy != null and selectedAccessDecisionPolicy.name() == 'AUTO_APPROVE'}"
+                               class="mt-0.5 text-eac-red focus:ring-eac-red/40">
+                        <span>
+                            <span class="block font-medium text-eac-text">Auto-approve</span>
+                            <span class="block text-xs text-eac-text-light">Grant access right away, no review</span>
+                        </span>
+                    </label>
+                    <label class="flex items-start gap-2 rounded-lg border border-eac-border px-3 py-2.5 text-sm cursor-pointer has-[:checked]:border-eac-red/50 has-[:checked]:bg-eac-red-soft transition">
+                        <input type="radio" name="accessDecisionPolicy" value="AUTO_REJECT"
+                               th:checked="${selectedAccessDecisionPolicy != null and selectedAccessDecisionPolicy.name() == 'AUTO_REJECT'}"
+                               class="mt-0.5 text-eac-red focus:ring-eac-red/40">
+                        <span>
+                            <span class="block font-medium text-eac-text">Auto-decline</span>
+                            <span class="block text-xs text-eac-text-light">No copies given out automatically</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Only appears after a duplicate has actually been detected
+                 (see UploadController) - re-attaching the file above and
+                 checking this box resubmits with confirmDuplicate=true,
+                 which skips the checksum check on the next pass. -->
+            <label th:if="${duplicateOf}" class="flex items-center gap-2 text-sm text-eac-text">
+                <input type="checkbox" name="confirmDuplicate" value="true" required
+                       class="rounded border-eac-border text-eac-red focus:ring-eac-red/40">
+                Upload anyway - I've re-attached the file and understand it matches an existing upload.
+            </label>
 
             <button type="submit"
                     class="w-full flex items-center justify-center gap-2 bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-eac-red/40">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-                Submit for Review
+                <span th:text="${duplicateOf} ? 'Upload Anyway' : 'Submit for Review'"></span>
             </button>
         </form>
     </main>
@@ -376,7 +450,10 @@
         const tagsHidden = document.getElementById('tagsHidden');
         const tagsCount = document.getElementById('tagsCount');
         const tagsMaxHint = document.getElementById('tagsMaxHint');
-        let tags = [];
+        // If the server re-rendered this form with tags already filled in
+        // (e.g. after a duplicate-file warning - see UploadController),
+        // seed the chip list from that instead of starting empty.
+        let tags = tagsHidden.value ? tagsHidden.value.split(',').map(t => t.trim()).filter(Boolean) : [];
 
         function atMaxTags() {
             return tags.length >= MAX_TAGS;
@@ -468,18 +545,23 @@
         tagsBox.addEventListener('click', (e) => {
             if (e.target === tagsBox || e.target === tagChips) tagsTextInput.focus();
         });
-        updateTagsMeta();
+        // renderTagChips() (not just updateTagsMeta()) so any tags seeded
+        // from a server-rendered value above actually show as chips, not
+        // just an accurate counter with nothing visible.
+        renderTagChips();
+        syncTagsHidden();
 
         const fileInput = document.getElementById('fileInput');
         const fileChosenLabel = document.getElementById('fileChosenLabel');
         const fileHintLabel = document.getElementById('fileHintLabel');
+        const defaultFileHint = fileHintLabel.textContent;
         fileInput.addEventListener('change', () => {
             if (fileInput.files && fileInput.files.length > 0) {
                 fileChosenLabel.textContent = fileInput.files[0].name;
                 fileHintLabel.textContent = 'Click to replace this file';
             } else {
                 fileChosenLabel.textContent = 'Choose a file';
-                fileHintLabel.textContent = 'PDF, DOCX, PPTX, ZIP up to 50MB';
+                fileHintLabel.textContent = defaultFileHint;
             }
         });
 

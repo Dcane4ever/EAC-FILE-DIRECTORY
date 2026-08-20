@@ -70,4 +70,8 @@ public class EmailVerificationToken {
     public void setUsed(boolean used) {
         this.used = used;
     }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }

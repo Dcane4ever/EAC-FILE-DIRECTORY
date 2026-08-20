@@ -17,6 +17,13 @@
             <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
                 <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
                 <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
+                <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
+                <a th:href="@{/notifications}" class="relative text-eac-text hover:text-eac-red transition">
+                    Notifications
+                    <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}"
+                          class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
+                </a>
                 <div class="h-6 w-px bg-eac-border"></div>
                 <form th:action="@{/logout}" method="post">
                     <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
@@ -29,15 +36,37 @@
         <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
             <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
+            <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
+            <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
+            <a th:href="@{/notifications}" class="block text-eac-text hover:text-eac-red transition">
+                Notifications
+                <span th:if="${unreadNotificationCount > 0}" th:text="'(' + ${unreadNotificationCount} + ')'" class="text-eac-red font-semibold"></span>
+            </a>
             <form th:action="@{/logout}" method="post" class="mt-2">
                 <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
             </form>
         </div>
     </header>
 
-    <main class="max-w-3xl mx-auto px-6 py-10">
+    <main class="max-w-4xl mx-auto px-6 py-10">
         <a th:href="@{/browse}" class="text-sm text-eac-text-light hover:text-eac-red">&larr; Back to Browse</a>
 
+        <!-- Flash message toast - e.g. "Access request sent to the
+             uploader." after clicking "Request a copy?" (see
+             AccessRequestController.requestAccess). Self-dismisses after a
+             few seconds rather than sitting as a static banner. -->
+        <div th:if="${infoMessage}" id="flashToast"
+             class="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 flex items-center gap-2 bg-eac-text text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg max-w-[90vw]">
+            <svg class="w-4 h-4 shrink-0 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <span th:text="${infoMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}" id="flashToast"
+             class="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 flex items-center gap-2 bg-red-600 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg max-w-[90vw]">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- File Information -->
         <div class="bg-white rounded-xl border border-eac-border p-8 mt-4">
             <div class="flex items-center gap-2 text-xs text-eac-text-light mb-3">
                 <span class="bg-eac-navy/5 text-eac-navy px-2 py-0.5 rounded font-medium" th:text="${file.category.name}"></span>
@@ -51,17 +80,66 @@
             </div>
 
             <h1 class="text-2xl font-bold text-eac-navy mb-2" th:text="${file.title}"></h1>
-            <p class="text-eac-text-light mb-6" th:text="${file.description}"></p>
+            <p class="text-eac-text-light" th:text="${file.description}"></p>
 
-            <div class="flex flex-wrap gap-2 mb-6" th:if="${!file.tags.isEmpty()}">
-                <span th:each="tag : ${file.tags}" th:text="${'#' + tag.name}"
-                      class="text-xs bg-eac-bg border border-eac-border text-eac-text-light px-2 py-1 rounded-full"></span>
+            <div class="flex flex-wrap gap-2 mt-4" th:if="${!file.tags.isEmpty()}">
+                <a th:each="tag : ${file.tags}" th:text="${'#' + tag.name}"
+                   th:href="@{/browse(tag=${tag.name})}"
+                   class="text-xs bg-eac-bg border border-eac-border text-eac-text-light px-2 py-1 rounded-full hover:border-eac-red/40 hover:text-eac-red transition"></a>
             </div>
+        </div>
 
-            <dl class="grid grid-cols-2 gap-4 text-sm mb-6">
+        <!-- Document Preview - preview-guard-protected: excluded from print
+             output (see input.css's @media print rule) and covered by
+             preview-guard.js's right-click/select/print-shortcut guards.
+             PDF renders inline via PDF.js, into #pdfPreviewContainer (see
+             pdf-preview.js) - it has its own minimal custom toolbar sized
+             for an inline box. DOCX/DOC/PPTX/PPT/XLSX/XLS go straight to
+             ONLYOFFICE's full-screen viewer instead (see
+             onlyoffice-preview.js/OnlyOfficeController) rather than an
+             inline box - ONLYOFFICE's own toolbar/slide-thumbnail rail/
+             status bar are real editor chrome, not something built to fit
+             a cramped inline space, so squeezing it into one just reads as
+             broken. TXT renders inline as literal, escaped text in a <pre>
+             (see #textPreviewContainer below and FileDetailController's
+             text-content endpoint) - the simplest of the three, no
+             external viewer or custom chrome needed for plain text.
+             Anything else shows an honest "not available" message rather
+             than pretending to render something - see
+             FileEntity.isPreviewable/isOfficePreviewable/isTextPreviewable. -->
+        <div class="bg-white rounded-xl border border-eac-border mt-4 preview-guard-protected overflow-hidden">
+            <div th:if="${file.previewable}" id="pdfPreviewContainer" class="min-h-[70vh] max-h-[80vh]">
+                <p class="text-sm text-eac-text-light p-6">Loading preview…</p>
+            </div>
+            <button th:if="${file.officePreviewable}" type="button" id="openOnlyOfficePreviewBtn"
+                    class="w-full flex flex-col items-center justify-center gap-3 p-14 text-center hover:bg-eac-bg/60 transition cursor-pointer">
+                <span class="flex items-center justify-center w-14 h-14 rounded-full bg-eac-red-soft text-eac-red">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m10 12 4 3-4 3v-6z"/></svg>
+                </span>
+                <span>
+                    <span class="block font-semibold text-eac-text">Click to preview</span>
+                    <span class="block text-sm text-eac-text-light mt-0.5" th:text="${file.originalFilename}"></span>
+                </span>
+            </button>
+            <div th:if="${file.textPreviewable}" id="textPreviewContainer" class="min-h-[40vh] max-h-[70vh] overflow-auto">
+                <pre id="textPreviewContent" class="text-sm text-eac-text font-mono whitespace-pre-wrap break-words p-6 m-0">Loading preview…</pre>
+            </div>
+            <div th:unless="${file.previewable or file.officePreviewable or file.textPreviewable}" class="p-10 text-center text-eac-text-light">
+                <svg class="w-10 h-10 mx-auto mb-3 text-eac-text-light/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                <p class="font-medium text-eac-text">Preview not available for this file type yet.</p>
+                <p class="text-sm mt-1">Download the file below to view it, or request access if it's not directly downloadable.</p>
+            </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="bg-white rounded-xl border border-eac-border p-8 mt-4">
+            <dl class="grid grid-cols-2 gap-4 text-sm">
                 <div>
                     <dt class="text-eac-text-light">Uploaded by</dt>
-                    <dd class="font-medium text-eac-text" th:text="${file.uploader.fullName}"></dd>
+                    <dd class="font-medium">
+                        <a th:href="@{/browse(uploaderId=${file.uploader.id})}" th:text="${file.uploader.fullName}"
+                           class="text-eac-text hover:text-eac-red transition"></a>
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-eac-text-light">File size</dt>
@@ -76,13 +154,87 @@
                     <dd class="font-medium text-eac-text" th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy')}"></dd>
                 </div>
             </dl>
+        </div>
 
-            <a th:href="@{/files/{id}/download(id=${file.id})}"
+        <!-- Actions - as of Phase 9, only the uploader/moderator/admin get
+             the one-click Download; everyone else requests access instead
+             (see FileDetailController's javadoc and canDownloadDirectly). -->
+        <div class="mt-6">
+            <a th:if="${canDownloadDirectly}" th:href="@{/files/{id}/download(id=${file.id})}"
                class="inline-block bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 py-3 rounded-lg">
                 Download &ndash; <span th:text="${file.originalFilename}"></span>
             </a>
+
+            <div th:unless="${canDownloadDirectly}">
+                <div th:if="${pendingAccessRequest != null}"
+                     class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 font-medium px-6 py-3 rounded-lg">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Access request pending &ndash; the uploader has been notified.
+                </div>
+                <form th:if="${pendingAccessRequest == null}" th:action="@{/files/{id}/request-access(id=${file.id})}" method="post">
+                    <button type="submit"
+                            class="inline-block bg-eac-navy hover:bg-eac-navy/90 transition text-white font-semibold px-6 py-3 rounded-lg">
+                        Request a copy?
+                    </button>
+                </form>
+                <p th:if="${pendingAccessRequest == null}" class="text-sm text-eac-text-light mt-2">
+                    This file requires the uploader's approval before you can download it.
+                </p>
+            </div>
         </div>
     </main>
+
+    <script th:src="@{/js/preview-guard.js}"></script>
+    <script th:inline="javascript">
+        PreviewGuard.init({ exempt: /*[[${isStaff}]]*/ false });
+    </script>
+
+    <script th:if="${file.officePreviewable}" th:src="@{/js/onlyoffice-preview.js}"></script>
+
+    <script type="module" th:inline="javascript">
+        const previewContainer = document.getElementById('pdfPreviewContainer');
+        if (previewContainer) {
+            const previewUrl = /*[[@{/files/{id}/preview-content(id=${file.id})}]]*/ '';
+            const workerUrl = /*[[@{/vendor/pdfjs/pdf.worker.min.mjs}]]*/ '';
+            const libUrl = /*[[@{/vendor/pdfjs/pdf.min.mjs}]]*/ '';
+            const fileTitle = /*[[${file.title}]]*/ 'Document preview';
+
+            import('/js/pdf-preview.js').then(() => {
+                PdfPreview.init(previewContainer, {
+                    previewUrl, workerUrl, libUrl,
+                    onOpenFullscreen: () => PdfPreview.openFullscreen({ previewUrl, workerUrl, libUrl, title: fileTitle })
+                });
+            });
+        }
+
+        const openOnlyOfficeBtn = document.getElementById('openOnlyOfficePreviewBtn');
+        if (openOnlyOfficeBtn) {
+            const fileId = /*[[${file.id}]]*/ 0;
+            const fileTitle = /*[[${file.title}]]*/ 'Document preview';
+            openOnlyOfficeBtn.addEventListener('click', () => {
+                OnlyOfficePreview.openFullscreen({ fileId, title: fileTitle });
+            });
+        }
+
+        const textPreviewContent = document.getElementById('textPreviewContent');
+        if (textPreviewContent) {
+            const textContentUrl = /*[[@{/files/{id}/text-content(id=${file.id})}]]*/ '';
+            fetch(textContentUrl, { credentials: 'same-origin' })
+                .then((response) => {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.text();
+                })
+                .then((text) => {
+                    // textContent, never innerHTML - this is arbitrary
+                    // uploaded file content and must always render as
+                    // literal text, never be parsed as markup.
+                    textPreviewContent.textContent = text;
+                })
+                .catch(() => {
+                    textPreviewContent.textContent = 'Could not load the preview. Please try again later.';
+                });
+        }
+    </script>
 
     <script>
         var navToggle = document.getElementById('navToggle');
@@ -91,6 +243,18 @@
             navToggle.addEventListener('click', function () {
                 navPanel.classList.toggle('hidden');
             });
+        }
+
+        // Flash toast (see #flashToast above): fades out and removes itself
+        // after a few seconds so a success/error message from the redirect
+        // doesn't sit on screen forever.
+        var flashToast = document.getElementById('flashToast');
+        if (flashToast) {
+            flashToast.style.transition = 'opacity .3s ease';
+            setTimeout(function () {
+                flashToast.style.opacity = '0';
+                setTimeout(function () { flashToast.remove(); }, 300);
+            }, 3500);
         }
     </script>
 

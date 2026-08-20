@@ -18,3 +18,24 @@
   --color-eac-yellow-soft: #fdf3d7;
   --color-eac-red-soft: #fdeceb;
 }
+
+/* preview-guard.js intercepts window.print()/Ctrl+P on preview pages, but a
+   user can still reach the browser's own Print menu item directly (no JS
+   involved at all) - this is the fallback for that path: if a print
+   actually happens, blank the page instead of rendering the protected
+   content onto paper/PDF. See preview-guard.js for what this can and can't
+   actually stop. */
+@media print {
+  .preview-guard-protected {
+    display: none !important;
+  }
+  body::after {
+    content: "Printing is disabled for this content. Sign in and request access to download the original file.";
+    display: block;
+    padding: 4rem 2rem;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14pt;
+    color: #1a1a1a;
+  }
+}
