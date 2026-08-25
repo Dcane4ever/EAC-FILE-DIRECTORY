@@ -5,83 +5,204 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EAC File Directory - Sign In</title>
     <link rel="stylesheet" th:href="@{/css/output.css}">
-</head>
-<body class="min-h-screen bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center p-4">
+    <style>
+        @keyframes page-rise {
+            from { opacity: 0; transform: translate3d(0, 18px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
 
-    <!-- Toast: brief side notification (e.g. "Successfully logged out"), separate from the inline banners below which stay for messages tied to the form itself. -->
+        @keyframes soft-drift {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(18px, -14px, 0) scale(1.03); }
+        }
+
+        @keyframes sheen {
+            from { transform: translateX(-120%) skewX(-18deg); }
+            to { transform: translateX(220%) skewX(-18deg); }
+        }
+
+        .login-rise {
+            animation: page-rise 700ms cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .login-rise-2 { animation-delay: 100ms; }
+        .login-rise-3 { animation-delay: 190ms; }
+        .login-rise-4 { animation-delay: 280ms; }
+
+        .login-drift {
+            animation: soft-drift 13s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        .login-input {
+            transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+        }
+
+        .login-input:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 0 0 4px rgba(179, 18, 23, .12), 0 14px 32px rgba(107, 17, 24, .08);
+        }
+
+        .login-portrait::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+            animation: sheen 5.8s cubic-bezier(.2, .8, .2, 1) 1.2s both;
+            pointer-events: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .login-rise,
+            .login-drift {
+                animation: none;
+            }
+
+            .login-portrait::after {
+                display: none;
+            }
+
+            .login-input,
+            .login-submit,
+            a {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-[100dvh] overflow-x-hidden bg-[#f7f7f6] text-eac-text">
+
     <div th:if="${toastMessage}" id="toast"
-         class="fixed top-5 right-5 z-50 flex items-center gap-3 bg-white border border-green-200 shadow-lg rounded-xl px-4 py-3 text-sm text-eac-text transition-all duration-300"
+         class="fixed right-4 top-4 z-50 flex items-center gap-3 rounded-xl border border-green-200 bg-white px-4 py-3 text-sm text-eac-text shadow-lg transition-all duration-300 sm:right-6 sm:top-6"
          role="status" aria-live="polite">
-        <span class="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
+        <span class="h-2 w-2 shrink-0 rounded-full bg-green-500"></span>
         <span th:text="${toastMessage}"></span>
     </div>
 
-    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
-
-        <!-- Branding panel -->
-        <div class="md:w-1/2 bg-eac-red relative p-10 flex flex-col items-center justify-center text-center text-white"
-             style="background: linear-gradient(135deg, #b31217 0%, #8b0e12 100%);">
-            <img th:src="@{/images/emblem.png}" alt="Emilio Aguinaldo College" class="w-28 h-28 mb-4 drop-shadow-lg">
-            <h2 class="text-2xl font-bold tracking-wide">Emilio Aguinaldo College</h2>
-            <p class="text-sm text-red-100 mt-1 mb-6">Excellence in Education</p>
-
-            <div class="rounded-xl overflow-hidden shadow-lg border-4 border-white/20 max-w-xs">
-                <img th:src="@{/images/eac-grad.jpg}" alt="Graduation Ceremony" class="w-full h-auto">
-            </div>
+    <main class="relative min-h-[100dvh] px-4 py-5 sm:px-6 lg:px-8">
+        <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+            <div class="login-drift absolute -left-28 top-16 h-80 w-80 rounded-full bg-eac-red/12 blur-3xl"></div>
+            <div class="login-drift absolute -right-32 bottom-0 h-[34rem] w-[34rem] rounded-full bg-eac-maroon/10 blur-3xl [animation-delay:2s]"></div>
+            <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-eac-red/30 to-transparent"></div>
         </div>
 
-        <!-- Sign-in panel -->
-        <div class="md:w-1/2 p-10 flex flex-col justify-center">
-            <h1 class="text-3xl font-bold text-eac-navy mb-1">EAC File Directory</h1>
-            <p class="text-eac-text-light mb-8">Research, papers, code, and academic resources — all in one place.</p>
+        <section class="mx-auto grid min-h-[calc(100dvh-2.5rem)] w-full max-w-[1200px] grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,1fr)_464px]">
+            <div class="login-portrait relative hidden min-h-[700px] overflow-hidden rounded-[2rem] border border-white/70 bg-eac-maroon text-white shadow-[0_28px_90px_rgba(107,17,24,0.18)] lg:block login-rise">
+                <img th:src="@{/images/eac-grad.jpg}"
+                     alt="Graduation Ceremony"
+                     class="absolute inset-0 h-full w-full object-cover opacity-72">
+                <div class="absolute inset-0 bg-[linear-gradient(110deg,rgba(49,5,10,0.96)_0%,rgba(107,17,24,0.84)_48%,rgba(179,18,23,0.16)_100%)]"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(255,255,255,0.28),transparent_30%)]"></div>
 
-            <h2 class="text-xl font-semibold text-eac-text border-b-2 border-eac-red inline-block pb-1 mb-6 w-fit">
-                Sign In
-            </h2>
-
-            <div th:if="${errorMessage}" class="mb-6 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">
-                <span th:text="${errorMessage}"></span>
-            </div>
-            <div th:if="${infoMessage}" class="mb-6 flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-800 text-sm px-4 py-3">
-                <span th:text="${infoMessage}"></span>
-            </div>
-
-            <form th:action="@{/login}" method="post" class="space-y-3">
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">Email</label>
-                    <input type="email" name="email" required placeholder="yourname@eac.edu.ph"
-                           class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                </div>
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-sm font-medium text-eac-text">Password</label>
-                        <a th:href="@{/forgot-password}" class="text-xs text-eac-red hover:underline">Forgot password?</a>
+                <div class="relative z-10 flex h-full flex-col justify-between p-10 xl:p-12">
+                    <div class="flex items-center gap-4 login-rise login-rise-2">
+                        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
+                            <img th:src="@{/images/emblem.png}" alt="Emilio Aguinaldo College" class="h-12 w-12 object-contain">
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold uppercase tracking-[0.22em] text-white/68">Emilio Aguinaldo College</p>
+                            <p class="mt-1 text-lg font-semibold">File Directory</p>
+                        </div>
                     </div>
-                    <input type="password" name="password" required
-                           class="w-full rounded-lg border border-eac-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
+
+                    <div class="max-w-2xl pb-10 login-rise login-rise-3">
+                        <p class="mb-5 w-fit rounded-full border border-white/18 bg-white/10 px-4 py-2 text-sm font-semibold text-white/78 backdrop-blur">
+                            Secure academic repository
+                        </p>
+                        <h1 class="max-w-[10ch] text-6xl font-black leading-[0.94] tracking-normal text-white drop-shadow-[0_18px_38px_rgba(0,0,0,0.22)] xl:text-7xl">
+                            Work worth finding.
+                        </h1>
+                        <p class="mt-7 max-w-xl text-lg leading-8 text-white/78">
+                            Access papers, capstones, source files, and campus references through one protected EAC directory.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-white/16 bg-white/12 backdrop-blur-md login-rise login-rise-4">
+                        <div class="bg-white/10 p-5">
+                            <p class="text-2xl font-black">01</p>
+                            <p class="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-white/58">Browse</p>
+                        </div>
+                        <div class="bg-white/10 p-5">
+                            <p class="text-2xl font-black">02</p>
+                            <p class="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-white/58">Preview</p>
+                        </div>
+                        <div class="bg-white/10 p-5">
+                            <p class="text-2xl font-black">03</p>
+                            <p class="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-white/58">Request</p>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="w-full bg-eac-navy hover:bg-eac-navy-secondary transition text-white font-semibold py-3 rounded-lg">
-                    Sign In
-                </button>
-            </form>
-
-            <p class="text-sm text-eac-text-light mt-4 text-center">
-                No account? <a th:href="@{/register}" class="text-eac-red font-medium hover:underline">Register with your @eac.edu.ph email</a>
-            </p>
-            <p class="text-sm text-eac-text-light mt-1 text-center">
-                Haven't received your verification email? <a th:href="@{/resend-verification}" class="text-eac-red font-medium hover:underline">Resend it</a>
-            </p>
-
-            <p class="text-xs text-eac-text-light mt-4 text-center">
-                Access is restricted to <span class="font-medium">@eac.edu.ph</span> accounts —
-                students, faculty, and staff.
-            </p>
-
-            <div class="mt-8 pt-6 border-t border-eac-border text-center text-sm text-eac-text-light">
-                Trouble signing in? Contact the IT administrator.
             </div>
-        </div>
-    </div>
+
+            <div class="mx-auto w-full max-w-[460px] lg:mx-0 login-rise login-rise-2">
+                <div class="mb-8 flex items-center gap-4 lg:hidden">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-[0_14px_36px_rgba(107,17,24,0.12)]">
+                        <img th:src="@{/images/emblem.png}" alt="Emilio Aguinaldo College" class="h-10 w-10 object-contain">
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-[0.22em] text-eac-red">EAC</p>
+                        <p class="text-lg font-black text-eac-maroon">File Directory</p>
+                    </div>
+                </div>
+
+                <div class="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 p-6 shadow-[0_24px_70px_rgba(26,26,26,0.10)] backdrop-blur-xl sm:p-8">
+                    <div class="-mx-6 -mt-6 mb-7 h-1 bg-gradient-to-r from-eac-maroon via-eac-red to-eac-maroon sm:-mx-8 sm:-mt-8"></div>
+                    <div class="login-rise login-rise-3">
+                        <p class="text-sm font-bold uppercase tracking-[0.22em] text-eac-red">Sign in</p>
+                        <h2 class="mt-4 text-4xl font-black leading-[0.98] tracking-normal text-eac-maroon sm:text-5xl">
+                            Enter your directory.
+                        </h2>
+                        <p class="mt-4 text-base leading-7 text-eac-text-light">
+                            Research, papers, code, and academic resources, organized for the EAC community.
+                        </p>
+                    </div>
+
+                    <div th:if="${errorMessage}" class="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 login-rise login-rise-4">
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+                    <div th:if="${infoMessage}" class="mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800 login-rise login-rise-4">
+                        <span th:text="${infoMessage}"></span>
+                    </div>
+
+                    <form th:action="@{/login}" method="post" class="mt-7 space-y-4 login-rise login-rise-4">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-eac-text">Email</label>
+                            <input type="email" name="email" required autocomplete="email" placeholder="yourname@eac.edu.ph"
+                                   class="login-input w-full rounded-2xl border border-eac-border bg-white/95 px-4 py-3.5 text-base text-eac-text outline-none placeholder:text-eac-text-light/60 focus:border-eac-red">
+                        </div>
+                        <div>
+                            <div class="mb-2 flex items-center justify-between gap-4">
+                                <label class="block text-sm font-bold text-eac-text">Password</label>
+                                <a th:href="@{/forgot-password}" class="text-sm font-bold text-eac-red transition hover:text-eac-red-hover hover:opacity-80">Forgot password?</a>
+                            </div>
+                            <input type="password" name="password" required autocomplete="current-password"
+                                   class="login-input w-full rounded-2xl border border-eac-border bg-white/95 px-4 py-3.5 text-base text-eac-text outline-none focus:border-eac-red">
+                        </div>
+                        <button type="submit" class="login-submit flex w-full items-center justify-center rounded-2xl bg-eac-maroon px-5 py-4 text-base font-black text-white shadow-[0_18px_42px_rgba(107,17,24,0.22)] transition duration-200 hover:-translate-y-0.5 hover:bg-eac-red hover:shadow-[0_24px_54px_rgba(107,17,24,0.26)] active:translate-y-px focus:outline-none focus:ring-4 focus:ring-eac-red/20">
+                            Sign In
+                        </button>
+                    </form>
+
+                    <div class="mt-7 space-y-3 text-sm leading-6 text-eac-text-light">
+                        <p>
+                            No account?
+                            <a th:href="@{/register}" class="font-bold text-eac-red transition hover:text-eac-red-hover hover:opacity-80">Register with your @eac.edu.ph email</a>
+                        </p>
+                        <p>
+                            Haven't received your verification email?
+                            <a th:href="@{/resend-verification}" class="font-bold text-eac-red transition hover:text-eac-red-hover hover:opacity-80">Resend it</a>
+                        </p>
+                    </div>
+
+                    <div class="mt-8 border-t border-eac-border pt-5">
+                        <p class="text-xs font-medium leading-6 text-eac-text-light">
+                            Access is restricted to <span class="font-semibold">@eac.edu.ph</span> accounts. Trouble signing in? Contact the IT administrator.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script>
         var toast = document.getElementById('toast');

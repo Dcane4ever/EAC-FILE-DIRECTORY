@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <style>
+        @keyframes landing-rise {
+            from { opacity: 0; transform: translate3d(0, 20px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        @keyframes slow-drift {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(18px, -18px, 0) scale(1.04); }
+        }
+
+        @keyframes panel-sheen {
+            from { transform: translateX(-130%) skewX(-18deg); }
+            to { transform: translateX(190%) skewX(-18deg); }
+        }
+
+        .landing-rise {
+            animation: landing-rise 760ms cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .landing-delay-1 { animation-delay: 90ms; }
+        .landing-delay-2 { animation-delay: 180ms; }
+        .landing-delay-3 { animation-delay: 270ms; }
+
+        .slow-drift {
+            animation: slow-drift 15s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        .hero-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+            animation: panel-sheen 6s cubic-bezier(.2, .8, .2, 1) 1.1s both;
+            pointer-events: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .landing-rise,
+            .slow-drift,
+            .hero-frame::after {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-[100dvh] overflow-x-hidden bg-[#fbfaf9] text-eac-text antialiased">
+
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div class="slow-drift absolute -left-24 top-24 h-80 w-80 rounded-full bg-eac-red/12 blur-3xl"></div>
+        <div class="slow-drift absolute -right-28 top-36 h-[34rem] w-[34rem] rounded-full bg-eac-maroon/14 blur-3xl [animation-delay:2s]"></div>
+        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-eac-red/35 to-transparent"></div>
+    </div>
+
+    <header class="relative z-20 border-b border-eac-border/70 bg-white/78 backdrop-blur-xl">
+        <div class="mx-auto flex h-24 max-w-[1480px] items-center justify-between px-5 sm:px-8 lg:px-12">
+            <a th:href="@{/}" class="flex items-center gap-4">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="h-16 w-16 shrink-0 object-contain">
+                <span>
+                    <span class="block text-2xl font-black leading-tight text-eac-maroon">EAC File Directory</span>
+                    <span class="hidden text-base font-semibold text-eac-text-light sm:block">Academic repository for the EAC community</span>
+                </span>
+            </a>
+
+            <nav class="hidden items-center gap-9 text-sm font-black text-eac-text lg:flex">
+                <a th:href="@{/login}" class="transition hover:text-eac-red">Browse</a>
+                <a th:href="@{/login}" class="transition hover:text-eac-red">Preview</a>
+                <a th:href="@{/login}" class="transition hover:text-eac-red">Requests</a>
+                <a th:href="@{/login}" class="transition hover:text-eac-red">Access</a>
+            </nav>
+
+            <div class="flex items-center gap-3 text-sm font-black">
+                <a th:href="@{/login}" class="hidden rounded-2xl border border-eac-border bg-white px-5 py-3 text-eac-maroon shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 sm:inline-flex">Sign in</a>
+                <a th:href="@{/register}" class="rounded-2xl bg-eac-red px-5 py-3 text-white shadow-[0_16px_38px_rgba(179,18,23,0.24)] transition hover:-translate-y-0.5 hover:bg-eac-red-hover active:translate-y-px">Create account</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="relative mx-auto grid min-h-[calc(100dvh-6rem)] max-w-[1480px] grid-cols-1 items-center gap-10 px-5 pb-12 pt-10 sm:px-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(620px,1.14fr)] lg:px-12 lg:pt-8">
+            <div class="relative z-10 max-w-3xl">
+                <div class="landing-rise mb-7 inline-flex items-center gap-3 rounded-2xl border border-eac-red/18 bg-white px-4 py-3 text-sm font-black text-eac-red shadow-[0_14px_34px_rgba(107,17,24,0.08)]">
+                    <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
+                    <span>Protected academic access, built for EAC</span>
+                </div>
+
+                <h1 class="landing-rise landing-delay-1 max-w-[10ch] text-6xl font-black leading-[0.9] tracking-normal text-[#130507] sm:text-7xl lg:text-8xl">
+                    Find the file behind the <span class="text-eac-red">work.</span>
+                </h1>
+
+                <p class="landing-rise landing-delay-2 mt-7 max-w-xl text-lg leading-8 text-eac-text-light">
+                    A protected directory for EAC papers, capstones, source files, presentations, and reference materials.
+                </p>
+
+                <div class="landing-rise landing-delay-3 mt-9 flex flex-col gap-3 sm:flex-row">
+                    <a th:href="@{/login}" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-eac-red px-6 py-4 text-base font-black text-white shadow-[0_22px_52px_rgba(179,18,23,0.26)] transition hover:-translate-y-0.5 hover:bg-eac-red-hover active:translate-y-px">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Sign in to browse
+                    </a>
+                    <a th:href="@{/register}" class="inline-flex items-center justify-center gap-3 rounded-2xl border border-eac-border bg-white px-6 py-4 text-base font-black text-eac-maroon shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 active:translate-y-px">
+                        <svg class="h-5 w-5 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+                        Register with EAC email
+                    </a>
+                </div>
+
+                <div class="landing-rise landing-delay-3 mt-9 grid max-w-2xl grid-cols-1 gap-4 text-sm sm:grid-cols-3">
+                    <div class="flex items-center gap-3 border-eac-border sm:border-r">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-eac-red shadow-sm">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V5l8-3 8 3Z"/></svg>
+                        </span>
+                        <span><strong class="block text-eac-text">Protected</strong><span class="text-eac-text-light">Institutional access</span></span>
+                    </div>
+                    <div class="flex items-center gap-3 border-eac-border sm:border-r">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-eac-red shadow-sm">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                        </span>
+                        <span><strong class="block text-eac-text">Curated</strong><span class="text-eac-text-light">Approved content</span></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-eac-red shadow-sm">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </span>
+                        <span><strong class="block text-eac-text">Campus-wide</strong><span class="text-eac-text-light">EAC community</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="landing-rise landing-delay-2 relative">
+                <div class="hero-frame relative overflow-hidden rounded-[2rem] bg-eac-maroon shadow-[0_32px_110px_rgba(107,17,24,0.25)]">
+                    <div class="grid min-h-[620px] grid-cols-1 lg:grid-cols-[170px_minmax(0,1fr)]">
+                        <aside class="relative hidden overflow-hidden bg-[linear-gradient(180deg,#7b0011_0%,#a70018_100%)] p-7 text-white lg:block">
+                            <div class="absolute inset-x-6 top-32 h-px bg-eac-yellow"></div>
+                            <p class="text-base font-black uppercase tracking-[0.28em] text-eac-yellow">Index</p>
+                            <p class="mt-5 text-5xl font-black leading-none">EAC</p>
+                            <img th:src="@{/images/emblem.png}" alt="EAC" class="mt-12 h-32 w-32 object-contain drop-shadow-[0_18px_34px_rgba(0,0,0,0.22)]">
+                            <div class="absolute bottom-7 left-7 right-7">
+                                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-eac-yellow/40 bg-eac-yellow/10 text-eac-yellow">
+                                    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                </div>
+                                <p class="text-base font-black">Protected</p>
+                                <p class="mt-1 text-base font-semibold text-white/86">Institutional access</p>
+                            </div>
+                        </aside>
+
+                        <div class="relative min-h-[620px] overflow-hidden bg-black">
+                            <img th:src="@{/images/eac-grad.jpg}" alt="EAC graduation ceremony" class="absolute inset-0 h-full w-full object-cover opacity-88">
+                            <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(30,0,4,0.02)_0%,rgba(30,0,4,0.38)_52%,rgba(30,0,4,0.84)_100%)]"></div>
+                            <div class="absolute left-6 top-6 rounded-2xl border border-white/18 bg-white/14 px-4 py-3 text-white shadow-[0_18px_48px_rgba(0,0,0,0.18)] backdrop-blur-md">
+                                <p class="text-sm font-black uppercase tracking-[0.14em] text-white/76">Protected</p>
+                                <p class="mt-1 text-base font-bold">Institutional access</p>
+                            </div>
+
+                            <div class="absolute bottom-0 left-0 right-0 rounded-t-[2rem] bg-white p-6 text-eac-text shadow-[0_-18px_70px_rgba(0,0,0,0.18)] sm:p-8">
+                                <div class="grid grid-cols-3 gap-6">
+                                    <div class="flex gap-3">
+                                        <svg class="mt-1 h-7 w-7 shrink-0 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                        <div>
+                                            <p class="text-3xl font-black text-eac-maroon" th:text="${stats != null and !stats.isEmpty()} ? ${stats[0].count} + '+' : '0+'"></p>
+                                            <p class="mt-1 text-base font-bold text-eac-text-light">Approved records</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 border-x border-eac-border px-5">
+                                        <svg class="mt-1 h-7 w-7 shrink-0 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696C3.455 7.731 7.23 5 12 5s8.545 2.731 9.938 6.652a1 1 0 0 1 0 .696C20.545 16.269 16.77 19 12 19s-8.545-2.731-9.938-6.652Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <div>
+                                            <p class="text-3xl font-black text-eac-maroon">02</p>
+                                            <p class="mt-1 text-base font-bold text-eac-text-light">Preview files</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <svg class="mt-1 h-7 w-7 shrink-0 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12h4"/><path d="M10 16h4"/></svg>
+                                        <div>
+                                            <p class="text-3xl font-black text-eac-maroon">03</p>
+                                            <p class="mt-1 text-base font-bold text-eac-text-light">Request access</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <a th:href="@{/login}" class="mt-7 flex items-center justify-between rounded-2xl bg-eac-red-soft px-5 py-4 text-eac-maroon transition hover:bg-red-100">
+                                    <span>
+                                        <span class="block text-sm font-black uppercase tracking-[0.14em] text-eac-red">Featured workflow</span>
+                                        <span class="mt-1 block text-base font-black">From discovery to approved download.</span>
+                                    </span>
+                                    <svg class="h-6 w-6 shrink-0 text-eac-red transition group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="relative z-10 px-5 pb-16 sm:px-8 lg:-mt-2">
+            <div class="absolute inset-x-0 top-24 -z-10 h-40 bg-eac-maroon"></div>
+            <div class="absolute inset-x-0 top-12 -z-10 h-28 -rotate-2 bg-eac-maroon"></div>
+            <div class="mx-auto max-w-[1340px]">
+            <div class="grid grid-cols-1 overflow-hidden rounded-[2rem] border border-eac-border bg-white shadow-[0_24px_80px_rgba(26,26,26,0.12)] sm:grid-cols-3">
+                <a th:href="@{/login}" class="group p-7 transition hover:bg-eac-red-soft">
+                    <div class="flex gap-5">
+                        <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-eac-red-soft text-eac-red">
+                            <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                        </span>
+                        <span>
+                            <span class="block text-2xl font-black text-eac-maroon">Browse</span>
+                            <span class="mt-2 block text-base leading-7 text-eac-text-light">Explore approved papers, capstones, presentations, and more.</span>
+                            <span class="mt-5 block text-base font-black text-eac-red">Browse now</span>
+                        </span>
+                    </div>
+                </a>
+                <a th:href="@{/login}" class="group border-y border-eac-border p-7 transition hover:bg-eac-red-soft sm:border-x sm:border-y-0">
+                    <div class="flex gap-5">
+                        <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-eac-red-soft text-eac-red">
+                            <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696C3.455 7.731 7.23 5 12 5s8.545 2.731 9.938 6.652a1 1 0 0 1 0 .696C20.545 16.269 16.77 19 12 19s-8.545-2.731-9.938-6.652Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </span>
+                        <span>
+                            <span class="block text-2xl font-black text-eac-maroon">Preview</span>
+                            <span class="mt-2 block text-base leading-7 text-eac-text-light">Read documents first before requesting access.</span>
+                            <span class="mt-5 block text-base font-black text-eac-red">Preview files</span>
+                        </span>
+                    </div>
+                </a>
+                <a th:href="@{/login}" class="group p-7 transition hover:bg-eac-red-soft">
+                    <div class="flex gap-5">
+                        <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-eac-red-soft text-eac-red">
+                            <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+                        </span>
+                        <span>
+                            <span class="block text-2xl font-black text-eac-maroon">Request</span>
+                            <span class="mt-2 block text-base leading-7 text-eac-text-light">Ask for controlled downloads directly from the uploader.</span>
+                            <span class="mt-5 block text-base font-black text-eac-red">Go to requests</span>
+                        </span>
+                    </div>
+                </a>
+            </div>
+            </div>
+        </section>
+
+        <section class="relative px-5 pb-20 sm:px-8">
+            <div class="mx-auto max-w-[1340px]">
+                <div class="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.68fr)_minmax(340px,0.32fr)] lg:items-end">
+                    <div>
+                        <p class="text-base font-black uppercase tracking-[0.18em] text-eac-red">Schools</p>
+                        <h2 class="mt-2 max-w-2xl text-4xl font-black leading-tight text-eac-maroon">Academic collections with a clearer first step.</h2>
+                    </div>
+                    <p class="text-base font-semibold leading-7 text-eac-text lg:text-right">School previews show where the archive is headed. Sign in to browse every department.</p>
+                </div>
+
+                <div class="rounded-[2rem] bg-eac-maroon p-4 shadow-[0_24px_80px_rgba(107,17,24,0.18)] sm:p-5">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                        <a th:each="school : ${schools}" th:href="@{/login}"
+                           class="group min-h-44 rounded-2xl border border-white/12 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-eac-red/30 hover:shadow-[0_22px_54px_rgba(26,26,26,0.16)]">
+                            <span class="flex h-full flex-col justify-between">
+                                <span>
+                                    <span class="block text-base font-black leading-snug text-eac-maroon" th:text="${school.name}"></span>
+                                    <span class="mt-3 block text-sm font-bold text-eac-text-light" th:text="${school.documentCount} + '+ documents'"></span>
+                                </span>
+                                <span class="mt-6 block text-sm font-black text-eac-red transition group-hover:translate-x-1">Sign in</span>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>

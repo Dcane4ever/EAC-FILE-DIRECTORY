@@ -62,8 +62,13 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String root() {
-        return "redirect:/home";
+    public String root(@AuthenticationPrincipal EacUserDetails principal, Model model) {
+        if (principal != null) {
+            return isStaff(principal) ? "redirect:/admin/home" : "redirect:/home";
+        }
+        model.addAttribute("stats", buildStats());
+        model.addAttribute("schools", buildFeaturedSchools());
+        return "landing";
     }
 
     @GetMapping("/home")
