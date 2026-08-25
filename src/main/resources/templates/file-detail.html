@@ -324,9 +324,10 @@
             const previewUrl = /*[[@{/files/{id}/preview-content(id=${file.id})}]]*/ '';
             const workerUrl = /*[[@{/vendor/pdfjs/pdf.worker.min.mjs}]]*/ '';
             const libUrl = /*[[@{/vendor/pdfjs/pdf.min.mjs}]]*/ '';
+            const pdfPreviewJsUrl = /*[[@{/js/pdf-preview.js}]]*/ '';
             const fileTitle = /*[[${file.title}]]*/ 'Document preview';
 
-            import('/js/pdf-preview.js').then(() => {
+            import(pdfPreviewJsUrl).then(() => {
                 PdfPreview.init(previewContainer, {
                     previewUrl, workerUrl, libUrl,
                     onOpenFullscreen: () => PdfPreview.openFullscreen({ previewUrl, workerUrl, libUrl, title: fileTitle })
@@ -339,18 +340,20 @@
         if (openOnlyOfficeBtn || onlyOfficeInlinePreview) {
             const fileId = /*[[${file.id}]]*/ 0;
             const fileTitle = /*[[${file.title}]]*/ 'Document preview';
+            const onlyOfficeConfigUrl = /*[[@{/files/{id}/onlyoffice-config(id=${file.id})}]]*/ '';
 
             if (onlyOfficeInlinePreview) {
                 OnlyOfficePreview.init(onlyOfficeInlinePreview, {
                     fileId,
+                    configUrl: onlyOfficeConfigUrl,
                     title: fileTitle,
-                    fallbackAction: () => OnlyOfficePreview.openFullscreen({ fileId, title: fileTitle })
+                    fallbackAction: () => OnlyOfficePreview.openFullscreen({ fileId, configUrl: onlyOfficeConfigUrl, title: fileTitle })
                 });
             }
 
             if (openOnlyOfficeBtn) {
                 openOnlyOfficeBtn.addEventListener('click', () => {
-                    OnlyOfficePreview.openFullscreen({ fileId, title: fileTitle });
+                    OnlyOfficePreview.openFullscreen({ fileId, configUrl: onlyOfficeConfigUrl, title: fileTitle });
                 });
             }
         }

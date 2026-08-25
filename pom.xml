@@ -137,6 +137,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>eacmnl#filedirectory</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

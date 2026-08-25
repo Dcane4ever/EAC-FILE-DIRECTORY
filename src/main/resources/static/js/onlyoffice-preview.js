@@ -10,7 +10,8 @@
  * constructs or trusts any config value itself, it only asks the backend
  * for one and hands it to ONLYOFFICE's own viewer.
  *
- * init(container, { fileId, title }) - fetches /files/{fileId}/onlyoffice-config,
+ * init(container, { fileId, configUrl, title }) - fetches the server-rendered
+ * OnlyOffice config URL (context-path aware for WAR deployment),
  * dynamically loads the Document Server's viewer script (only once, even if
  * called more than once on the same page), and mounts DocsAPI.DocEditor
  * into `container` (which must have an id - ONLYOFFICE's API takes a
@@ -73,7 +74,7 @@
     }
 
     async function initOnlyOfficePreview(container, options) {
-        const { fileId, fallbackAction } = options;
+        const { fileId, configUrl, fallbackAction } = options;
 
         if (!container.id) {
             throw new Error('onlyoffice-preview.js: container element must have an id');
@@ -88,7 +89,7 @@
             // credentials: 'same-origin' - this is an authenticated request
             // (see OnlyOfficeController.config's requireViewable check), not
             // a public URL.
-            response = await fetch('/files/' + fileId + '/onlyoffice-config', { credentials: 'same-origin' });
+            response = await fetch(configUrl || ('/files/' + fileId + '/onlyoffice-config'), { credentials: 'same-origin' });
         } catch (err) {
             renderStatus(container, 'Document preview unavailable', {
                 detail: 'Could not reach the preview service. You can still open the full OnlyOffice viewer.',
@@ -166,7 +167,7 @@
      * destroys the editor instance on close. Returns a close() function.
      */
     function openFullscreenOnlyOfficePreview(options) {
-        const { fileId, title } = options;
+        const { fileId, configUrl, title } = options;
 
         const overlay = document.createElement('div');
         overlay.className = 'fixed inset-0 z-50 bg-black/80 flex flex-col p-3 sm:p-6';
@@ -194,7 +195,7 @@
         document.body.classList.add('overflow-hidden');
 
         let instance = null;
-        initOnlyOfficePreview(viewerHost, { fileId }).then((result) => {
+        initOnlyOfficePreview(viewerHost, { fileId, configUrl }).then((result) => {
             instance = result;
         });
 
