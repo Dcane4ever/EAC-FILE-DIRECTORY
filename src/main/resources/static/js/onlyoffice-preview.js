@@ -44,22 +44,44 @@
         return scriptLoadPromise;
     }
 
-    function renderStatus(container, message) {
+    function renderStatus(container, message, options = {}) {
         container.innerHTML = '';
+        const wrap = document.createElement('div');
+        wrap.className = 'h-full min-h-[320px] flex flex-col items-center justify-center gap-3 p-8 text-center bg-eac-bg/70';
+        const icon = document.createElement('span');
+        icon.className = 'flex items-center justify-center w-14 h-14 rounded-xl bg-eac-red-soft text-eac-red';
+        icon.innerHTML = '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>';
         const p = document.createElement('p');
-        p.className = 'text-sm text-eac-text-light p-6';
+        p.className = 'font-bold text-eac-maroon';
         p.textContent = message;
-        container.appendChild(p);
+        wrap.append(icon, p);
+        if (options.detail) {
+            const detail = document.createElement('p');
+            detail.className = 'text-sm text-eac-text-light max-w-md';
+            detail.textContent = options.detail;
+            wrap.appendChild(detail);
+        }
+        if (typeof options.fallbackAction === 'function') {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'mt-2 inline-flex items-center justify-center gap-2 bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold px-5 py-3 rounded-lg';
+            button.textContent = 'Open in OnlyOffice';
+            button.addEventListener('click', options.fallbackAction);
+            wrap.appendChild(button);
+        }
+        container.appendChild(wrap);
     }
 
     async function initOnlyOfficePreview(container, options) {
-        const { fileId } = options;
+        const { fileId, fallbackAction } = options;
 
         if (!container.id) {
             throw new Error('onlyoffice-preview.js: container element must have an id');
         }
 
-        renderStatus(container, 'Loading preview…');
+        renderStatus(container, 'Preparing document preview...', {
+            detail: 'Please wait while OnlyOffice loads the inline viewer.'
+        });
 
         let response;
         try {
@@ -68,14 +90,20 @@
             // a public URL.
             response = await fetch('/files/' + fileId + '/onlyoffice-config', { credentials: 'same-origin' });
         } catch (err) {
-            renderStatus(container, 'Could not reach the preview service. Please try again later.');
+            renderStatus(container, 'Document preview unavailable', {
+                detail: 'Could not reach the preview service. You can still open the full OnlyOffice viewer.',
+                fallbackAction
+            });
             return { destroy() {} };
         }
 
         if (!response.ok) {
             renderStatus(container, response.status === 404
                 ? 'Preview not available for this file type.'
-                : 'Could not load the preview. Please try again later.');
+                : 'Document preview unavailable', {
+                detail: 'You can still try the full OnlyOffice viewer.',
+                fallbackAction
+            });
             return { destroy() {} };
         }
 
@@ -84,12 +112,18 @@
         try {
             await loadOnlyOfficeApi(payload.serverUrl);
         } catch (err) {
-            renderStatus(container, 'Could not load the ONLYOFFICE viewer. Please try again later.');
+            renderStatus(container, 'Document preview unavailable', {
+                detail: 'Could not load the OnlyOffice viewer inside this page.',
+                fallbackAction
+            });
             return { destroy() {} };
         }
 
         if (!window.DocsAPI || typeof window.DocsAPI.DocEditor !== 'function') {
-            renderStatus(container, 'The ONLYOFFICE viewer did not load correctly.');
+            renderStatus(container, 'Document preview unavailable', {
+                detail: 'The OnlyOffice viewer did not load correctly.',
+                fallbackAction
+            });
             return { destroy() {} };
         }
 
@@ -98,7 +132,10 @@
         try {
             editor = new window.DocsAPI.DocEditor(container.id, payload.config);
         } catch (err) {
-            renderStatus(container, 'Could not open this document for preview.');
+            renderStatus(container, 'Document preview unavailable', {
+                detail: 'Could not open this document inline.',
+                fallbackAction
+            });
             return { destroy() {} };
         }
 

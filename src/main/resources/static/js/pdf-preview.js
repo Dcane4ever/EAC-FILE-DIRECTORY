@@ -48,12 +48,20 @@
         container.classList.add('flex', 'flex-col');
 
         const toolbar = buildToolbar(container, extraToolbarButtons);
+        const reader = document.createElement('div');
+        reader.className = 'flex-1 min-h-0 bg-eac-bg/70 grid md:grid-cols-[128px_1fr]';
+        const thumbnailRail = document.createElement('div');
+        thumbnailRail.className = 'hidden md:block border-r border-eac-border bg-white/70 overflow-auto p-4';
+        const thumbnailList = document.createElement('div');
+        thumbnailList.className = 'space-y-4';
+        thumbnailRail.appendChild(thumbnailList);
         const canvasWrap = document.createElement('div');
-        canvasWrap.className = canvasWrapClass || 'flex-1 min-h-0 overflow-auto flex justify-center bg-eac-bg/60 rounded-b-xl p-4';
+        canvasWrap.className = canvasWrapClass || 'min-h-[620px] max-h-[76vh] overflow-auto flex justify-center items-start bg-eac-bg/70 p-5 sm:p-8';
         const canvas = document.createElement('canvas');
-        canvas.className = 'shadow-md bg-white';
+        canvas.className = 'shadow-xl shadow-black/10 bg-white border border-eac-border';
         canvasWrap.appendChild(canvas);
-        container.appendChild(canvasWrap);
+        reader.append(thumbnailRail, canvasWrap);
+        container.appendChild(reader);
 
         // No right-click "Save Image As..." on the rendered page.
         canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -96,6 +104,58 @@
                 throw err;
             }
             toolbar.pageLabel.textContent = pageNumber + ' / ' + pdfDoc.numPages;
+            toolbar.pageInput.value = pageNumber;
+            setActiveThumbnail(pageNumber);
+        }
+
+        async function renderThumbnails() {
+            if (!pdfDoc || !thumbnailList) return;
+            thumbnailList.innerHTML = '';
+            const maxPages = Math.min(pdfDoc.numPages, 24);
+            for (let pageNumber = 1; pageNumber <= maxPages; pageNumber++) {
+                const thumbButton = document.createElement('button');
+                thumbButton.type = 'button';
+                thumbButton.className = 'block w-full text-center group';
+                thumbButton.dataset.page = String(pageNumber);
+                thumbButton.setAttribute('aria-label', 'Go to page ' + pageNumber);
+
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.className = 'mx-auto bg-white border border-eac-border shadow-sm group-hover:border-eac-red transition';
+                const label = document.createElement('span');
+                label.className = 'inline-flex items-center justify-center mt-1 min-w-6 h-5 rounded text-xs font-bold text-eac-text-light group-hover:text-eac-red';
+                label.textContent = String(pageNumber);
+                thumbButton.append(thumbCanvas, label);
+                thumbnailList.appendChild(thumbButton);
+
+                thumbButton.addEventListener('click', () => {
+                    currentPage = pageNumber;
+                    renderPage(currentPage);
+                });
+
+                const page = await pdfDoc.getPage(pageNumber);
+                const viewport = page.getViewport({ scale: 0.16 });
+                const context = thumbCanvas.getContext('2d');
+                thumbCanvas.width = Math.ceil(viewport.width);
+                thumbCanvas.height = Math.ceil(viewport.height);
+                await page.render({ canvasContext: context, viewport }).promise;
+            }
+        }
+
+        function setActiveThumbnail(pageNumber) {
+            thumbnailList.querySelectorAll('button[data-page]').forEach((button) => {
+                const active = button.dataset.page === String(pageNumber);
+                const canvas = button.querySelector('canvas');
+                const label = button.querySelector('span');
+                if (canvas) {
+                    canvas.classList.toggle('border-eac-red', active);
+                    canvas.classList.toggle('border-eac-border', !active);
+                }
+                if (label) {
+                    label.classList.toggle('bg-eac-red', active);
+                    label.classList.toggle('text-white', active);
+                    label.classList.toggle('text-eac-text-light', !active);
+                }
+            });
         }
 
         toolbar.prevBtn.addEventListener('click', () => {
@@ -108,12 +168,24 @@
             currentPage += 1;
             renderPage(currentPage);
         });
+        toolbar.pageInput.addEventListener('change', () => {
+            if (!pdfDoc) return;
+            const requestedPage = Number.parseInt(toolbar.pageInput.value, 10);
+            if (Number.isNaN(requestedPage)) {
+                toolbar.pageInput.value = currentPage;
+                return;
+            }
+            currentPage = Math.min(Math.max(requestedPage, 1), pdfDoc.numPages);
+            renderPage(currentPage);
+        });
         toolbar.zoomInBtn.addEventListener('click', () => {
             scale = Math.min(scale + 0.2, 3);
+            toolbar.zoomLabel.textContent = Math.round(scale * 100) + '%';
             renderPage(currentPage);
         });
         toolbar.zoomOutBtn.addEventListener('click', () => {
             scale = Math.max(scale - 0.2, 0.4);
+            toolbar.zoomLabel.textContent = Math.round(scale * 100) + '%';
             renderPage(currentPage);
         });
 
@@ -122,8 +194,13 @@
             setDoc(doc) {
                 pdfDoc = doc;
                 currentPage = 1;
+                toolbar.pageInput.max = doc.numPages;
+                toolbar.zoomLabel.textContent = Math.round(scale * 100) + '%';
             },
-            renderFirstPage: () => renderPage(1)
+            renderFirstPage: async () => {
+                await renderThumbnails();
+                await renderPage(1);
+            }
         };
     }
 
@@ -202,7 +279,7 @@
         document.addEventListener('keydown', onKeydown);
 
         const viewer = buildViewer(viewerHost, {
-            canvasWrapClass: 'flex-1 min-h-0 overflow-auto flex justify-center bg-eac-bg/60 p-4 sm:p-8'
+            canvasWrapClass: 'min-h-0 max-h-none overflow-auto flex justify-center items-start bg-eac-bg/70 p-4 sm:p-8'
         });
 
         try {
@@ -222,24 +299,32 @@
 
     function buildToolbar(container, extraButtons) {
         const bar = document.createElement('div');
-        bar.className = 'flex items-center justify-between gap-3 px-4 py-2.5 border-b border-eac-border bg-white text-sm shrink-0';
+        bar.className = 'flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-eac-border bg-white text-sm shrink-0';
 
         const status = document.createElement('span');
         status.className = 'text-eac-text-light';
 
         const controls = document.createElement('div');
-        controls.className = 'hidden flex items-center gap-1.5';
+        controls.className = 'hidden flex flex-wrap items-center gap-2';
 
         const prevBtn = iconButton('‹', 'Previous page');
         const pageLabel = document.createElement('span');
-        pageLabel.className = 'text-eac-text-light px-1 tabular-nums min-w-[4.5rem] text-center';
+        pageLabel.className = 'text-eac-text px-3 py-1.5 tabular-nums min-w-[4.5rem] text-center rounded-lg border border-eac-border bg-white font-semibold';
         const nextBtn = iconButton('›', 'Next page');
         const divider = document.createElement('span');
         divider.className = 'w-px h-5 bg-eac-border mx-1';
         const zoomOutBtn = iconButton('−', 'Zoom out');
+        const zoomLabel = document.createElement('span');
+        zoomLabel.className = 'text-eac-text tabular-nums min-w-[3.5rem] text-center font-semibold';
         const zoomInBtn = iconButton('+', 'Zoom in');
+        const pageInput = document.createElement('input');
+        pageInput.type = 'number';
+        pageInput.min = '1';
+        pageInput.value = '1';
+        pageInput.setAttribute('aria-label', 'Current page');
+        pageInput.className = 'w-14 h-9 text-center rounded-lg border border-eac-border text-eac-text font-semibold focus:outline-none focus:ring-2 focus:ring-eac-red/20 focus:border-eac-red';
 
-        controls.append(prevBtn, pageLabel, nextBtn, divider, zoomOutBtn, zoomInBtn);
+        controls.append(zoomOutBtn, zoomLabel, zoomInBtn, divider, prevBtn, pageInput, nextBtn, pageLabel);
         if (extraButtons && extraButtons.length > 0) {
             const extraDivider = document.createElement('span');
             extraDivider.className = 'w-px h-5 bg-eac-border mx-1';
@@ -248,7 +333,7 @@
         bar.append(status, controls);
         container.appendChild(bar);
 
-        return { bar, status, controls, prevBtn, nextBtn, pageLabel, zoomInBtn, zoomOutBtn };
+        return { bar, status, controls, prevBtn, nextBtn, pageLabel, pageInput, zoomLabel, zoomInBtn, zoomOutBtn };
     }
 
     function iconButton(label, ariaLabel) {
@@ -256,7 +341,7 @@
         button.type = 'button';
         button.setAttribute('aria-label', ariaLabel);
         button.textContent = label;
-        button.className = 'w-7 h-7 flex items-center justify-center rounded-md text-eac-text hover:bg-eac-bg transition font-medium';
+        button.className = 'w-9 h-9 flex items-center justify-center rounded-lg border border-eac-border text-eac-red hover:bg-eac-red-soft transition font-bold text-lg';
         return button;
     }
 

@@ -6,7 +6,7 @@
     <title th:text="${file.title} + ' - EAC File Directory'">File - EAC File Directory</title>
     <link rel="stylesheet" th:href="@{/css/output.css}">
 </head>
-<body class="min-h-screen bg-eac-bg">
+<body class="min-h-screen bg-eac-bg text-eac-text">
 
     <header class="bg-white border-b border-eac-border relative">
         <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
@@ -48,13 +48,12 @@
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-6 py-10">
-        <a th:href="@{/browse}" class="text-sm text-eac-text-light hover:text-eac-red">&larr; Back to Browse</a>
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <a th:href="@{/browse}" class="inline-flex items-center gap-2 text-sm font-semibold text-eac-red hover:text-eac-red-hover transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            Back to Browse
+        </a>
 
-        <!-- Flash message toast - e.g. "Access request sent to the
-             uploader." after clicking "Request a copy?" (see
-             AccessRequestController.requestAccess). Self-dismisses after a
-             few seconds rather than sitting as a static banner. -->
         <div th:if="${infoMessage}" id="flashToast"
              class="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 flex items-center gap-2 bg-eac-text text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg max-w-[90vw]">
             <svg class="w-4 h-4 shrink-0 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -66,121 +65,249 @@
             <span th:text="${errorMessage}"></span>
         </div>
 
-        <!-- File Information -->
-        <div class="bg-white rounded-xl border border-eac-border p-8 mt-4">
-            <div class="flex items-center gap-2 text-xs text-eac-text-light mb-3">
-                <span class="bg-eac-navy/5 text-eac-navy px-2 py-0.5 rounded font-medium" th:text="${file.category.name}"></span>
-                <span th:text="${file.department.name}"></span>
-                <span th:if="${file.program != null}" th:text="'· ' + ${file.program.code}"></span>
-                <span th:if="${file.course != null}" th:text="'· ' + ${file.course.code}"></span>
-                <span th:if="${file.status.name() != 'APPROVED'}"
-                      class="font-semibold px-2 py-0.5 rounded-full"
-                      th:classappend="${file.status.name() == 'REJECTED'} ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'"
-                      th:text="${file.status}"></span>
-            </div>
-
-            <h1 class="text-2xl font-bold text-eac-navy mb-2" th:text="${file.title}"></h1>
-            <p class="text-eac-text-light" th:text="${file.description}"></p>
-
-            <div class="flex flex-wrap gap-2 mt-4" th:if="${!file.tags.isEmpty()}">
-                <a th:each="tag : ${file.tags}" th:text="${'#' + tag.name}"
-                   th:href="@{/browse(tag=${tag.name})}"
-                   class="text-xs bg-eac-bg border border-eac-border text-eac-text-light px-2 py-1 rounded-full hover:border-eac-red/40 hover:text-eac-red transition"></a>
-            </div>
-        </div>
-
-        <!-- Document Preview - preview-guard-protected: excluded from print
-             output (see input.css's @media print rule) and covered by
-             preview-guard.js's right-click/select/print-shortcut guards.
-             PDF renders inline via PDF.js, into #pdfPreviewContainer (see
-             pdf-preview.js) - it has its own minimal custom toolbar sized
-             for an inline box. DOCX/DOC/PPTX/PPT/XLSX/XLS go straight to
-             ONLYOFFICE's full-screen viewer instead (see
-             onlyoffice-preview.js/OnlyOfficeController) rather than an
-             inline box - ONLYOFFICE's own toolbar/slide-thumbnail rail/
-             status bar are real editor chrome, not something built to fit
-             a cramped inline space, so squeezing it into one just reads as
-             broken. TXT renders inline as literal, escaped text in a <pre>
-             (see #textPreviewContainer below and FileDetailController's
-             text-content endpoint) - the simplest of the three, no
-             external viewer or custom chrome needed for plain text.
-             Anything else shows an honest "not available" message rather
-             than pretending to render something - see
-             FileEntity.isPreviewable/isOfficePreviewable/isTextPreviewable. -->
-        <div class="bg-white rounded-xl border border-eac-border mt-4 preview-guard-protected overflow-hidden">
-            <div th:if="${file.previewable}" id="pdfPreviewContainer" class="min-h-[70vh] max-h-[80vh]">
-                <p class="text-sm text-eac-text-light p-6">Loading preview…</p>
-            </div>
-            <button th:if="${file.officePreviewable}" type="button" id="openOnlyOfficePreviewBtn"
-                    class="w-full flex flex-col items-center justify-center gap-3 p-14 text-center hover:bg-eac-bg/60 transition cursor-pointer">
-                <span class="flex items-center justify-center w-14 h-14 rounded-full bg-eac-red-soft text-eac-red">
-                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m10 12 4 3-4 3v-6z"/></svg>
-                </span>
-                <span>
-                    <span class="block font-semibold text-eac-text">Click to preview</span>
-                    <span class="block text-sm text-eac-text-light mt-0.5" th:text="${file.originalFilename}"></span>
-                </span>
-            </button>
-            <div th:if="${file.textPreviewable}" id="textPreviewContainer" class="min-h-[40vh] max-h-[70vh] overflow-auto">
-                <pre id="textPreviewContent" class="text-sm text-eac-text font-mono whitespace-pre-wrap break-words p-6 m-0">Loading preview…</pre>
-            </div>
-            <div th:unless="${file.previewable or file.officePreviewable or file.textPreviewable}" class="p-10 text-center text-eac-text-light">
-                <svg class="w-10 h-10 mx-auto mb-3 text-eac-text-light/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-                <p class="font-medium text-eac-text">Preview not available for this file type yet.</p>
-                <p class="text-sm mt-1">Download the file below to view it, or request access if it's not directly downloadable.</p>
-            </div>
-        </div>
-
-        <!-- Metadata -->
-        <div class="bg-white rounded-xl border border-eac-border p-8 mt-4">
-            <dl class="grid grid-cols-2 gap-4 text-sm">
+        <section id="overview" class="mt-5 bg-white rounded-xl border border-eac-border shadow-sm overflow-hidden">
+            <div class="p-6 sm:p-8 lg:p-9 grid lg:grid-cols-[1fr_220px] gap-8">
                 <div>
-                    <dt class="text-eac-text-light">Uploaded by</dt>
-                    <dd class="font-medium">
-                        <a th:href="@{/browse(uploaderId=${file.uploader.id})}" th:text="${file.uploader.fullName}"
-                           class="text-eac-text hover:text-eac-red transition"></a>
-                    </dd>
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-eac-text-light mb-4">
+                        <span class="bg-eac-red-soft text-eac-red px-3 py-1 rounded-full font-bold" th:text="${file.category.name}"></span>
+                        <span th:text="${file.department.name}"></span>
+                        <span th:if="${file.program != null}" class="text-eac-border">•</span>
+                        <span th:if="${file.program != null}" th:text="${file.program.code}"></span>
+                        <span th:if="${file.course != null}" class="text-eac-border">•</span>
+                        <span th:if="${file.course != null}" th:text="${file.course.code}"></span>
+                        <span th:if="${file.status.name() != 'APPROVED'}"
+                              class="font-semibold px-2.5 py-1 rounded-full"
+                              th:classappend="${file.status.name() == 'REJECTED'} ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'"
+                              th:text="${file.status}"></span>
+                    </div>
+
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-eac-maroon" th:text="${file.title}"></h1>
+                    <p th:if="${file.description != null and !#strings.isEmpty(file.description)}"
+                       class="mt-4 max-w-3xl text-sm sm:text-base leading-7 text-eac-text"
+                       th:text="${file.description}"></p>
+
+                    <div class="flex flex-wrap gap-2 mt-6" th:if="${!file.tags.isEmpty()}">
+                        <a th:each="tag : ${file.tags}" th:text="${'#' + tag.name}"
+                           th:href="@{/browse(tag=${tag.name})}"
+                           class="text-xs font-semibold bg-eac-red-soft text-eac-red px-3 py-1.5 rounded-full hover:bg-eac-red hover:text-white transition"></a>
+                    </div>
                 </div>
+
+                <aside class="lg:justify-self-end space-y-4">
+                    <div class="bg-eac-red-soft rounded-xl p-5 flex lg:flex-col items-center justify-center gap-3 text-center border border-red-100">
+                        <span class="flex items-center justify-center w-14 h-14 rounded-xl bg-white text-eac-red shadow-sm">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
+                        </span>
+                        <div>
+                            <p class="text-xs font-bold tracking-wide uppercase text-eac-red" th:text="${#strings.toUpperCase(file.extension())}">FILE</p>
+                            <p class="text-xs text-eac-text-light mt-0.5 break-all" th:text="${file.originalFilename}"></p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <a th:if="${canDownloadDirectly}" th:href="@{/files/{id}/download(id=${file.id})}"
+                           class="w-full inline-flex items-center justify-center gap-2 bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold px-5 py-3 rounded-lg">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                            Download
+                        </a>
+                        <div th:unless="${canDownloadDirectly}">
+                            <div th:if="${pendingAccessRequest != null}"
+                                 class="w-full inline-flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-sm font-bold px-5 py-3 rounded-lg">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Request pending
+                            </div>
+                            <form th:if="${pendingAccessRequest == null}" th:action="@{/files/{id}/request-access(id=${file.id})}" method="post">
+                                <button type="submit"
+                                        class="w-full inline-flex items-center justify-center gap-2 bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold px-5 py-3 rounded-lg">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                                    Request a copy
+                                </button>
+                            </form>
+                        </div>
+                        <button type="button" id="shareButton"
+                                class="w-full inline-flex items-center justify-center gap-2 border border-eac-border hover:border-eac-red/40 hover:text-eac-red transition text-sm font-semibold px-5 py-3 rounded-lg">
+                            <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/></svg>
+                            Share
+                        </button>
+                    </div>
+                </aside>
+            </div>
+
+            <nav class="border-t border-eac-border grid grid-cols-3 text-sm font-semibold text-eac-text-light">
+                <a href="#overview" class="flex items-center justify-center gap-2 px-4 py-4 text-eac-red border-b-2 border-eac-red">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    Overview
+                </a>
+                <a href="#preview" class="flex items-center justify-center gap-2 px-4 py-4 hover:text-eac-red transition">
+                    <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Preview
+                </a>
+                <a href="#details" class="flex items-center justify-center gap-2 px-4 py-4 hover:text-eac-red transition">
+                    <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+                    Details
+                </a>
+            </nav>
+        </section>
+
+        <section id="preview" class="mt-5 bg-white rounded-xl border border-eac-border shadow-sm preview-guard-protected overflow-hidden">
+            <div class="px-5 sm:px-6 py-4 border-b border-eac-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <dt class="text-eac-text-light">File size</dt>
-                    <dd class="font-medium text-eac-text" th:text="${#numbers.formatDecimal(file.fileSize / 1024.0 / 1024.0, 1, 2)} + ' MB'"></dd>
+                    <h2 class="font-bold text-eac-maroon">Preview</h2>
+                    <p class="text-xs text-eac-text-light mt-0.5" th:text="${file.originalFilename}"></p>
                 </div>
-                <div>
-                    <dt class="text-eac-text-light">Downloads</dt>
-                    <dd class="font-medium text-eac-text" th:text="${file.downloadCount}"></dd>
+                <div class="flex items-center gap-2">
+                    <a th:if="${file.previewable}" th:href="@{/files/{id}/preview-content(id=${file.id})}" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-2 border border-eac-border hover:border-eac-red/40 hover:text-eac-red transition text-sm font-semibold px-4 py-2 rounded-lg">
+                        Open in new tab
+                        <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                    </a>
+                    <button th:if="${file.officePreviewable}" type="button" id="openOnlyOfficePreviewBtn"
+                            class="inline-flex items-center gap-2 border border-eac-border hover:border-eac-red/40 hover:text-eac-red transition text-sm font-semibold px-4 py-2 rounded-lg">
+                        Open in OnlyOffice
+                        <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                    </button>
                 </div>
-                <div>
-                    <dt class="text-eac-text-light">Uploaded on</dt>
-                    <dd class="font-medium text-eac-text" th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy')}"></dd>
+            </div>
+
+            <div th:if="${file.previewable}" id="pdfPreviewContainer" class="min-h-[72vh]">
+                <p class="text-sm text-eac-text-light p-6">Loading preview...</p>
+            </div>
+            <div th:if="${file.officePreviewable}" class="onlyoffice-inline-frame h-[520px] sm:h-[640px] md:h-[700px] lg:h-[750px] xl:h-[780px] min-h-[520px] bg-eac-bg/70 p-3 sm:p-5">
+                <div id="onlyOfficeInlinePreview"
+                     class="h-full min-h-full w-full overflow-hidden rounded-lg border border-eac-border bg-white shadow-sm">
+                    <div class="h-full flex flex-col items-center justify-center gap-3 p-8 text-center">
+                        <span class="flex items-center justify-center w-14 h-14 rounded-xl bg-eac-red-soft text-eac-red">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m10 12 4 3-4 3v-6z"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-bold text-eac-maroon">Preparing document preview...</span>
+                            <span class="block text-sm text-eac-text-light mt-1">Please wait while OnlyOffice loads the inline viewer.</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${file.textPreviewable}" id="textPreviewContainer" class="min-h-[420px] max-h-[70vh] overflow-auto bg-eac-bg/70 p-4 sm:p-8">
+                <pre id="textPreviewContent" class="max-w-4xl mx-auto bg-white shadow-sm border border-eac-border text-sm text-eac-text font-mono whitespace-pre-wrap break-words p-6 sm:p-8 m-0">Loading preview...</pre>
+            </div>
+            <div th:unless="${file.previewable or file.officePreviewable or file.textPreviewable}" class="min-h-[320px] flex flex-col items-center justify-center p-10 text-center bg-eac-bg/70 text-eac-text-light">
+                <svg class="w-12 h-12 mx-auto mb-3 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                <p class="font-semibold text-eac-text">Preview not available for this file type yet.</p>
+                <p class="text-sm mt-1">Download the file below to view it, or request access if it is not directly downloadable.</p>
+            </div>
+        </section>
+
+        <section class="mt-5 bg-white rounded-xl border border-eac-border shadow-sm p-6">
+            <dl class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+                <div class="flex gap-3">
+                    <span class="w-10 h-10 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Uploaded by</dt>
+                        <dd class="font-bold text-eac-text">
+                            <a th:href="@{/browse(uploaderId=${file.uploader.id})}" th:text="${file.uploader.fullName}"
+                               class="hover:text-eac-red transition"></a>
+                        </dd>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <span class="w-10 h-10 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Downloads</dt>
+                        <dd class="font-bold text-eac-text" th:text="${file.downloadCount}"></dd>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <span class="w-10 h-10 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">File size</dt>
+                        <dd class="font-bold text-eac-text" th:text="${#numbers.formatDecimal(file.fileSize / 1024.0 / 1024.0, 1, 2)} + ' MB'"></dd>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <span class="w-10 h-10 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Uploaded on</dt>
+                        <dd class="font-bold text-eac-text" th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy')}"></dd>
+                    </div>
                 </div>
             </dl>
-        </div>
+        </section>
 
-        <!-- Actions - as of Phase 9, only the uploader/moderator/admin get
-             the one-click Download; everyone else requests access instead
-             (see FileDetailController's javadoc and canDownloadDirectly). -->
-        <div class="mt-6">
-            <a th:if="${canDownloadDirectly}" th:href="@{/files/{id}/download(id=${file.id})}"
-               class="inline-block bg-eac-red hover:bg-eac-red-hover transition text-white font-semibold px-6 py-3 rounded-lg">
-                Download &ndash; <span th:text="${file.originalFilename}"></span>
-            </a>
-
-            <div th:unless="${canDownloadDirectly}">
-                <div th:if="${pendingAccessRequest != null}"
-                     class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 font-medium px-6 py-3 rounded-lg">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Access request pending &ndash; the uploader has been notified.
+        <section id="details" class="mt-5 bg-white rounded-xl border border-eac-border shadow-sm p-6 sm:p-7">
+            <h2 class="font-bold text-eac-maroon mb-6">About this file</h2>
+            <dl class="grid md:grid-cols-2 gap-x-10 gap-y-6 text-sm">
+                <div class="flex gap-3">
+                    <span class="w-9 h-9 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Department</dt>
+                        <dd class="font-semibold text-eac-text" th:text="${file.department.name}"></dd>
+                    </div>
                 </div>
-                <form th:if="${pendingAccessRequest == null}" th:action="@{/files/{id}/request-access(id=${file.id})}" method="post">
-                    <button type="submit"
-                            class="inline-block bg-eac-navy hover:bg-eac-navy/90 transition text-white font-semibold px-6 py-3 rounded-lg">
-                        Request a copy?
-                    </button>
-                </form>
-                <p th:if="${pendingAccessRequest == null}" class="text-sm text-eac-text-light mt-2">
-                    This file requires the uploader's approval before you can download it.
-                </p>
-            </div>
+                <div class="flex gap-3">
+                    <span class="w-9 h-9 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4v15.5A2.5 2.5 0 0 0 6.5 22H20V6a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 6.5"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Category</dt>
+                        <dd class="font-semibold text-eac-text" th:text="${file.category.name}"></dd>
+                    </div>
+                </div>
+                <div th:if="${file.program != null}" class="flex gap-3">
+                    <span class="w-9 h-9 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Program</dt>
+                        <dd class="font-semibold text-eac-text" th:text="${file.program.name}"></dd>
+                    </div>
+                </div>
+                <div th:if="${file.course != null}" class="flex gap-3">
+                    <span class="w-9 h-9 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Course</dt>
+                        <dd class="font-semibold text-eac-text" th:text="${file.course.title}"></dd>
+                    </div>
+                </div>
+                <div th:if="${!file.tags.isEmpty()}" class="flex gap-3">
+                    <span class="w-9 h-9 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3H4a1 1 0 0 0-1 1v5.59A2 2 0 0 0 3.59 11l9.59 9.59a2 2 0 0 0 2.82 0l4.59-4.59a2 2 0 0 0 0-2.59Z"/><path d="M7 7h.01"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Tags</dt>
+                        <dd class="font-semibold text-eac-text">
+                            <span th:each="tag, iter : ${file.tags}">
+                                <span th:text="${tag.name}"></span><span th:if="${!iter.last}">, </span>
+                            </span>
+                        </dd>
+                    </div>
+                </div>
+                <div th:if="${file.description != null and !#strings.isEmpty(file.description)}" class="flex gap-3 md:col-span-2">
+                    <span class="w-9 h-9 rounded-full bg-eac-red-soft text-eac-red flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+                    </span>
+                    <div>
+                        <dt class="text-eac-text-light">Description</dt>
+                        <dd class="font-medium text-eac-text leading-6" th:text="${file.description}"></dd>
+                    </div>
+                </div>
+            </dl>
+        </section>
+
+        <div th:unless="${canDownloadDirectly}" class="mt-5 rounded-xl border border-red-200 bg-eac-red-soft text-eac-maroon p-5 flex gap-3 text-sm">
+            <svg class="w-5 h-5 text-eac-red shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <p th:if="${pendingAccessRequest == null}">This file requires the uploader's approval before you can download it.</p>
+            <p th:if="${pendingAccessRequest != null}">Access request pending - the uploader has been notified.</p>
         </div>
     </main>
 
@@ -208,12 +335,24 @@
         }
 
         const openOnlyOfficeBtn = document.getElementById('openOnlyOfficePreviewBtn');
-        if (openOnlyOfficeBtn) {
+        const onlyOfficeInlinePreview = document.getElementById('onlyOfficeInlinePreview');
+        if (openOnlyOfficeBtn || onlyOfficeInlinePreview) {
             const fileId = /*[[${file.id}]]*/ 0;
             const fileTitle = /*[[${file.title}]]*/ 'Document preview';
-            openOnlyOfficeBtn.addEventListener('click', () => {
-                OnlyOfficePreview.openFullscreen({ fileId, title: fileTitle });
-            });
+
+            if (onlyOfficeInlinePreview) {
+                OnlyOfficePreview.init(onlyOfficeInlinePreview, {
+                    fileId,
+                    title: fileTitle,
+                    fallbackAction: () => OnlyOfficePreview.openFullscreen({ fileId, title: fileTitle })
+                });
+            }
+
+            if (openOnlyOfficeBtn) {
+                openOnlyOfficeBtn.addEventListener('click', () => {
+                    OnlyOfficePreview.openFullscreen({ fileId, title: fileTitle });
+                });
+            }
         }
 
         const textPreviewContent = document.getElementById('textPreviewContent');
@@ -225,9 +364,6 @@
                     return response.text();
                 })
                 .then((text) => {
-                    // textContent, never innerHTML - this is arbitrary
-                    // uploaded file content and must always render as
-                    // literal text, never be parsed as markup.
                     textPreviewContent.textContent = text;
                 })
                 .catch(() => {
@@ -245,9 +381,19 @@
             });
         }
 
-        // Flash toast (see #flashToast above): fades out and removes itself
-        // after a few seconds so a success/error message from the redirect
-        // doesn't sit on screen forever.
+        var shareButton = document.getElementById('shareButton');
+        if (shareButton) {
+            shareButton.addEventListener('click', function () {
+                if (navigator.share) {
+                    navigator.share({ title: document.title, url: window.location.href }).catch(function () {});
+                    return;
+                }
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(window.location.href);
+                }
+            });
+        }
+
         var flashToast = document.getElementById('flashToast');
         if (flashToast) {
             flashToast.style.transition = 'opacity .3s ease';

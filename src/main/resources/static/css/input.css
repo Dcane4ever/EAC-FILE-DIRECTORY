@@ -39,3 +39,10 @@
     color: #1a1a1a;
   }
 }
+
+.onlyoffice-inline-frame > div,
+.onlyoffice-inline-frame iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+}
