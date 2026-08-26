@@ -15,6 +15,7 @@
                 <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
             </a>
             <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/admin/files}" class="text-eac-text hover:text-eac-red transition">Manage Files</a>
                 <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
                 <a th:href="@{/admin/archived}" class="text-eac-red font-semibold border-b-2 border-eac-red pb-1 -mb-1">Archived Files</a>
                 <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Manage Users</a>

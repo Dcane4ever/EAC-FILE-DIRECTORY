@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,9 +25,15 @@ public final class FileSpecifications {
     }
 
     public static Specification<FileEntity> matching(FileStatus status, FileSearchCriteria criteria) {
+        return matching(List.of(status), criteria);
+    }
+
+    public static Specification<FileEntity> matching(Collection<FileStatus> statuses, FileSearchCriteria criteria) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("status"), status));
+            if (statuses != null && !statuses.isEmpty()) {
+                predicates.add(root.get("status").in(statuses));
+            }
 
             if (criteria.query() != null && !criteria.query().isBlank()) {
                 String needle = "%" + criteria.query().trim().toLowerCase(Locale.ROOT) + "%";

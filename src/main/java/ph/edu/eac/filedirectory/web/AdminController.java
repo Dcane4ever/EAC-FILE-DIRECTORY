@@ -15,9 +15,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ph.edu.eac.filedirectory.audit.AuditService;
 import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
+import ph.edu.eac.filedirectory.file.FileSearchCriteria;
+import ph.edu.eac.filedirectory.file.FileSortOption;
 import ph.edu.eac.filedirectory.file.FileStatus;
+import ph.edu.eac.filedirectory.file.FileSpecifications;
+import ph.edu.eac.filedirectory.file.FileTypeValidator;
 import ph.edu.eac.filedirectory.notification.NotificationService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
+import ph.edu.eac.filedirectory.taxonomy.CategoryRepository;
 import ph.edu.eac.filedirectory.taxonomy.Department;
 import ph.edu.eac.filedirectory.taxonomy.DepartmentIcons;
 import ph.edu.eac.filedirectory.taxonomy.DepartmentRepository;
@@ -50,13 +55,16 @@ public class AdminController {
 
     private final FileRepository fileRepository;
     private final DepartmentRepository departmentRepository;
+    private final CategoryRepository categoryRepository;
     private final NotificationService notificationService;
     private final AuditService auditService;
 
     public AdminController(FileRepository fileRepository, DepartmentRepository departmentRepository,
+                            CategoryRepository categoryRepository,
                             NotificationService notificationService, AuditService auditService) {
         this.fileRepository = fileRepository;
         this.departmentRepository = departmentRepository;
+        this.categoryRepository = categoryRepository;
         this.notificationService = notificationService;
         this.auditService = auditService;
     }
@@ -132,6 +140,38 @@ public class AdminController {
         model.addAttribute("fromIndex", totalDepartments == 0 ? 0 : fromIndex + 1);
         model.addAttribute("toIndex", toIndex);
         return "admin/queue";
+    }
+
+    @GetMapping("/files")
+    public String files(@RequestParam(required = false) FileStatus status,
+                        @RequestParam(required = false) Long departmentId,
+                        @RequestParam(required = false) Long categoryId,
+                        @RequestParam(required = false) String fileType,
+                        @RequestParam(required = false) String q,
+                        @RequestParam(required = false) String sort,
+                        @RequestParam(defaultValue = "0") int page,
+                        Model model) {
+        String trimmedQuery = q != null && !q.isBlank() ? q.trim() : null;
+        FileSearchCriteria criteria = new FileSearchCriteria(
+                trimmedQuery, departmentId, null, null, categoryId, null, null, fileType, null);
+        FileSortOption sortOption = FileSortOption.fromParam(sort);
+        Pageable pageable = PageRequest.of(page, 20, sortOption.toSort());
+        List<FileStatus> statuses = status == null ? Arrays.asList(FileStatus.values()) : List.of(status);
+        Page<FileEntity> files = fileRepository.findAll(FileSpecifications.matching(statuses, criteria), pageable);
+
+        model.addAttribute("files", files);
+        model.addAttribute("status", status);
+        model.addAttribute("statuses", FileStatus.values());
+        model.addAttribute("departments", departmentRepository.findAll(Sort.by("name")));
+        model.addAttribute("categories", categoryRepository.findAll(Sort.by("name")));
+        model.addAttribute("selectedDepartmentId", departmentId);
+        model.addAttribute("selectedCategoryId", categoryId);
+        model.addAttribute("fileType", fileType);
+        model.addAttribute("fileTypeOptions", FileTypeValidator.ALLOWED_EXTENSIONS.stream().sorted().toList());
+        model.addAttribute("q", q);
+        model.addAttribute("sort", sortOption.name());
+        model.addAttribute("sortOptions", FileSortOption.values());
+        return "admin/files";
     }
 
     @GetMapping("/archived")
