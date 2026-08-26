@@ -74,11 +74,16 @@ public class AccessRequestController {
     @GetMapping("/my-requests")
     public String myRequests(@AuthenticationPrincipal EacUserDetails principal,
                               @RequestParam(defaultValue = "0") int page,
+                              @RequestParam(required = false) AccessRequestStatus status,
                               Model model) {
         AppUser requester = requireSelf(principal);
         Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<AccessRequest> requests = accessRequestRepository.findByRequesterOrderByCreatedAtDesc(requester, pageable);
+        Page<AccessRequest> requests = status == null
+                ? accessRequestRepository.findByRequesterOrderByCreatedAtDesc(requester, pageable)
+                : accessRequestRepository.findByRequesterAndStatusOrderByCreatedAtDesc(requester, status, pageable);
         model.addAttribute("requests", requests);
+        model.addAttribute("statuses", AccessRequestStatus.values());
+        model.addAttribute("selectedStatus", status);
 
         // Grant tokens are looked up separately (one-to-one from the token
         // side, not a field on AccessRequest itself - see AccessGrantToken)
@@ -98,11 +103,16 @@ public class AccessRequestController {
     @GetMapping("/my-uploads/access-requests")
     public String accessRequestsOnMyUploads(@AuthenticationPrincipal EacUserDetails principal,
                                              @RequestParam(defaultValue = "0") int page,
+                                             @RequestParam(required = false) AccessRequestStatus status,
                                              Model model) {
         AppUser uploader = requireSelf(principal);
         Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<AccessRequest> requests = accessRequestRepository.findByFile_UploaderOrderByCreatedAtDesc(uploader, pageable);
+        Page<AccessRequest> requests = status == null
+                ? accessRequestRepository.findByFile_UploaderOrderByCreatedAtDesc(uploader, pageable)
+                : accessRequestRepository.findByFile_UploaderAndStatusOrderByCreatedAtDesc(uploader, status, pageable);
         model.addAttribute("requests", requests);
+        model.addAttribute("statuses", AccessRequestStatus.values());
+        model.addAttribute("selectedStatus", status);
         model.addAttribute("pendingCount", accessRequestRepository.countByFile_UploaderAndStatus(uploader, AccessRequestStatus.PENDING));
         return "my-uploads-access-requests";
     }
@@ -118,7 +128,7 @@ public class AccessRequestController {
         AccessRequestService.RequestResult result = accessRequestService.approve(accessRequest, actor);
         redirectAttributes.addFlashAttribute(result.created() ? "infoMessage" : "errorMessage",
                 result.created() ? "Access approved." : result.errorMessage());
-        return "redirect:/my-uploads/access-requests";
+        return "redirect:/my-uploads/access-requests?status=PENDING";
     }
 
     @PostMapping("/files/access-requests/{id}/deny")
@@ -133,7 +143,7 @@ public class AccessRequestController {
         AccessRequestService.RequestResult result = accessRequestService.deny(accessRequest, actor, reason);
         redirectAttributes.addFlashAttribute(result.created() ? "infoMessage" : "errorMessage",
                 result.created() ? "Access denied." : result.errorMessage());
-        return "redirect:/my-uploads/access-requests";
+        return "redirect:/my-uploads/access-requests?status=PENDING";
     }
 
     private AppUser requireSelf(EacUserDetails principal) {

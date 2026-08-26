@@ -891,6 +891,9 @@
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -2277,6 +2280,9 @@
     .hover\:bg-green-700:hover {
       background-color: var(--color-green-700);
     }
+    .hover\:bg-red-50:hover {
+      background-color: var(--color-red-50);
+    }
     .hover\:bg-red-100:hover {
       background-color: var(--color-red-100);
     }
@@ -2355,12 +2361,6 @@
     border-color: color-mix(in srgb, #b31217 40%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-eac-red) 40%, transparent);
-    }
-  }
-  .focus\:border-eac-red\/50:focus {
-    border-color: color-mix(in srgb, #b31217 50%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      border-color: color-mix(in oklab, var(--color-eac-red) 50%, transparent);
     }
   }
   .focus\:ring-2:focus {
@@ -2731,6 +2731,9 @@
     }
     .xl\:h-\[780px\] {
       height: 780px;
+    }
+    .xl\:w-\[360px\] {
+      width: 360px;
     }
     .xl\:grid-cols-3 {
       grid-template-columns: repeat(3, minmax(0, 1fr));

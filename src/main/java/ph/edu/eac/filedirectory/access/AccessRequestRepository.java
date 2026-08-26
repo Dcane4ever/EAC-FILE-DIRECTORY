@@ -18,8 +18,12 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
     /** "My Requests" page - AccessRequestController. */
     Page<AccessRequest> findByRequesterOrderByCreatedAtDesc(AppUser requester, Pageable pageable);
 
+    Page<AccessRequest> findByRequesterAndStatusOrderByCreatedAtDesc(AppUser requester, AccessRequestStatus status, Pageable pageable);
+
     /** "Access Requests" section under My Uploads - scoped by ownership via the join, an uploader only ever sees requests on their own files. */
     Page<AccessRequest> findByFile_UploaderOrderByCreatedAtDesc(AppUser uploader, Pageable pageable);
+
+    Page<AccessRequest> findByFile_UploaderAndStatusOrderByCreatedAtDesc(AppUser uploader, AccessRequestStatus status, Pageable pageable);
 
     long countByFile_UploaderAndStatus(AppUser uploader, AccessRequestStatus status);
 
