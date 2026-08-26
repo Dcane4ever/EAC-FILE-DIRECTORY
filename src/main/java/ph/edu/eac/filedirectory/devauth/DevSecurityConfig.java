@@ -43,7 +43,7 @@ public class DevSecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/dev-login?logout")
+                .logoutSuccessUrl("/")
                 .permitAll()
             );
 

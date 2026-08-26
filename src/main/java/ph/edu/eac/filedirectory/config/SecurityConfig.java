@@ -87,7 +87,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessHandler(auditingLogoutSuccessHandler("/login?logout"))
+                .logoutSuccessHandler(auditingLogoutSuccessHandler("/"))
                 .permitAll()
             );
 
