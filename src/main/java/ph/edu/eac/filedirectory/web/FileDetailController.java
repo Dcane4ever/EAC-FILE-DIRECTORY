@@ -85,6 +85,7 @@ public class FileDetailController {
 
         boolean canDownloadDirectly = principal != null && canDownloadDirectly(file, principal.getAppUser());
         model.addAttribute("canDownloadDirectly", canDownloadDirectly);
+        model.addAttribute("canEditMetadata", principal != null && canEditMetadata(file, principal.getAppUser()));
         model.addAttribute("savedByCurrentUser", principal != null
                 && savedFileRepository.existsByUserAndFile(principal.getAppUser(), file));
         if (!canDownloadDirectly && principal != null) {
@@ -237,6 +238,10 @@ public class FileDetailController {
         boolean isOwner = user.getId().equals(file.getUploader().getId());
         boolean isModerator = user.getRole() == Role.MODERATOR || user.getRole() == Role.ADMIN;
         return isOwner || isModerator;
+    }
+
+    private boolean canEditMetadata(FileEntity file, AppUser user) {
+        return canDownloadDirectly(file, user);
     }
 
     private void requireDirectDownload(FileEntity file, EacUserDetails principal) {

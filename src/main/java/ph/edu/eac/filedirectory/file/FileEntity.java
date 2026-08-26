@@ -44,6 +44,14 @@ public class FileEntity {
     @Column(length = 2000)
     private String description;
 
+    @Column(length = 1000)
+    private String authors;
+
+    @Column(length = 255)
+    private String adviser;
+
+    private Integer academicYear;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "uploader_id", nullable = false)
     private AppUser uploader;
@@ -165,6 +173,30 @@ public class FileEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getAuthors() {
+        return authors;
+    }
+
+    public void setAuthors(String authors) {
+        this.authors = authors;
+    }
+
+    public String getAdviser() {
+        return adviser;
+    }
+
+    public void setAdviser(String adviser) {
+        this.adviser = adviser;
+    }
+
+    public Integer getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(Integer academicYear) {
+        this.academicYear = academicYear;
     }
 
     public AppUser getUploader() {

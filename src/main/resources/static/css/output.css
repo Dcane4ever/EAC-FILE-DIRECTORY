@@ -514,6 +514,9 @@
   .ml-2 {
     margin-left: calc(var(--spacing) * 2);
   }
+  .ml-auto {
+    margin-left: auto;
+  }
   .line-clamp-2 {
     overflow: hidden;
     display: -webkit-box;
@@ -878,6 +881,9 @@
   .flex-col {
     flex-direction: column;
   }
+  .flex-col-reverse {
+    flex-direction: column-reverse;
+  }
   .flex-wrap {
     flex-wrap: wrap;
   }
@@ -960,6 +966,11 @@
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));
     margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));
+  }
+  :where(.space-y-5 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)));
   }
   :where(.space-y-6 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
@@ -1378,6 +1389,9 @@
   }
   .bg-\[linear-gradient\(115deg\,\#6b1118_0\%\,\#8b0e12_52\%\,\#b31217_100\%\)\] {
     background-image: linear-gradient(115deg,#6b1118 0%,#8b0e12 52%,#b31217 100%);
+  }
+  .bg-\[linear-gradient\(115deg\,\#6b1118_0\%\,\#8b0e12_55\%\,\#b31217_100\%\)\] {
+    background-image: linear-gradient(115deg,#6b1118 0%,#8b0e12 55%,#b31217 100%);
   }
   .bg-\[linear-gradient\(115deg\,\#6b1118_0\%\,\#8b0e12_56\%\,\#b31217_100\%\)\] {
     background-image: linear-gradient(115deg,#6b1118 0%,#8b0e12 56%,#b31217 100%);
@@ -1849,6 +1863,12 @@
     color: color-mix(in srgb, #fff 58%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       color: color-mix(in oklab, var(--color-white) 58%, transparent);
+    }
+  }
+  .text-white\/60 {
+    color: color-mix(in srgb, #fff 60%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in oklab, var(--color-white) 60%, transparent);
     }
   }
   .text-white\/68 {
@@ -2331,6 +2351,12 @@
       --tw-ring-color: color-mix(in oklab, var(--color-eac-red) 20%, transparent);
     }
   }
+  .focus\:ring-eac-red\/30:focus {
+    --tw-ring-color: color-mix(in srgb, #b31217 30%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      --tw-ring-color: color-mix(in oklab, var(--color-eac-red) 30%, transparent);
+    }
+  }
   .focus\:ring-eac-red\/40:focus {
     --tw-ring-color: color-mix(in srgb, #b31217 40%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -2402,6 +2428,9 @@
     }
     .sm\:justify-between {
       justify-content: space-between;
+    }
+    .sm\:justify-end {
+      justify-content: flex-end;
     }
     :where(.sm\:divide-x > :not(:last-child)) {
       --tw-divide-x-reverse: 0;
@@ -2526,8 +2555,14 @@
     .lg\:grid-cols-5 {
       grid-template-columns: repeat(5, minmax(0, 1fr));
     }
+    .lg\:grid-cols-\[1\.15fr_0\.85fr\] {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
     .lg\:grid-cols-\[1fr_220px\] {
       grid-template-columns: 1fr 220px;
+    }
+    .lg\:grid-cols-\[1fr_280px\] {
+      grid-template-columns: 1fr 280px;
     }
     .lg\:grid-cols-\[1fr_360px\] {
       grid-template-columns: 1fr 360px;
@@ -2571,6 +2606,9 @@
     }
     .lg\:border-eac-border {
       border-color: var(--color-eac-border);
+    }
+    .lg\:p-8 {
+      padding: calc(var(--spacing) * 8);
     }
     .lg\:p-9 {
       padding: calc(var(--spacing) * 9);

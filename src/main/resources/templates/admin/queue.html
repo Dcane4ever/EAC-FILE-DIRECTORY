@@ -208,7 +208,10 @@
                                                 <span th:text="${#numbers.formatDecimal(file.fileSize / 1024.0 / 1024.0, 1, 2)} + ' MB'"></span>
                                             </p>
                                         </div>
-                                        <a th:href="@{/files/{id}(id=${file.id})}" class="text-sm text-eac-red hover:underline whitespace-nowrap">Preview &rarr;</a>
+                                        <div class="flex items-center gap-3 whitespace-nowrap">
+                                            <a th:href="@{/files/{id}/edit(id=${file.id})}" class="text-sm font-semibold text-eac-red hover:underline">Edit</a>
+                                            <a th:href="@{/files/{id}(id=${file.id})}" class="text-sm text-eac-red hover:underline">Preview &rarr;</a>
+                                        </div>
                                     </div>
 
                                     <div class="flex items-center gap-3 mt-4 pt-4 border-t border-eac-border">

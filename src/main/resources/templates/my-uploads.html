@@ -16,6 +16,7 @@
             </a>
             <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
                 <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/saved-files}" class="text-eac-text hover:text-eac-red transition">Saved Files</a>
                 <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
                 <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
                 <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
@@ -35,6 +36,7 @@
         </div>
         <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
+            <a th:href="@{/saved-files}" class="block text-eac-text hover:text-eac-red transition">Saved Files</a>
             <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
             <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
             <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
@@ -98,6 +100,8 @@
                         <option value="AUTO_APPROVE" th:selected="${file.accessDecisionPolicy.name() == 'AUTO_APPROVE'}">Auto-approve</option>
                         <option value="AUTO_REJECT" th:selected="${file.accessDecisionPolicy.name() == 'AUTO_REJECT'}">Auto-decline</option>
                     </select>
+                    <a th:href="@{/files/{id}/edit(id=${file.id})}"
+                       class="ml-auto text-xs font-semibold text-eac-red hover:underline">Edit metadata</a>
                 </form>
             </div>
         </div>
