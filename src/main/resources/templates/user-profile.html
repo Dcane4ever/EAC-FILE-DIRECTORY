@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${displayName} + ' - EAC File Directory'">User Profile - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <style>
+        @keyframes profile-rise {
+            from { opacity: 0; transform: translate3d(0, 14px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        .profile-rise {
+            animation: profile-rise 620ms cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .profile-delay-1 { animation-delay: 90ms; }
+        .profile-delay-2 { animation-delay: 180ms; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .profile-rise {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-eac-bg text-eac-text">
+
+    <header class="bg-white border-b border-eac-border relative">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+            <a th:href="@{/home}" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory</span>
+            </a>
+            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
+                <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
+                <a th:href="@{/notifications}" class="relative text-eac-text hover:text-eac-red transition">
+                    Notifications
+                    <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}"
+                          class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
+                </a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
+            </nav>
+            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+            <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
+            <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
+            <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
+            <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
+            <a th:href="@{/notifications}" class="block text-eac-text hover:text-eac-red transition">
+                Notifications
+                <span th:if="${unreadNotificationCount > 0}" th:text="'(' + ${unreadNotificationCount} + ')'" class="text-eac-red font-semibold"></span>
+            </a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <a th:href="@{/browse}" class="inline-flex items-center gap-2 text-sm font-semibold text-eac-red hover:text-eac-red-hover transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            Back to Browse
+        </a>
+
+        <section class="profile-rise mt-5 overflow-hidden rounded-2xl border border-eac-border bg-white shadow-[0_18px_60px_rgba(26,26,26,0.08)]">
+            <div class="relative bg-[linear-gradient(115deg,#6b1118_0%,#8b0e12_52%,#b31217_100%)] px-6 py-8 text-white sm:px-8 lg:px-10">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(255,255,255,0.20),transparent_28%)]"></div>
+                <div class="relative grid gap-7 lg:grid-cols-[1fr_360px] lg:items-end">
+                    <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
+                        <div class="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-white/16 bg-white/12 text-4xl font-black shadow-[0_18px_44px_rgba(0,0,0,0.18)] backdrop-blur">
+                            <span th:text="${initials}">EA</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black uppercase tracking-[0.24em] text-white/68">Uploader profile</p>
+                            <h1 class="mt-3 text-4xl font-black leading-tight tracking-normal sm:text-5xl" th:text="${displayName}">Juan Dela Cruz</h1>
+                            <p class="mt-3 text-base font-medium text-white/76" th:text="${profileUser.email}">student@eac.edu.ph</p>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-white/16 bg-white/12 p-5 backdrop-blur">
+                        <p class="text-sm font-bold text-white/72">Profile scope</p>
+                        <p class="mt-2 text-base font-semibold leading-7">Approved uploads are visible to signed-in EAC users. Pending items stay private to the uploader.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 divide-y divide-eac-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                <div class="p-6">
+                    <p class="text-3xl font-black text-eac-maroon" th:text="${approvedCount}">0</p>
+                    <p class="mt-1 text-sm font-bold text-eac-text-light">Approved uploads</p>
+                </div>
+                <div class="p-6">
+                    <p class="text-3xl font-black text-eac-maroon" th:text="${downloadCount}">0</p>
+                    <p class="mt-1 text-sm font-bold text-eac-text-light">Total downloads</p>
+                </div>
+                <div class="p-6">
+                    <p class="text-3xl font-black text-eac-maroon" th:text="${isOwnProfile} ? ${pendingCount} : ${#temporals.format(profileUser.createdAt, 'yyyy')}">0</p>
+                    <p class="mt-1 text-sm font-bold text-eac-text-light" th:text="${isOwnProfile} ? 'Pending uploads' : 'Member since'">Member since</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
+            <aside class="profile-rise profile-delay-1 space-y-6">
+                <section class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm">
+                    <h2 class="text-sm font-black uppercase tracking-[0.18em] text-eac-red">Contribution mix</h2>
+                    <div th:if="${#lists.isEmpty(topCategories)}" class="mt-5 rounded-xl border border-dashed border-eac-border bg-eac-bg p-5 text-sm font-medium text-eac-text-light">
+                        No approved categories yet.
+                    </div>
+                    <div th:unless="${#lists.isEmpty(topCategories)}" class="mt-5 space-y-3">
+                        <div th:each="category : ${topCategories}" class="rounded-xl border border-eac-border bg-eac-bg/60 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-sm font-black text-eac-maroon" th:text="${category.name}">Research Paper</p>
+                                <p class="text-sm font-black text-eac-red" th:text="${category.fileCount}">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm" th:if="${isOwnProfile}">
+                    <h2 class="text-sm font-black uppercase tracking-[0.18em] text-eac-red">Your tools</h2>
+                    <div class="mt-5 grid gap-3">
+                        <a th:href="@{/upload}" class="rounded-xl bg-eac-red px-4 py-3 text-center text-sm font-black text-white transition hover:bg-eac-red-hover">Upload a file</a>
+                        <a th:href="@{/my-uploads}" class="rounded-xl border border-eac-border px-4 py-3 text-center text-sm font-black text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Manage uploads</a>
+                    </div>
+                </section>
+            </aside>
+
+            <section class="profile-rise profile-delay-2 rounded-2xl border border-eac-border bg-white p-6 shadow-sm sm:p-7">
+                <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p class="text-sm font-black uppercase tracking-[0.18em] text-eac-red">Recent work</p>
+                        <h2 class="mt-2 text-3xl font-black text-eac-maroon">Approved files by this uploader</h2>
+                    </div>
+                    <a th:href="@{/browse(uploaderId=${profileUser.id})}" class="text-sm font-black text-eac-red transition hover:text-eac-red-hover">View all</a>
+                </div>
+
+                <div th:if="${#lists.isEmpty(recentFiles)}" class="rounded-xl border border-dashed border-eac-border bg-eac-bg p-10 text-center">
+                    <p class="font-bold text-eac-text">No approved files yet.</p>
+                    <p class="mt-1 text-sm text-eac-text-light">Approved uploads will appear here after moderation.</p>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(recentFiles)}" class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <a th:each="file : ${recentFiles}" th:href="@{/files/{id}(id=${file.id})}"
+                       class="group rounded-2xl border border-eac-border bg-white p-5 transition hover:-translate-y-0.5 hover:border-eac-red/40 hover:shadow-[0_18px_44px_rgba(107,17,24,0.10)]">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-xs font-bold text-eac-text-light">
+                            <span class="rounded-full bg-eac-red-soft px-3 py-1 text-eac-red" th:text="${file.category.name}">Category</span>
+                            <span th:text="${file.department.code}">EAC</span>
+                            <span th:text="${#temporals.format(file.createdAt, 'yyyy')}">2026</span>
+                        </div>
+                        <h3 class="line-clamp-2 font-black leading-snug text-eac-maroon transition group-hover:text-eac-red" th:text="${file.title}">File title</h3>
+                        <p class="mt-3 line-clamp-2 text-sm leading-6 text-eac-text-light" th:text="${file.description}">Description</p>
+                        <div class="mt-4 flex items-center justify-between text-xs font-bold text-eac-text-light">
+                            <span th:text="${#strings.toUpperCase(file.extension())}">PDF</span>
+                            <span th:text="${file.downloadCount} + ' downloads'">0 downloads</span>
+                        </div>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        var navToggle = document.getElementById('navToggle');
+        var navPanel = document.getElementById('navPanel');
+        if (navToggle && navPanel) {
+            navToggle.addEventListener('click', function () {
+                navPanel.classList.toggle('hidden');
+            });
+        }
+    </script>
+
+</body>
+</html>

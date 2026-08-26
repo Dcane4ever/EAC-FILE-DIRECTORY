@@ -34,6 +34,30 @@ public interface FileRepository extends JpaRepository<FileEntity, Long>, JpaSpec
 
     Page<FileEntity> findByUploaderOrderByCreatedAtDesc(AppUser uploader, Pageable pageable);
 
+    Page<FileEntity> findByUploaderAndStatusOrderByCreatedAtDesc(AppUser uploader, FileStatus status, Pageable pageable);
+
+    long countByUploaderAndStatus(AppUser uploader, FileStatus status);
+
+    @Query("""
+            select coalesce(sum(f.downloadCount), 0)
+            from FileEntity f
+            where f.uploader = :uploader
+              and f.status = :status
+            """)
+    long sumDownloadCountByUploaderAndStatus(@Param("uploader") AppUser uploader, @Param("status") FileStatus status);
+
+    @Query("""
+            select f.category.name as name, count(f) as fileCount
+            from FileEntity f
+            where f.uploader = :uploader
+              and f.status = :status
+            group by f.category.name
+            order by count(f) desc, f.category.name asc
+            """)
+    List<CategoryContribution> topCategoriesByUploaderAndStatus(@Param("uploader") AppUser uploader,
+                                                                 @Param("status") FileStatus status,
+                                                                 Pageable pageable);
+
     Page<FileEntity> findByStatusAndDepartmentId(FileStatus status, Long departmentId, Pageable pageable);
 
     Page<FileEntity> findByStatusAndCategoryId(FileStatus status, Long categoryId, Pageable pageable);
@@ -73,5 +97,10 @@ public interface FileRepository extends JpaRepository<FileEntity, Long>, JpaSpec
     default Optional<FileEntity> findFirstByChecksum(String checksum) {
         List<FileEntity> matches = findByChecksumOrderByRelevance(checksum);
         return matches.isEmpty() ? Optional.empty() : Optional.of(matches.get(0));
+    }
+
+    interface CategoryContribution {
+        String getName();
+        long getFileCount();
     }
 }

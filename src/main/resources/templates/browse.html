@@ -102,6 +102,8 @@
                     </span>
                     <span th:if="${uploaderId}" class="inline-flex items-center gap-1.5 text-xs bg-eac-red-soft text-eac-red px-3 py-1 rounded-full">
                         By: <span th:text="${uploaderName}"></span>
+                        <a th:href="@{/users/{id}(id=${uploaderId})}"
+                           class="font-semibold underline decoration-eac-red/40 underline-offset-2 hover:text-eac-maroon">View profile</a>
                         <a th:href="@{/browse(departmentId=${selectedDepartmentId}, programId=${selectedProgramId}, courseId=${selectedCourseId}, categoryId=${selectedCategoryId}, tag=${tag}, year=${year}, fileType=${fileType}, q=${q}, sort=${sort})}"
                            class="font-bold hover:text-eac-maroon">&times;</a>
                     </span>

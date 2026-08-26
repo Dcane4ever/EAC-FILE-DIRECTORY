@@ -26,10 +26,10 @@
                           class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
                 </a>
                 <div class="h-6 w-px bg-eac-border"></div>
-                <div class="flex items-center gap-1.5 text-eac-text-light">
-                    <span th:if="${user}" th:text="${user.email}"></span>
+                <a th:if="${user}" th:href="@{/users/{id}(id=${user.id})}" class="flex items-center gap-1.5 text-eac-text-light hover:text-eac-red transition">
+                    <span th:text="${user.email}"></span>
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </div>
+                </a>
                 <form th:action="@{/logout}" method="post">
                     <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
                 </form>

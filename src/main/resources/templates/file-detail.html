@@ -205,7 +205,7 @@
                     <div>
                         <dt class="text-eac-text-light">Uploaded by</dt>
                         <dd class="font-bold text-eac-text">
-                            <a th:href="@{/browse(uploaderId=${file.uploader.id})}" th:text="${file.uploader.fullName}"
+                            <a th:href="@{/users/{id}(id=${file.uploader.id})}" th:text="${file.uploader.fullName}"
                                class="hover:text-eac-red transition"></a>
                         </dd>
                     </div>
