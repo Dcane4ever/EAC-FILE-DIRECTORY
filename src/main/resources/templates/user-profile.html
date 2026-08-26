@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,11 +29,15 @@
 
     <header class="bg-white border-b border-eac-border relative">
         <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
-            <a th:href="@{/home}" class="flex items-center gap-3 shrink-0">
+            <a th:href="@{/home}" sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" class="flex items-center gap-3 shrink-0">
                 <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
                 <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory</span>
             </a>
-            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+            <a th:href="@{/admin/home}" sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
+            </a>
+            <nav sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" class="hidden lg:flex items-center gap-7 text-sm font-medium">
                 <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
                 <a th:href="@{/saved-files}" class="text-eac-text hover:text-eac-red transition">Saved Files</a>
                 <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
@@ -49,11 +53,22 @@
                     <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
                 </form>
             </nav>
+            <nav sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/admin/home}" class="text-eac-text hover:text-eac-red transition">Dashboard</a>
+                <a th:href="@{/admin/files}" class="text-eac-text hover:text-eac-red transition">Manage Files</a>
+                <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
+                <a th:href="@{/admin/archived}" class="text-eac-text hover:text-eac-red transition">Archived Files</a>
+                <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Manage Users</a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
+            </nav>
             <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
                 <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
         </div>
-        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+        <div id="navPanel" sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
             <a th:href="@{/saved-files}" class="block text-eac-text hover:text-eac-red transition">Saved Files</a>
             <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
@@ -67,12 +82,26 @@
                 <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
             </form>
         </div>
+        <div id="adminNavPanel" sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+            <a th:href="@{/admin/home}" class="block text-eac-text hover:text-eac-red transition">Dashboard</a>
+            <a th:href="@{/admin/files}" class="block text-eac-text hover:text-eac-red transition">Manage Files</a>
+            <a th:href="@{/admin/queue}" class="block text-eac-text hover:text-eac-red transition">Approval Queue</a>
+            <a th:href="@{/admin/archived}" class="block text-eac-text hover:text-eac-red transition">Archived Files</a>
+            <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Manage Users</a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
+        </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <a th:href="@{/browse}" class="inline-flex items-center gap-2 text-sm font-semibold text-eac-red hover:text-eac-red-hover transition">
+        <a th:href="@{/browse}" sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" class="inline-flex items-center gap-2 text-sm font-semibold text-eac-red hover:text-eac-red-hover transition">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
             Back to Browse
+        </a>
+        <a th:href="@{/admin/home}" sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="inline-flex items-center gap-2 text-sm font-semibold text-eac-red hover:text-eac-red-hover transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            Back to Admin Dashboard
         </a>
 
         <section class="profile-rise mt-5 overflow-hidden rounded-2xl border border-eac-border bg-white shadow-[0_18px_60px_rgba(26,26,26,0.08)]">
@@ -129,7 +158,7 @@
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm" th:if="${isOwnProfile}">
+                <section class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm" th:if="${isOwnProfile}" sec:authorize="!hasAnyRole('ADMIN','MODERATOR')">
                     <h2 class="text-sm font-black uppercase tracking-[0.18em] text-eac-red">Your tools</h2>
                     <div class="mt-5 grid gap-3">
                         <a th:href="@{/upload}" class="rounded-xl bg-eac-red px-4 py-3 text-center text-sm font-black text-white transition hover:bg-eac-red-hover">Upload a file</a>
@@ -144,7 +173,8 @@
                         <p class="text-sm font-black uppercase tracking-[0.18em] text-eac-red">Recent work</p>
                         <h2 class="mt-2 text-3xl font-black text-eac-maroon">Approved files by this uploader</h2>
                     </div>
-                    <a th:href="@{/browse(uploaderId=${profileUser.id})}" class="text-sm font-black text-eac-red transition hover:text-eac-red-hover">View all</a>
+                    <a th:href="@{/browse(uploaderId=${profileUser.id})}" sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" class="text-sm font-black text-eac-red transition hover:text-eac-red-hover">View all</a>
+                    <a th:href="@{/admin/files}" sec:authorize="hasAnyRole('ADMIN','MODERATOR')" class="text-sm font-black text-eac-red transition hover:text-eac-red-hover">Manage files</a>
                 </div>
 
                 <div th:if="${#lists.isEmpty(recentFiles)}" class="rounded-xl border border-dashed border-eac-border bg-eac-bg p-10 text-center">
@@ -175,9 +205,14 @@
     <script>
         var navToggle = document.getElementById('navToggle');
         var navPanel = document.getElementById('navPanel');
-        if (navToggle && navPanel) {
+        if (navToggle) {
             navToggle.addEventListener('click', function () {
-                navPanel.classList.toggle('hidden');
+                var staffPanel = document.getElementById('adminNavPanel');
+                if (staffPanel) {
+                    staffPanel.classList.toggle('hidden');
+                } else if (navPanel) {
+                    navPanel.classList.toggle('hidden');
+                }
             });
         }
     </script>

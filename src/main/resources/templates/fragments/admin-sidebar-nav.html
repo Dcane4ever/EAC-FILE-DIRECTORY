@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav th:fragment="nav(active, pending, showPending)" class="flex-1 space-y-1 px-4 py-4 text-sm font-bold">
+    <a th:href="@{/admin/home}" th:classappend="${active == 'dashboard'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+        </span>
+        <span>Dashboard</span>
+    </a>
+    <a th:href="@{/admin/files}" th:classappend="${active == 'files'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
+        </span>
+        <span>Manage Files</span>
+    </a>
+    <a th:href="@{/admin/queue}" th:classappend="${active == 'queue'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center justify-between gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex min-w-0 items-center gap-3">
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </span>
+            <span>Approval Queue</span>
+        </span>
+        <span th:if="${showPending}" th:text="${pending}" class="rounded-full bg-white px-2 py-0.5 text-xs text-eac-red"></span>
+    </a>
+    <a th:href="@{/admin/archived}" th:classappend="${active == 'archived'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M3 8l2-5h14l2 5"/><path d="M10 12h4"/></svg>
+        </span>
+        <span>Archived Files</span>
+    </a>
+    <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" th:classappend="${active == 'users'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        </span>
+        <span>Manage Users</span>
+    </a>
+    <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" th:classappend="${active == 'audit'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M9 11h2"/></svg>
+        </span>
+        <span>Audit Log</span>
+    </a>
+    <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" th:classappend="${active == 'settings'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.9 4.9 2.1 2.1"/><path d="m17 17 2.1 2.1"/><path d="m19.1 4.9-2.1 2.1"/><path d="m7 17-2.1 2.1"/></svg>
+        </span>
+        <span>Settings</span>
+    </a>
+</nav>
+</body>
+</html>

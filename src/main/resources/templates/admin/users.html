@@ -1,232 +1,110 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Users - EAC File Directory</title>
     <link rel="stylesheet" th:href="@{/css/output.css}">
+    <style>
+        @keyframes admin-rise { from { opacity: 0; transform: translate3d(0, 10px, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+        .admin-rise { animation: admin-rise 520ms cubic-bezier(.2, .8, .2, 1) both; }
+        @media (prefers-reduced-motion: reduce) { .admin-rise { animation: none; } }
+    </style>
 </head>
-<body class="min-h-screen bg-eac-bg">
-
-    <header class="bg-white border-b border-eac-border relative">
-        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
-            <a th:href="@{/admin/home}" class="flex items-center gap-3 shrink-0">
-                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
-                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
-            </a>
-            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
-                <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
-                <a th:href="@{/admin/users}" class="text-eac-red font-semibold">Manage Users</a>
-                <a th:href="@{/admin/users/audit-log}" class="text-eac-text hover:text-eac-red transition">Audit Log</a>
-                <a th:href="@{/admin/users/settings}" class="text-eac-text hover:text-eac-red transition">Settings</a>
-                <div class="h-6 w-px bg-eac-border"></div>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-                </form>
-            </nav>
-            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
-        </div>
-        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
-            <a th:href="@{/admin/queue}" class="block text-eac-text hover:text-eac-red transition">Approval Queue</a>
-            <a th:href="@{/admin/users}" class="block text-eac-red font-semibold">Manage Users</a>
-            <a th:href="@{/admin/users/audit-log}" class="block text-eac-text hover:text-eac-red transition">Audit Log</a>
-            <a th:href="@{/admin/users/settings}" class="block text-eac-text hover:text-eac-red transition">Settings</a>
-            <form th:action="@{/logout}" method="post" class="mt-2">
-                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-            </form>
-        </div>
-    </header>
-
-    <main class="max-w-5xl mx-auto px-6 py-10">
-        <div class="flex items-start justify-between gap-4 flex-wrap mb-6">
-            <div>
-                <h1 class="text-2xl font-bold text-eac-navy mb-1">Manage Users</h1>
-                <p class="text-eac-text-light text-sm">
-                    <span th:text="${users.size()} + ' account(s)'"></span>
-                    &middot;
-                    <span th:text="${adminCount} + ' / ' + ${maxAdmins} + ' admins'"
-                          th:classappend="${adminCount >= maxAdmins} ? 'text-eac-red font-semibold' : ''"></span>
-                </p>
+<body class="min-h-screen bg-[#f7f7f8] text-eac-text">
+    <div class="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-eac-border bg-white lg:flex lg:flex-col">
+            <div class="flex h-[84px] items-center gap-3 px-6">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="h-12 w-12 shrink-0">
+                <div class="min-w-0"><p class="truncate text-base font-black text-eac-maroon">EAC File Directory</p><p class="text-xs font-semibold text-eac-red">Admin</p></div>
             </div>
-            <button type="button" onclick="document.getElementById('createUserModal').classList.remove('hidden')"
-                    class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5 whitespace-nowrap">
-                + Create Account
-            </button>
+            <nav th:replace="~{fragments/admin-sidebar-nav :: nav('users', null, false)}"></nav>
+            <div class="p-4">
+                <div class="rounded-2xl border border-eac-border bg-eac-bg p-5">
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Accounts</p>
+                    <p class="mt-3 text-3xl font-black text-eac-maroon" th:text="${users.size()}">0</p>
+                    <p class="mt-1 text-sm font-semibold text-eac-text-light">registered account(s)</p>
+                </div>
+            </div>
+        </aside>
+        <div id="mobileOverlay" class="fixed inset-0 z-30 hidden bg-black/30 lg:hidden"></div>
+        <div class="min-w-0 lg:col-start-2">
+            <header class="sticky top-0 z-20 border-b border-eac-border bg-white/95 backdrop-blur">
+                <div class="flex h-[84px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-9">
+                    <button type="button" id="navToggle" aria-label="Open menu" class="grid h-10 w-10 place-items-center rounded-xl border border-eac-border text-eac-maroon lg:hidden">=</button>
+                    <div class="hidden w-full max-w-xl rounded-2xl border border-eac-border bg-white px-4 py-3 text-sm font-medium text-eac-text-light shadow-sm sm:block">Manage verified EAC accounts and staff roles</div>
+                    <div class="ml-auto flex items-center gap-3">
+                        <button type="button" onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="rounded-xl bg-eac-red px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover">Create Account</button>
+                        <form th:action="@{/logout}" method="post"><button type="submit" class="hidden rounded-xl border border-eac-border px-4 py-2.5 text-sm font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red md:inline-flex">Sign Out</button></form>
+                    </div>
+                </div>
+            </header>
+            <main class="admin-rise px-4 py-8 sm:px-6 lg:px-9 lg:py-10">
+                <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div><p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Access control</p><h1 class="mt-3 text-3xl font-black text-eac-text sm:text-4xl">Manage Users</h1><p class="mt-2 text-base font-medium text-eac-text-light"><span th:text="${users.size()} + ' account(s)'"></span> / <span th:text="${adminCount} + ' of ' + ${maxAdmins} + ' admin slots used'"></span></p></div>
+                </section>
+                <div th:if="${infoMessage}" class="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700" th:text="${infoMessage}"></div>
+                <div th:if="${errorMessage}" class="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" th:text="${errorMessage}"></div>
+                <section class="mt-7 overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+                    <div class="border-b border-eac-border p-5 sm:p-6"><h2 class="text-lg font-black text-eac-text">Directory Accounts</h2><p class="mt-1 text-sm font-medium text-eac-text-light">Review identity, verification state, and assigned role.</p></div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm">
+                            <thead class="bg-white text-xs uppercase tracking-wide text-eac-text-light"><tr class="border-b border-eac-border"><th class="px-5 py-3 font-black">User</th><th class="px-5 py-3 font-black">Verified</th><th class="px-5 py-3 font-black">Joined</th><th class="px-5 py-3 font-black">Role</th></tr></thead>
+                            <tbody class="divide-y divide-eac-border">
+                                <tr th:each="u : ${users}" class="transition hover:bg-eac-bg/70">
+                                    <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="grid h-10 w-10 place-items-center rounded-full bg-eac-red-soft text-sm font-black text-eac-red" th:text="${u.fullName != null and !#strings.isEmpty(u.fullName) ? #strings.substring(u.fullName, 0, 1) : 'U'}">U</div><div><p class="font-black text-eac-maroon" th:text="${u.fullName}">Name</p><p class="text-xs font-semibold text-eac-text-light" th:text="${u.email}">email</p></div></div></td>
+                                    <td class="px-5 py-4"><span th:if="${u.emailVerified}" class="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">Verified</span><span th:unless="${u.emailVerified}" class="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">Pending</span></td>
+                                    <td class="px-5 py-4 text-eac-text-light" th:text="${#temporals.format(u.createdAt, 'MMM d, yyyy')}">Date</td>
+                                    <td class="px-5 py-4">
+                                        <form th:action="@{/admin/users/{id}/role(id=${u.id})}" method="post" class="flex items-center gap-2">
+                                            <select name="role" th:data-email="${u.email}" onchange="handleRoleChange(this)" class="rounded-lg border border-eac-border px-3 py-2 text-sm outline-none focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+                                                <option th:each="r : ${roles}" th:value="${r}" th:text="${r}" th:selected="${r == u.role}"></option>
+                                            </select>
+                                            <input type="hidden" name="confirmPassword" value="">
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
         </div>
+    </div>
 
-        <div th:if="${infoMessage}" class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm" th:text="${infoMessage}"></div>
-        <div th:if="${errorMessage}" class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm" th:text="${errorMessage}"></div>
-
-        <div class="bg-white rounded-xl border border-eac-border overflow-hidden">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-eac-border bg-eac-bg/60 text-left text-xs text-eac-text-light uppercase tracking-wide">
-                        <th class="px-5 py-3 font-medium">Email</th>
-                        <th class="px-5 py-3 font-medium">Name</th>
-                        <th class="px-5 py-3 font-medium">Verified</th>
-                        <th class="px-5 py-3 font-medium">Joined</th>
-                        <th class="px-5 py-3 font-medium">Role</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="u : ${users}" class="border-b border-eac-border last:border-0">
-                        <td class="px-5 py-3 text-eac-text" th:text="${u.email}"></td>
-                        <td class="px-5 py-3 text-eac-text-light" th:text="${u.fullName}"></td>
-                        <td class="px-5 py-3">
-                            <span th:if="${u.emailVerified}" class="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Verified</span>
-                            <span th:unless="${u.emailVerified}" class="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Pending</span>
-                        </td>
-                        <td class="px-5 py-3 text-eac-text-light" th:text="${#temporals.format(u.createdAt, 'MMM d, yyyy')}"></td>
-                        <td class="px-5 py-3">
-                            <!-- Changing role to ADMIN requires the acting admin's own
-                                 password (see UserManagementController) - the select
-                                 auto-submits for USER/MODERATOR, but routes through the
-                                 password-confirm modal when ADMIN is chosen. The target
-                                 email is read from the data attribute (not interpolated
-                                 into JS) to avoid any string-escaping concerns. -->
-                            <form th:action="@{/admin/users/{id}/role(id=${u.id})}" method="post" class="flex items-center gap-2">
-                                <select name="role" th:data-email="${u.email}" onchange="handleRoleChange(this)"
-                                        class="rounded-lg border border-eac-border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r}" th:selected="${r == u.role}"></option>
-                                </select>
-                                <input type="hidden" name="confirmPassword" value="">
-                            </form>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
-
-    <!-- Create Account modal -->
-    <div id="createUserModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl border border-eac-border max-w-md w-full p-6">
-            <h2 class="text-lg font-bold text-eac-navy mb-1">Create Account</h2>
-            <p class="text-xs text-eac-text-light mb-5">
-                Created pre-verified - no email is sent. Useful for dummy/test accounts with no real inbox.
-            </p>
-
+    <div id="createUserModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div class="w-full max-w-md rounded-2xl border border-eac-border bg-white p-6 shadow-2xl">
+            <h2 class="text-lg font-black text-eac-text">Create Account</h2>
+            <p class="mb-5 mt-1 text-xs font-medium text-eac-text-light">Created pre-verified. No email is sent.</p>
             <form th:action="@{/admin/users/create}" method="post" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">Full Name</label>
-                    <input type="text" name="fullName" required
-                           class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">Email</label>
-                    <input type="email" name="email" required th:placeholder="'yourname@' + ${allowedDomain}"
-                           class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                    <p class="text-xs text-eac-text-light mt-1" th:text="'Must end in @' + ${allowedDomain}"></p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">Password</label>
-                    <input type="password" name="password" required minlength="8"
-                           class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                    <p class="text-xs text-eac-text-light mt-1">At least 8 characters. Share this with the account holder yourself.</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-eac-text mb-1">Role</label>
-                    <select id="createRoleSelect" name="role" onchange="toggleCreateConfirm(this)"
-                            class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                        <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"></option>
-                    </select>
-                </div>
-                <div id="createConfirmField" class="hidden">
-                    <label class="block text-sm font-medium text-eac-text mb-1">Your Password (confirm)</label>
-                    <input type="password" name="confirmPassword"
-                           class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                    <p class="text-xs text-eac-text-light mt-1">Required to grant ADMIN access.</p>
-                </div>
-
-                <div class="flex items-center gap-3 pt-2">
-                    <button type="submit" class="flex-1 bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold py-2.5 rounded-lg">
-                        Create Account
-                    </button>
-                    <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')"
-                            class="text-sm text-eac-text-light hover:text-eac-text px-3">
-                        Cancel
-                    </button>
-                </div>
+                <div><label class="mb-1 block text-sm font-bold text-eac-text">Full Name</label><input type="text" name="fullName" required class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm outline-none focus:border-eac-red focus:ring-2 focus:ring-eac-red/20"></div>
+                <div><label class="mb-1 block text-sm font-bold text-eac-text">Email</label><input type="email" name="email" required th:placeholder="'yourname@' + ${allowedDomain}" class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm outline-none focus:border-eac-red focus:ring-2 focus:ring-eac-red/20"><p class="mt-1 text-xs text-eac-text-light" th:text="'Must end in @' + ${allowedDomain}"></p></div>
+                <div><label class="mb-1 block text-sm font-bold text-eac-text">Password</label><input type="password" name="password" required minlength="8" class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm outline-none focus:border-eac-red focus:ring-2 focus:ring-eac-red/20"></div>
+                <div><label class="mb-1 block text-sm font-bold text-eac-text">Role</label><select id="createRoleSelect" name="role" onchange="toggleCreateConfirm(this)" class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm outline-none focus:border-eac-red focus:ring-2 focus:ring-eac-red/20"><option th:each="r : ${roles}" th:value="${r}" th:text="${r}"></option></select></div>
+                <div id="createConfirmField" class="hidden"><label class="mb-1 block text-sm font-bold text-eac-text">Your Password</label><input type="password" name="confirmPassword" class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm outline-none focus:border-eac-red focus:ring-2 focus:ring-eac-red/20"><p class="mt-1 text-xs text-eac-text-light">Required to grant ADMIN access.</p></div>
+                <div class="flex items-center gap-3 pt-2"><button type="submit" class="flex-1 rounded-lg bg-eac-red py-2.5 text-sm font-bold text-white hover:bg-eac-red-hover">Create Account</button><button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="px-3 text-sm font-bold text-eac-text-light hover:text-eac-text">Cancel</button></div>
             </form>
         </div>
     </div>
-
-    <!-- Confirm-ADMIN password modal, shown for role changes on existing accounts -->
-    <div id="confirmAdminModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl border border-eac-border max-w-sm w-full p-6">
-            <h2 class="text-lg font-bold text-eac-navy mb-1">Confirm Admin Access</h2>
-            <p class="text-sm text-eac-text-light mb-4">
-                You're granting <strong id="confirmAdminEmail"></strong> ADMIN access. Re-enter your password to confirm.
-            </p>
-            <input type="password" id="confirmAdminPassword" placeholder="Your password"
-                   class="w-full rounded-lg border border-eac-border px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="submitAdminConfirm()"
-                        class="flex-1 bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold py-2.5 rounded-lg">
-                    Confirm
-                </button>
-                <button type="button" onclick="cancelAdminConfirm()"
-                        class="text-sm text-eac-text-light hover:text-eac-text px-3">
-                    Cancel
-                </button>
-            </div>
+    <div id="confirmAdminModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div class="w-full max-w-sm rounded-2xl border border-eac-border bg-white p-6 shadow-2xl">
+            <h2 class="text-lg font-black text-eac-text">Confirm Admin Access</h2>
+            <p class="mb-4 mt-1 text-sm text-eac-text-light">You are granting <strong id="confirmAdminEmail"></strong> ADMIN access. Re-enter your password.</p>
+            <input type="password" id="confirmAdminPassword" placeholder="Your password" class="mb-4 w-full rounded-lg border border-eac-border px-3 py-2 text-sm outline-none focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+            <div class="flex items-center gap-3"><button type="button" onclick="submitAdminConfirm()" class="flex-1 rounded-lg bg-eac-red py-2.5 text-sm font-bold text-white hover:bg-eac-red-hover">Confirm</button><button type="button" onclick="cancelAdminConfirm()" class="px-3 text-sm font-bold text-eac-text-light hover:text-eac-text">Cancel</button></div>
         </div>
     </div>
-
     <script>
-        var navToggle = document.getElementById('navToggle');
-        var navPanel = document.getElementById('navPanel');
-        if (navToggle && navPanel) {
-            navToggle.addEventListener('click', function () {
-                navPanel.classList.toggle('hidden');
-            });
-        }
-
+        var sidebar = document.getElementById('sidebar'), navToggle = document.getElementById('navToggle'), overlay = document.getElementById('mobileOverlay');
+        function openSidebar(){ sidebar.classList.remove('hidden'); sidebar.classList.add('flex'); overlay.classList.remove('hidden'); }
+        function closeSidebar(){ sidebar.classList.add('hidden'); sidebar.classList.remove('flex'); overlay.classList.add('hidden'); }
+        if(navToggle && sidebar && overlay){ navToggle.addEventListener('click', openSidebar); overlay.addEventListener('click', closeSidebar); }
         var pendingRoleForm = null;
-
-        function handleRoleChange(select) {
-            if (select.value === 'ADMIN') {
-                pendingRoleForm = select.form;
-                document.getElementById('confirmAdminEmail').textContent = select.dataset.email;
-                document.getElementById('confirmAdminPassword').value = '';
-                document.getElementById('confirmAdminModal').classList.remove('hidden');
-            } else {
-                select.form.requestSubmit();
-            }
-        }
-
-        function submitAdminConfirm() {
-            if (!pendingRoleForm) return;
-            var password = document.getElementById('confirmAdminPassword').value;
-            pendingRoleForm.querySelector('input[name="confirmPassword"]').value = password;
-            document.getElementById('confirmAdminModal').classList.add('hidden');
-            pendingRoleForm.requestSubmit();
-        }
-
-        function cancelAdminConfirm() {
-            // Revert the select back to the role it actually still has,
-            // since we didn't submit - the page will show the real state
-            // again on next load anyway, but this avoids a misleading UI
-            // in the meantime.
-            document.getElementById('confirmAdminModal').classList.add('hidden');
-            if (pendingRoleForm) {
-                var select = pendingRoleForm.querySelector('select[name="role"]');
-                select.value = select.dataset.originalValue || select.value;
-            }
-            pendingRoleForm = null;
-        }
-
-        function toggleCreateConfirm(select) {
-            document.getElementById('createConfirmField').classList.toggle('hidden', select.value !== 'ADMIN');
-        }
-
-        // Remember each select's original value so cancelAdminConfirm can revert to it.
-        document.querySelectorAll('select[name="role"]').forEach(function (select) {
-            select.dataset.originalValue = select.value;
-        });
+        function handleRoleChange(select){ if(select.value === 'ADMIN'){ pendingRoleForm = select.form; document.getElementById('confirmAdminEmail').textContent = select.dataset.email; document.getElementById('confirmAdminPassword').value = ''; document.getElementById('confirmAdminModal').classList.remove('hidden'); } else { select.form.requestSubmit(); } }
+        function submitAdminConfirm(){ if(!pendingRoleForm) return; pendingRoleForm.querySelector('input[name="confirmPassword"]').value = document.getElementById('confirmAdminPassword').value; document.getElementById('confirmAdminModal').classList.add('hidden'); pendingRoleForm.requestSubmit(); }
+        function cancelAdminConfirm(){ document.getElementById('confirmAdminModal').classList.add('hidden'); if(pendingRoleForm){ var select = pendingRoleForm.querySelector('select[name="role"]'); select.value = select.dataset.originalValue || select.value; } pendingRoleForm = null; }
+        function toggleCreateConfirm(select){ document.getElementById('createConfirmField').classList.toggle('hidden', select.value !== 'ADMIN'); }
+        document.querySelectorAll('select[name="role"]').forEach(function(select){ select.dataset.originalValue = select.value; });
     </script>
-
 </body>
 </html>

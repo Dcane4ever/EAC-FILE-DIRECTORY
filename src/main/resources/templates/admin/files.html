@@ -5,147 +5,195 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Files - EAC File Directory</title>
     <link rel="stylesheet" th:href="@{/css/output.css}">
+    <style>
+        @keyframes admin-rise {
+            from { opacity: 0; transform: translate3d(0, 10px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+        .admin-rise { animation: admin-rise 520ms cubic-bezier(.2, .8, .2, 1) both; }
+        @media (prefers-reduced-motion: reduce) { .admin-rise { animation: none; } }
+    </style>
 </head>
-<body class="min-h-screen bg-eac-bg text-eac-text">
+<body class="min-h-screen bg-[#f7f7f8] text-eac-text">
 
-    <header class="bg-white border-b border-eac-border relative">
-        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
-            <a th:href="@{/admin/home}" class="flex items-center gap-3 shrink-0">
-                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
-                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
-            </a>
-            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
-                <a th:href="@{/admin/files}" class="text-eac-red font-semibold border-b-2 border-eac-red pb-1 -mb-1">Manage Files</a>
-                <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
-                <a th:href="@{/admin/archived}" class="text-eac-text hover:text-eac-red transition">Archived Files</a>
-                <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Manage Users</a>
-                <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Audit Log</a>
-                <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Settings</a>
-                <div class="h-6 w-px bg-eac-border"></div>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-                </form>
-            </nav>
-        </div>
-    </header>
+    <div class="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-eac-border bg-white lg:flex lg:flex-col">
+            <div class="flex h-[84px] items-center gap-3 px-6">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="h-12 w-12 shrink-0">
+                <div class="min-w-0">
+                    <p class="truncate text-base font-black text-eac-maroon">EAC File Directory</p>
+                    <p class="text-xs font-semibold text-eac-red">Admin</p>
+                </div>
+            </div>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <section class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
-            <div class="bg-[linear-gradient(115deg,#6b1118_0%,#8b0e12_55%,#b31217_100%)] px-6 py-8 text-white sm:px-8">
-                <p class="text-sm font-black uppercase tracking-[0.22em] text-white/70">Repository control</p>
-                <div class="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <nav th:replace="~{fragments/admin-sidebar-nav :: nav('files', null, false)}"></nav>
+
+            <div class="p-4">
+                <div class="rounded-2xl border border-eac-border bg-eac-bg p-5">
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Repository scope</p>
+                    <p class="mt-3 text-3xl font-black text-eac-maroon" th:text="${files.totalElements}">0</p>
+                    <p class="mt-1 text-sm font-semibold text-eac-text-light">matching file records</p>
+                    <a th:href="@{/admin/queue}" class="mt-4 block rounded-xl bg-eac-red px-4 py-3 text-center text-xs font-black text-white transition hover:bg-eac-red-hover">Review pending files</a>
+                </div>
+            </div>
+        </aside>
+
+        <div id="mobileOverlay" class="fixed inset-0 z-30 hidden bg-black/30 lg:hidden"></div>
+
+        <div class="min-w-0 lg:col-start-2">
+            <header class="sticky top-0 z-20 border-b border-eac-border bg-white/95 backdrop-blur">
+                <div class="flex h-[84px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-9">
+                    <button type="button" id="navToggle" aria-label="Open menu" class="grid h-10 w-10 place-items-center rounded-xl border border-eac-border text-eac-maroon lg:hidden">
+                        <span class="text-xl leading-none">=</span>
+                    </button>
+
+                    <form th:action="@{/admin/files}" method="get" class="hidden w-full max-w-xl items-center rounded-2xl border border-eac-border bg-white px-4 py-3 shadow-sm sm:flex">
+                        <input type="text" name="q" th:value="${q}" placeholder="Search files, departments, owners..." class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-eac-text-light">
+                        <input type="hidden" name="status" th:value="${status}">
+                        <input type="hidden" name="departmentId" th:value="${selectedDepartmentId}">
+                        <input type="hidden" name="categoryId" th:value="${selectedCategoryId}">
+                        <input type="hidden" name="fileType" th:value="${fileType}">
+                        <input type="hidden" name="sort" th:value="${sort}">
+                        <span class="rounded-lg border border-eac-border px-2 py-1 text-xs font-bold text-eac-text-light">Ctrl + K</span>
+                    </form>
+
+                    <div class="ml-auto flex items-center gap-3">
+                        <a th:href="@{/admin/home}" class="hidden rounded-xl border border-eac-border px-4 py-2.5 text-sm font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red sm:inline-flex">Dashboard</a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="rounded-xl bg-eac-red px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover">Sign Out</button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+
+            <main class="admin-rise px-4 py-8 sm:px-6 lg:px-9 lg:py-10">
+                <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <h1 class="text-4xl font-black leading-tight sm:text-5xl">Manage files</h1>
-                        <p class="mt-3 max-w-2xl text-base font-medium leading-7 text-white/78">Search, review, edit, archive, restore, approve, or reject records across the full directory.</p>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Repository control</p>
+                        <h1 class="mt-3 text-3xl font-black text-eac-text sm:text-4xl">Manage Files</h1>
+                        <p class="mt-2 max-w-2xl text-base font-medium leading-7 text-eac-text-light">View every repository record, filter by status, and take staff actions without leaving the admin workspace.</p>
                     </div>
-                    <div class="rounded-2xl border border-white/16 bg-white/12 px-5 py-4 backdrop-blur">
-                        <p class="text-3xl font-black" th:text="${files.totalElements}">0</p>
-                        <p class="text-sm font-bold text-white/72">matching file(s)</p>
+                    <div class="rounded-2xl border border-eac-border bg-white px-5 py-4 shadow-sm">
+                        <p class="text-3xl font-black text-eac-maroon" th:text="${files.totalElements}">0</p>
+                        <p class="text-sm font-bold text-eac-text-light">matching file(s)</p>
                     </div>
+                </section>
+
+                <section class="mt-7 rounded-2xl border border-eac-border bg-white shadow-sm">
+                    <form th:action="@{/admin/files}" method="get" class="grid gap-3 border-b border-eac-border p-5 sm:p-6 lg:grid-cols-[1fr_170px_190px_170px_150px_auto]">
+                        <input type="text" name="q" th:value="${q}" placeholder="Search title, description, or tag" class="rounded-xl border border-eac-border bg-white px-4 py-3 text-sm outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+                        <select name="status" class="rounded-xl border border-eac-border bg-white px-3 py-3 text-sm outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+                            <option value="">All statuses</option>
+                            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == status}"></option>
+                        </select>
+                        <select name="departmentId" class="rounded-xl border border-eac-border bg-white px-3 py-3 text-sm outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+                            <option value="">All departments</option>
+                            <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.code + ' - ' + d.name}" th:selected="${d.id == selectedDepartmentId}"></option>
+                        </select>
+                        <select name="categoryId" class="rounded-xl border border-eac-border bg-white px-3 py-3 text-sm outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+                            <option value="">All categories</option>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == selectedCategoryId}"></option>
+                        </select>
+                        <select name="fileType" class="rounded-xl border border-eac-border bg-white px-3 py-3 text-sm outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+                            <option value="">All types</option>
+                            <option th:each="ft : ${fileTypeOptions}" th:value="${ft}" th:text="${#strings.toUpperCase(ft)}" th:selected="${ft == fileType}"></option>
+                        </select>
+                        <button type="submit" class="rounded-xl bg-eac-red px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-eac-red-hover active:translate-y-0">Filter</button>
+                        <input type="hidden" name="sort" th:value="${sort}">
+                    </form>
+
+                    <div class="p-5 sm:p-6">
+                        <div th:if="${infoMessage}" class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700" th:text="${infoMessage}"></div>
+
+                        <div th:if="${files.empty}" class="rounded-2xl border border-dashed border-eac-border bg-eac-bg p-10 text-center">
+                            <p class="text-lg font-black text-eac-text">No files match this view.</p>
+                            <p class="mt-2 text-sm font-medium text-eac-text-light">Adjust the filters to inspect another part of the repository.</p>
+                        </div>
+
+                        <div th:unless="${files.empty}" class="overflow-x-auto">
+                            <table class="min-w-full text-left text-sm">
+                                <thead class="bg-white text-xs uppercase tracking-wide text-eac-text-light">
+                                    <tr class="border-b border-eac-border">
+                                        <th class="px-4 py-3 font-black">File</th>
+                                        <th class="px-4 py-3 font-black">Status</th>
+                                        <th class="px-4 py-3 font-black">Owner</th>
+                                        <th class="px-4 py-3 font-black">School</th>
+                                        <th class="px-4 py-3 font-black">Uploaded</th>
+                                        <th class="px-4 py-3 text-right font-black">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-eac-border">
+                                    <tr th:each="file : ${files.content}" class="align-top transition hover:bg-eac-bg/70">
+                                        <td class="px-4 py-5">
+                                            <a th:href="@{/files/{id}(id=${file.id})}" class="font-black leading-snug text-eac-maroon hover:text-eac-red" th:text="${file.title}">File title</a>
+                                            <p class="mt-1 line-clamp-2 max-w-md text-xs leading-5 text-eac-text-light" th:text="${file.description}">Description</p>
+                                            <p class="mt-2 text-xs font-bold text-eac-text-light" th:text="${file.category.name + ' / ' + #strings.toUpperCase(file.extension())}">Category</p>
+                                        </td>
+                                        <td class="px-4 py-5">
+                                            <span class="inline-flex rounded-full px-3 py-1 text-xs font-black" th:classappend="${file.status.name() == 'APPROVED'} ? ' bg-green-100 text-green-700' : (${file.status.name() == 'REJECTED'} ? ' bg-red-100 text-red-700' : (${file.status.name() == 'ARCHIVED'} ? ' bg-eac-navy/10 text-eac-navy' : ' bg-amber-100 text-amber-700'))" th:text="${file.status}">STATUS</span>
+                                        </td>
+                                        <td class="px-4 py-5 text-xs">
+                                            <a th:href="@{/users/{id}(id=${file.uploader.id})}" class="font-bold text-eac-text hover:text-eac-red" th:text="${file.uploader.fullName}">Uploader</a>
+                                            <p class="mt-1 text-eac-text-light" th:text="${file.uploader.email}">email</p>
+                                        </td>
+                                        <td class="px-4 py-5 text-xs">
+                                            <p class="font-bold text-eac-text" th:text="${file.department.code}">DEPT</p>
+                                            <p class="mt-1 max-w-[220px] text-eac-text-light" th:text="${file.department.name}">Department</p>
+                                        </td>
+                                        <td class="px-4 py-5 text-xs font-medium text-eac-text-light" th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy')}">Date</td>
+                                        <td class="px-4 py-5 text-right">
+                                            <div class="flex flex-wrap justify-end gap-2">
+                                                <a th:href="@{/files/{id}(id=${file.id})}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">View</a>
+                                                <a th:href="@{/files/{id}/edit(id=${file.id})}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Edit</a>
+                                                <form th:if="${file.status.name() == 'PENDING' or file.status.name() == 'REJECTED'}" th:action="@{/admin/files/{id}/approve(id=${file.id})}" method="post">
+                                                    <button type="submit" class="rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-green-700">Approve</button>
+                                                </form>
+                                                <form th:if="${file.status.name() == 'PENDING' or file.status.name() == 'APPROVED'}" th:action="@{/admin/files/{id}/reject(id=${file.id})}" method="post">
+                                                    <input type="hidden" name="reason" value="Rejected from admin file manager">
+                                                    <button type="submit" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 transition hover:bg-red-100">Reject</button>
+                                                </form>
+                                                <form th:if="${file.status.name() != 'ARCHIVED'}" th:action="@{/admin/files/{id}/archive(id=${file.id})}" method="post">
+                                                    <input type="hidden" name="reason" value="Archived from admin file manager">
+                                                    <button type="submit" class="rounded-lg bg-eac-maroon px-3 py-2 text-xs font-bold text-white transition hover:bg-eac-red">Archive</button>
+                                                </form>
+                                                <form th:if="${file.status.name() == 'ARCHIVED'}" th:action="@{/admin/files/{id}/restore(id=${file.id})}" method="post">
+                                                    <button type="submit" class="rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-green-700">Restore</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="mt-8 flex items-center justify-center gap-2" th:if="${files.totalPages > 1}">
+                    <a th:each="p : ${#numbers.sequence(0, files.totalPages - 1)}" th:href="@{/admin/files(status=${status}, departmentId=${selectedDepartmentId}, categoryId=${selectedCategoryId}, fileType=${fileType}, q=${q}, sort=${sort}, page=${p})}" th:text="${p + 1}" th:classappend="${p == files.number} ? 'bg-eac-red text-white' : 'bg-white text-eac-text border border-eac-border hover:border-eac-red'" class="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold transition"></a>
                 </div>
-            </div>
-
-            <div class="border-b border-eac-border bg-eac-bg/60 p-5 sm:p-6">
-                <form th:action="@{/admin/files}" method="get" class="grid gap-3 lg:grid-cols-[1fr_170px_190px_170px_170px_auto]">
-                    <input type="text" name="q" th:value="${q}" placeholder="Search title, description, or tag"
-                           class="rounded-xl border border-eac-border bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/30">
-                    <select name="status" class="rounded-xl border border-eac-border bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/30">
-                        <option value="">All statuses</option>
-                        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == status}"></option>
-                    </select>
-                    <select name="departmentId" class="rounded-xl border border-eac-border bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/30">
-                        <option value="">All departments</option>
-                        <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.code + ' - ' + d.name}" th:selected="${d.id == selectedDepartmentId}"></option>
-                    </select>
-                    <select name="categoryId" class="rounded-xl border border-eac-border bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/30">
-                        <option value="">All categories</option>
-                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == selectedCategoryId}"></option>
-                    </select>
-                    <select name="fileType" class="rounded-xl border border-eac-border bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-eac-red/30">
-                        <option value="">All types</option>
-                        <option th:each="ft : ${fileTypeOptions}" th:value="${ft}" th:text="${#strings.toUpperCase(ft)}" th:selected="${ft == fileType}"></option>
-                    </select>
-                    <button type="submit" class="rounded-xl bg-eac-red px-5 py-3 text-sm font-bold text-white transition hover:bg-eac-red-hover">Filter</button>
-                    <input type="hidden" name="sort" th:value="${sort}">
-                </form>
-            </div>
-
-            <div class="p-5 sm:p-6">
-                <div th:if="${infoMessage}" class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm" th:text="${infoMessage}"></div>
-
-                <div th:if="${files.empty}" class="rounded-xl border border-dashed border-eac-border bg-eac-bg p-10 text-center">
-                    <p class="font-bold text-eac-text">No files match this view.</p>
-                    <p class="mt-1 text-sm text-eac-text-light">Adjust the filters to inspect another part of the repository.</p>
-                </div>
-
-                <div th:unless="${files.empty}" class="overflow-x-auto">
-                    <table class="min-w-full text-left text-sm">
-                        <thead class="text-xs uppercase tracking-wide text-eac-text-light">
-                            <tr class="border-b border-eac-border">
-                                <th class="py-3 pr-4 font-black">File</th>
-                                <th class="py-3 pr-4 font-black">Status</th>
-                                <th class="py-3 pr-4 font-black">Owner</th>
-                                <th class="py-3 pr-4 font-black">School</th>
-                                <th class="py-3 pr-4 font-black">Uploaded</th>
-                                <th class="py-3 text-right font-black">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-eac-border">
-                            <tr th:each="file : ${files.content}" class="align-top">
-                                <td class="py-4 pr-4">
-                                    <a th:href="@{/files/{id}(id=${file.id})}" class="font-black leading-snug text-eac-maroon hover:text-eac-red" th:text="${file.title}">File title</a>
-                                    <p class="mt-1 line-clamp-2 max-w-md text-xs leading-5 text-eac-text-light" th:text="${file.description}">Description</p>
-                                    <p class="mt-2 text-xs font-bold text-eac-text-light" th:text="${file.category.name + ' · ' + #strings.toUpperCase(file.extension())}">Category</p>
-                                </td>
-                                <td class="py-4 pr-4">
-                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-black"
-                                          th:classappend="${file.status.name() == 'APPROVED'} ? 'bg-green-100 text-green-700' : (${file.status.name() == 'REJECTED'} ? 'bg-red-100 text-red-700' : (${file.status.name() == 'ARCHIVED'} ? 'bg-eac-navy/10 text-eac-navy' : 'bg-amber-100 text-amber-700'))"
-                                          th:text="${file.status}">STATUS</span>
-                                </td>
-                                <td class="py-4 pr-4 text-xs">
-                                    <a th:href="@{/users/{id}(id=${file.uploader.id})}" class="font-bold text-eac-text hover:text-eac-red" th:text="${file.uploader.fullName}">Uploader</a>
-                                    <p class="mt-1 text-eac-text-light" th:text="${file.uploader.email}">email</p>
-                                </td>
-                                <td class="py-4 pr-4 text-xs">
-                                    <p class="font-bold text-eac-text" th:text="${file.department.code}">DEPT</p>
-                                    <p class="mt-1 max-w-[220px] text-eac-text-light" th:text="${file.department.name}">Department</p>
-                                </td>
-                                <td class="py-4 pr-4 text-xs text-eac-text-light" th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy')}">Date</td>
-                                <td class="py-4 text-right">
-                                    <div class="flex flex-wrap justify-end gap-2">
-                                        <a th:href="@{/files/{id}(id=${file.id})}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">View</a>
-                                        <a th:href="@{/files/{id}/edit(id=${file.id})}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Edit</a>
-                                        <form th:if="${file.status.name() == 'PENDING' or file.status.name() == 'REJECTED'}" th:action="@{/admin/files/{id}/approve(id=${file.id})}" method="post">
-                                            <button type="submit" class="rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-green-700">Approve</button>
-                                        </form>
-                                        <form th:if="${file.status.name() == 'PENDING' or file.status.name() == 'APPROVED'}" th:action="@{/admin/files/{id}/reject(id=${file.id})}" method="post" class="flex gap-1">
-                                            <input type="hidden" name="reason" value="Rejected from admin file manager">
-                                            <button type="submit" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 transition hover:bg-red-100">Reject</button>
-                                        </form>
-                                        <form th:if="${file.status.name() != 'ARCHIVED'}" th:action="@{/admin/files/{id}/archive(id=${file.id})}" method="post">
-                                            <input type="hidden" name="reason" value="Archived from admin file manager">
-                                            <button type="submit" class="rounded-lg bg-eac-maroon px-3 py-2 text-xs font-bold text-white transition hover:bg-eac-red">Archive</button>
-                                        </form>
-                                        <form th:if="${file.status.name() == 'ARCHIVED'}" th:action="@{/admin/files/{id}/restore(id=${file.id})}" method="post">
-                                            <button type="submit" class="rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-green-700">Restore</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <div class="flex items-center justify-center gap-2 mt-8" th:if="${files.totalPages > 1}">
-            <a th:each="p : ${#numbers.sequence(0, files.totalPages - 1)}"
-               th:href="@{/admin/files(status=${status}, departmentId=${selectedDepartmentId}, categoryId=${selectedCategoryId}, fileType=${fileType}, q=${q}, sort=${sort}, page=${p})}"
-               th:text="${p + 1}"
-               th:classappend="${p == files.number} ? 'bg-eac-red text-white' : 'bg-white text-eac-text border border-eac-border hover:border-eac-red'"
-               class="w-9 h-9 flex items-center justify-center rounded-md text-sm transition"></a>
+            </main>
         </div>
-    </main>
+    </div>
+
+    <script>
+        var sidebar = document.getElementById('sidebar');
+        var navToggle = document.getElementById('navToggle');
+        var overlay = document.getElementById('mobileOverlay');
+        function openSidebar() {
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('flex');
+            overlay.classList.remove('hidden');
+        }
+        function closeSidebar() {
+            sidebar.classList.add('hidden');
+            sidebar.classList.remove('flex');
+            overlay.classList.add('hidden');
+        }
+        if (navToggle && sidebar && overlay) {
+            navToggle.addEventListener('click', openSidebar);
+            overlay.addEventListener('click', closeSidebar);
+        }
+    </script>
 
 </body>
 </html>

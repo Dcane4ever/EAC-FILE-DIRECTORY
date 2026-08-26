@@ -5,160 +5,201 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - EAC File Directory</title>
     <link rel="stylesheet" th:href="@{/css/output.css}">
+    <style>
+        @keyframes dashboard-rise {
+            from { opacity: 0; transform: translate3d(0, 10px, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+        .dashboard-rise { animation: dashboard-rise 520ms cubic-bezier(.2, .8, .2, 1) both; }
+        @media (prefers-reduced-motion: reduce) { .dashboard-rise { animation: none; } }
+    </style>
 </head>
-<body class="min-h-screen bg-white">
+<body class="min-h-screen bg-[#f7f7f8] text-eac-text">
 
-    <!-- Header - same pattern as the student home page, admin nav only -->
-    <header class="bg-white border-b border-eac-border relative">
-        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
-            <a th:href="@{/admin/home}" class="flex items-center gap-3 shrink-0">
-                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
-                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
-            </a>
-            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
-                <a th:href="@{/admin/files}" class="text-eac-text hover:text-eac-red transition">Manage Files</a>
-                <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
-                <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Manage Users</a>
-                <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Audit Log</a>
-                <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Settings</a>
-                <div class="h-6 w-px bg-eac-border"></div>
-                <div class="flex items-center gap-1.5 text-eac-text-light">
-                    <span th:if="${user}" th:text="${user.email}"></span>
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </div>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-                </form>
-            </nav>
-            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
-        </div>
-        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
-            <a th:href="@{/admin/files}" class="block text-eac-text hover:text-eac-red transition">Manage Files</a>
-            <a th:href="@{/admin/queue}" class="block text-eac-text hover:text-eac-red transition">Approval Queue</a>
-            <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Manage Users</a>
-            <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Audit Log</a>
-            <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Settings</a>
-            <div th:if="${user}" class="text-eac-text-light pt-1" th:text="${user.email}"></div>
-            <form th:action="@{/logout}" method="post" class="mt-2">
-                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-            </form>
-        </div>
-    </header>
-
-    <!-- Hero -->
-    <section class="bg-gradient-to-b from-eac-red-soft to-white">
-        <div class="max-w-7xl mx-auto px-6 pt-16 pb-14">
-            <h1 class="text-5xl font-extrabold text-eac-maroon leading-tight tracking-tight">Welcome back, Admin.</h1>
-            <h2 class="text-3xl font-semibold text-eac-maroon/90 mt-3">EAC File Directory Control Panel</h2>
-            <p class="text-eac-text-light text-lg mt-4 max-w-2xl leading-relaxed">
-                Review pending uploads, manage auto-approval by department, and administer accounts across the directory.
-            </p>
-        </div>
-    </section>
-
-    <!-- Statistics card -->
-    <section class="max-w-7xl mx-auto px-6 -mt-6 relative z-10">
-        <div class="bg-white border border-eac-border rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] px-8 py-8">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="flex items-center gap-4 py-4 lg:py-0">
-                    <div class="w-14 h-14 shrink-0 rounded-xl bg-eac-red-soft flex items-center justify-center">
-                        <svg class="w-6 h-6 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-extrabold text-eac-maroon leading-none" th:text="${pendingCount}"></div>
-                        <div class="text-sm font-semibold text-eac-text mt-1.5">Pending Files</div>
-                        <div class="text-xs text-eac-text-light mt-0.5">Awaiting review</div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 py-4 lg:py-0 lg:border-l lg:border-eac-border lg:pl-8">
-                    <div class="w-14 h-14 shrink-0 rounded-xl bg-eac-red-soft flex items-center justify-center">
-                        <svg class="w-6 h-6 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-extrabold text-eac-maroon leading-none" th:text="${departmentCount}"></div>
-                        <div class="text-sm font-semibold text-eac-text mt-1.5">Departments</div>
-                        <div class="text-xs text-eac-text-light mt-0.5" th:text="${autoApproveCount} + ' auto-approve enabled'"></div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 py-4 lg:py-0 lg:border-l lg:border-eac-border lg:pl-8">
-                    <div class="w-14 h-14 shrink-0 rounded-xl bg-eac-red-soft flex items-center justify-center">
-                        <svg class="w-6 h-6 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-extrabold text-eac-maroon leading-none" th:text="${userCount}"></div>
-                        <div class="text-sm font-semibold text-eac-text mt-1.5">Registered Users</div>
-                        <div class="text-xs text-eac-text-light mt-0.5">Across all roles</div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 py-4 lg:py-0 lg:border-l lg:border-eac-border lg:pl-8">
-                    <div class="w-14 h-14 shrink-0 rounded-xl bg-eac-red-soft flex items-center justify-center">
-                        <svg class="w-6 h-6 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-extrabold text-eac-maroon leading-none" th:text="${adminCount} + ${moderatorCount}"></div>
-                        <div class="text-sm font-semibold text-eac-text mt-1.5">Staff Accounts</div>
-                        <div class="text-xs text-eac-text-light mt-0.5" th:text="${adminCount} + ' admin, ' + ${moderatorCount} + ' moderator'"></div>
-                    </div>
+    <div class="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-eac-border bg-white lg:flex lg:flex-col">
+            <div class="flex h-[84px] items-center gap-3 px-6">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="h-12 w-12 shrink-0">
+                <div class="min-w-0">
+                    <p class="truncate text-base font-black text-eac-maroon">EAC File Directory</p>
+                    <p class="text-xs font-semibold text-eac-red">Admin</p>
                 </div>
             </div>
+
+            <nav th:replace="~{fragments/admin-sidebar-nav :: nav('dashboard', ${pendingCount}, true)}"></nav>
+
+            <div class="p-4">
+                <div class="rounded-2xl border border-eac-border bg-eac-bg p-5">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-black text-eac-text">Storage Overview</p>
+                        <span class="text-xs font-black text-eac-red">UI</span>
+                    </div>
+                    <div class="mt-4 flex items-center gap-4">
+                        <div class="relative grid h-14 w-14 place-items-center rounded-full bg-[conic-gradient(#b31217_0_32%,#e8e8e8_32%_100%)]">
+                            <div class="grid h-11 w-11 place-items-center rounded-full bg-white text-xs font-black text-eac-maroon">32%</div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-semibold text-eac-text-light">12.8 GB / 40 GB used</p>
+                            <div class="mt-2 h-2 rounded-full bg-eac-border">
+                                <div class="h-2 w-[32%] rounded-full bg-eac-red"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <a th:href="@{/admin/files}" class="mt-4 flex items-center justify-between rounded-xl bg-eac-red-soft px-4 py-3 text-xs font-black text-eac-red">
+                        View Details
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <div id="mobileOverlay" class="fixed inset-0 z-30 hidden bg-black/30 lg:hidden"></div>
+
+        <div class="min-w-0 lg:col-start-2">
+            <header class="sticky top-0 z-20 border-b border-eac-border bg-white/95 backdrop-blur">
+                <div class="flex h-[84px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-9">
+                    <button type="button" id="navToggle" aria-label="Open menu" class="grid h-10 w-10 place-items-center rounded-xl border border-eac-border text-eac-maroon lg:hidden">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+                    </button>
+
+                    <form th:action="@{/admin/files}" method="get" class="hidden w-full max-w-xl items-center rounded-2xl border border-eac-border bg-white px-4 py-3 shadow-sm sm:flex">
+                        <svg class="h-4 w-4 shrink-0 text-eac-text-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="text" name="q" placeholder="Search files, departments, users..." class="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-eac-text-light">
+                        <span class="rounded-lg border border-eac-border px-2 py-1 text-xs font-bold text-eac-text-light">Ctrl + K</span>
+                    </form>
+
+                    <div class="ml-auto flex items-center gap-3">
+                        <a th:href="@{/notifications}" class="relative grid h-11 w-11 place-items-center rounded-full border border-eac-border bg-white text-eac-text hover:text-eac-red transition">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8a6 6 0 0 0-12 0c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+                            <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}" class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-eac-red px-1 text-[10px] font-black text-white"></span>
+                        </a>
+                        <div class="hidden text-right sm:block">
+                            <p class="text-sm font-black text-eac-text" th:text="${user != null ? user.fullName : 'Administrator'}">Administrator</p>
+                            <p class="text-xs font-semibold text-eac-text-light" th:text="${user != null ? user.role : 'ADMIN'}">ADMIN</p>
+                        </div>
+                        <a th:if="${user}" th:href="@{/users/{id}(id=${user.id})}" class="grid h-11 w-11 place-items-center rounded-full bg-eac-red-soft text-sm font-black text-eac-red">
+                            <span th:text="${user.fullName != null and !#strings.isEmpty(user.fullName) ? #strings.substring(user.fullName, 0, 1) : 'A'}">A</span>
+                        </a>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="hidden rounded-xl bg-eac-red px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover md:inline-flex">Sign Out</button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+
+            <main class="dashboard-rise px-4 py-8 sm:px-6 lg:px-9 lg:py-10">
+                <section class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                        <h1 class="text-3xl font-black tracking-normal text-eac-text sm:text-4xl">Welcome back, Admin.</h1>
+                        <p class="mt-2 text-base font-medium text-eac-text-light">Here is what is happening across the file directory today.</p>
+                    </div>
+                    <div class="rounded-2xl border border-eac-border bg-white px-5 py-4 shadow-sm">
+                        <p id="currentDate" class="text-sm font-black text-eac-maroon">Today</p>
+                        <p id="currentDay" class="mt-0.5 text-xs font-semibold text-eac-text-light">Directory status</p>
+                    </div>
+                </section>
+
+                <section class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <a th:href="@{/admin/queue}" class="group rounded-2xl border border-eac-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-[0_18px_50px_rgba(107,17,24,0.10)]">
+                        <div class="flex items-center justify-between gap-4"><div class="grid h-14 w-14 place-items-center rounded-2xl bg-eac-red-soft text-eac-red"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg></div><svg class="h-5 w-5 text-eac-text-light transition group-hover:translate-x-1 group-hover:text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+                        <p class="mt-5 text-4xl font-black text-eac-maroon" th:text="${pendingCount}">0</p>
+                        <p class="mt-1 text-sm font-black text-eac-text">Pending Files</p>
+                        <p class="mt-1 text-xs font-semibold text-eac-text-light">Awaiting review</p>
+                    </a>
+                    <a th:href="@{/admin/queue}" class="group rounded-2xl border border-eac-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-[0_18px_50px_rgba(107,17,24,0.10)]">
+                        <div class="flex items-center justify-between gap-4"><div class="grid h-14 w-14 place-items-center rounded-2xl bg-eac-red-soft text-eac-red"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/></svg></div><svg class="h-5 w-5 text-eac-text-light transition group-hover:translate-x-1 group-hover:text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+                        <p class="mt-5 text-4xl font-black text-eac-maroon" th:text="${departmentCount}">0</p>
+                        <p class="mt-1 text-sm font-black text-eac-text">Departments</p>
+                        <p class="mt-1 text-xs font-semibold text-eac-text-light" th:text="${autoApproveCount} + ' auto-approve enabled'">0 auto-approve enabled</p>
+                    </a>
+                    <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="group rounded-2xl border border-eac-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-[0_18px_50px_rgba(107,17,24,0.10)]">
+                        <div class="flex items-center justify-between gap-4"><div class="grid h-14 w-14 place-items-center rounded-2xl bg-eac-red-soft text-eac-red"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></div><svg class="h-5 w-5 text-eac-text-light transition group-hover:translate-x-1 group-hover:text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+                        <p class="mt-5 text-4xl font-black text-eac-maroon" th:text="${userCount}">0</p>
+                        <p class="mt-1 text-sm font-black text-eac-text">Registered Users</p>
+                        <p class="mt-1 text-xs font-semibold text-eac-text-light">Across all roles</p>
+                    </a>
+                    <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="group rounded-2xl border border-eac-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-[0_18px_50px_rgba(107,17,24,0.10)]">
+                        <div class="flex items-center justify-between gap-4"><div class="grid h-14 w-14 place-items-center rounded-2xl bg-eac-red-soft text-eac-red"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></div><svg class="h-5 w-5 text-eac-text-light transition group-hover:translate-x-1 group-hover:text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+                        <p class="mt-5 text-4xl font-black text-eac-maroon" th:text="${adminCount + moderatorCount}">0</p>
+                        <p class="mt-1 text-sm font-black text-eac-text">Staff Accounts</p>
+                        <p class="mt-1 text-xs font-semibold text-eac-text-light" th:text="${adminCount} + ' admin, ' + ${moderatorCount} + ' moderator'">0 admin, 0 moderator</p>
+                    </a>
+                </section>
+
+                <div class="mt-7 grid gap-6 xl:grid-cols-[1fr_380px]">
+                    <section class="rounded-2xl border border-eac-border bg-white p-5 shadow-sm sm:p-6">
+                        <h2 class="text-lg font-black text-eac-text">Quick Actions</h2>
+                        <p class="mt-1 text-sm font-medium text-eac-text-light">Access the most common tasks quickly.</p>
+                        <div class="mt-6 grid gap-4 md:grid-cols-3">
+                            <a th:href="@{/admin/files}" class="group rounded-2xl border border-eac-border p-5 transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-sm"><div class="grid h-12 w-12 place-items-center rounded-xl bg-eac-red text-white"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6"/></svg></div><div class="mt-5 flex items-center justify-between gap-3"><h3 class="font-black text-eac-maroon">Manage Files</h3><span class="text-eac-red">-&gt;</span></div><p class="mt-2 text-sm leading-6 text-eac-text-light">View, filter, edit, archive, restore, approve, or reject files.</p></a>
+                            <a th:href="@{/admin/queue}" class="group rounded-2xl border border-eac-border p-5 transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-sm"><div class="grid h-12 w-12 place-items-center rounded-xl bg-eac-red text-white"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5"/></svg></div><div class="mt-5 flex items-center justify-between gap-3"><h3 class="font-black text-eac-maroon">Approval Queue</h3><span class="text-eac-red">-&gt;</span></div><p class="mt-2 text-sm leading-6 text-eac-text-light">Review and take action on files waiting for approval.</p></a>
+                            <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="group rounded-2xl border border-eac-border p-5 transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-sm"><div class="grid h-12 w-12 place-items-center rounded-xl bg-eac-red text-white"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="mt-5 flex items-center justify-between gap-3"><h3 class="font-black text-eac-maroon">Manage Users</h3><span class="text-eac-red">-&gt;</span></div><p class="mt-2 text-sm leading-6 text-eac-text-light">Assign roles and review verification status.</p></a>
+                        </div>
+                    </section>
+
+                    <section class="rounded-2xl border border-eac-border bg-white p-5 shadow-sm sm:p-6">
+                        <div class="flex items-center justify-between gap-4">
+                            <h2 class="text-lg font-black text-eac-text">Recent Activity</h2>
+                            <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="rounded-xl border border-red-100 px-4 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">View All</a>
+                        </div>
+                        <div class="mt-6 space-y-5">
+                            <div class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-eac-red-soft text-eac-red"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/><path d="M14 2H6a2 2 0 0 0-2 2v16"/></svg></span><div class="min-w-0 flex-1"><p class="text-sm font-black text-eac-text">Pending review queue</p><p class="mt-0.5 text-sm text-eac-text-light" th:text="${pendingCount} + ' file(s) currently waiting'">0 file(s) currently waiting</p></div><span class="text-xs font-medium text-eac-text-light">Now</span></div>
+                            <div class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-eac-red-soft text-eac-red"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M8 6h.01"/><path d="M16 6h.01"/></svg></span><div class="min-w-0 flex-1"><p class="text-sm font-black text-eac-text">Departments indexed</p><p class="mt-0.5 text-sm text-eac-text-light" th:text="${departmentCount} + ' departments available'">0 departments available</p></div><span class="text-xs font-medium text-eac-text-light">Today</span></div>
+                            <div class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-eac-red-soft text-eac-red"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5"/></svg></span><div class="min-w-0 flex-1"><p class="text-sm font-black text-eac-text">Staff access active</p><p class="mt-0.5 text-sm text-eac-text-light" th:text="${adminCount} + ' admin, ' + ${moderatorCount} + ' moderator'">0 admin, 0 moderator</p></div><span class="text-xs font-medium text-eac-text-light">Live</span></div>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="mt-6 rounded-2xl border border-eac-border bg-white shadow-sm">
+                    <div class="flex flex-col gap-3 border-b border-eac-border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                        <div>
+                            <h2 class="text-lg font-black text-eac-text">Departments Overview</h2>
+                            <p class="mt-1 text-sm font-medium text-eac-text-light">Summary of department coverage and moderation status.</p>
+                        </div>
+                        <a th:href="@{/admin/queue}" class="rounded-xl border border-red-100 px-4 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">View All Departments</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm">
+                            <thead class="bg-white text-xs uppercase tracking-wide text-eac-text-light">
+                                <tr class="border-b border-eac-border"><th class="px-6 py-3 font-black">Department</th><th class="px-6 py-3 font-black">Total Files</th><th class="px-6 py-3 font-black">Pending</th><th class="px-6 py-3 font-black">Auto-Approve</th><th class="px-6 py-3 font-black">Status</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-eac-border">
+                                <tr class="transition hover:bg-eac-bg/70"><td class="px-6 py-4 font-bold text-eac-maroon">Repository Total</td><td class="px-6 py-4 text-eac-text-light">All records</td><td class="px-6 py-4 font-bold text-eac-text" th:text="${pendingCount}">0</td><td class="px-6 py-4"><span class="rounded-full bg-eac-red-soft px-3 py-1 text-xs font-black text-eac-red" th:text="${autoApproveCount} + ' enabled'">0 enabled</span></td><td class="px-6 py-4"><span class="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">Active</span></td></tr>
+                                <tr class="transition hover:bg-eac-bg/70"><td class="px-6 py-4 font-bold text-eac-maroon">Departments</td><td class="px-6 py-4 font-bold text-eac-text" th:text="${departmentCount}">0</td><td class="px-6 py-4 text-eac-text-light">Queue linked</td><td class="px-6 py-4"><span class="rounded-full bg-eac-bg px-3 py-1 text-xs font-black text-eac-text-light">Configurable</span></td><td class="px-6 py-4"><span class="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">Active</span></td></tr>
+                                <tr class="transition hover:bg-eac-bg/70"><td class="px-6 py-4 font-bold text-eac-maroon">Staff Coverage</td><td class="px-6 py-4 font-bold text-eac-text" th:text="${adminCount + moderatorCount}">0</td><td class="px-6 py-4 text-eac-text-light">Role managed</td><td class="px-6 py-4"><span class="rounded-full bg-eac-bg px-3 py-1 text-xs font-black text-eac-text-light">Manual</span></td><td class="px-6 py-4"><span class="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">Active</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
         </div>
-    </section>
-
-    <!-- Quick links -->
-    <section class="max-w-7xl mx-auto px-6 pt-14 pb-16">
-        <div class="flex items-center gap-4 mb-6">
-            <h2 class="text-lg font-bold text-eac-maroon whitespace-nowrap">Quick Actions</h2>
-            <div class="flex-1 h-px bg-eac-border"></div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a th:href="@{/admin/files}"
-               class="group bg-white border border-eac-border rounded-xl p-6 hover:border-eac-red/40 hover:shadow-md transition flex items-start gap-4">
-                <div class="w-12 h-12 rounded-lg bg-eac-red flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-eac-maroon">Manage Files</h3>
-                    <p class="text-sm text-eac-text-light mt-1">View, filter, edit, archive, restore, approve, or reject repository files.</p>
-                </div>
-                <svg class="w-5 h-5 text-eac-text-light group-hover:text-eac-red transition mt-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </a>
-
-            <a th:href="@{/admin/queue}"
-               class="group bg-white border border-eac-border rounded-xl p-6 hover:border-eac-red/40 hover:shadow-md transition flex items-start gap-4">
-                <div class="w-12 h-12 rounded-lg bg-eac-red flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-eac-maroon">Approval Queue</h3>
-                    <p class="text-sm text-eac-text-light mt-1" th:text="${pendingCount} + ' file(s) waiting for review across all departments.'"></p>
-                </div>
-                <svg class="w-5 h-5 text-eac-text-light group-hover:text-eac-red transition mt-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </a>
-
-            <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')"
-               class="group bg-white border border-eac-border rounded-xl p-6 hover:border-eac-red/40 hover:shadow-md transition flex items-start gap-4">
-                <div class="w-12 h-12 rounded-lg bg-eac-red flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-eac-maroon">Manage Users</h3>
-                    <p class="text-sm text-eac-text-light mt-1" th:text="${userCount} + ' account(s) - assign roles, review verification status.'"></p>
-                </div>
-                <svg class="w-5 h-5 text-eac-text-light group-hover:text-eac-red transition mt-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </a>
-        </div>
-    </section>
+    </div>
 
     <script>
+        var sidebar = document.getElementById('sidebar');
         var navToggle = document.getElementById('navToggle');
-        var navPanel = document.getElementById('navPanel');
-        if (navToggle && navPanel) {
-            navToggle.addEventListener('click', function () {
-                navPanel.classList.toggle('hidden');
-            });
+        var overlay = document.getElementById('mobileOverlay');
+        function openSidebar() {
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('flex');
+            overlay.classList.remove('hidden');
+        }
+        function closeSidebar() {
+            sidebar.classList.add('hidden');
+            sidebar.classList.remove('flex');
+            overlay.classList.add('hidden');
+        }
+        if (navToggle && sidebar && overlay) {
+            navToggle.addEventListener('click', openSidebar);
+            overlay.addEventListener('click', closeSidebar);
+        }
+
+        var currentDate = document.getElementById('currentDate');
+        var currentDay = document.getElementById('currentDay');
+        var now = new Date();
+        if (currentDate && currentDay) {
+            currentDate.textContent = now.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+            currentDay.textContent = now.toLocaleDateString(undefined, { weekday: 'long' });
         }
     </script>
 
