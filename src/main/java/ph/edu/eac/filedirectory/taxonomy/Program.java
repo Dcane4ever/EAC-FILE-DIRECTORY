@@ -60,19 +60,39 @@ public class Program {
         return code;
     }
 
+    public void setCode(String code) {
+        this.code = code;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Department getDepartment() {
         return department;
     }
 
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
     public String getLevel() {
         return level;
     }
 
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
     public Integer getDurationYears() {
         return durationYears;
+    }
+
+    public void setDurationYears(Integer durationYears) {
+        this.durationYears = durationYears;
     }
 }

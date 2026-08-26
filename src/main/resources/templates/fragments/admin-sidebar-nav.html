@@ -29,6 +29,12 @@
         </span>
         <span>Archived Files</span>
     </a>
+    <a th:href="@{/admin/taxonomy}" sec:authorize="hasRole('ADMIN')" th:classappend="${active == 'taxonomy'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/><path d="M8 4v4"/><path d="M16 10v4"/><path d="M11 16v4"/></svg>
+        </span>
+        <span>Taxonomy</span>
+    </a>
     <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" th:classappend="${active == 'users'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
         <span class="flex h-5 w-5 shrink-0 items-center justify-center">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>

@@ -57,15 +57,31 @@ public class Course {
         return code;
     }
 
+    public void setCode(String code) {
+        this.code = code;
+    }
+
     public String getTitle() {
         return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public Department getDepartment() {
         return department;
     }
 
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

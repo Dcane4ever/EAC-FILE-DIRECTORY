@@ -70,7 +70,7 @@ public class SecurityConfig {
                 // User/role management and the auto-approve toggle are ADMIN-only
                 // - a MODERATOR can approve uploads but should not be able to
                 // promote/demote accounts or turn off moderation for a department.
-                .requestMatchers("/admin/users/**", "/admin/departments/**").hasRole("ADMIN")
+                .requestMatchers("/admin/users/**", "/admin/departments/**", "/admin/taxonomy/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "MODERATOR")
                 .anyRequest().authenticated()
             )

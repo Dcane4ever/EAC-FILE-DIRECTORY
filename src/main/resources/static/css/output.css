@@ -536,6 +536,9 @@
   .block {
     display: block;
   }
+  .contents {
+    display: contents;
+  }
   .flex {
     display: flex;
   }
@@ -650,6 +653,15 @@
   .max-h-\[76vh\] {
     max-height: 76vh;
   }
+  .max-h-\[360px\] {
+    max-height: 360px;
+  }
+  .max-h-\[430px\] {
+    max-height: 430px;
+  }
+  .max-h-\[460px\] {
+    max-height: 460px;
+  }
   .max-h-\[620px\] {
     max-height: 620px;
   }
@@ -746,6 +758,9 @@
   .w-36 {
     width: calc(var(--spacing) * 36);
   }
+  .w-56 {
+    width: calc(var(--spacing) * 56);
+  }
   .w-80 {
     width: calc(var(--spacing) * 80);
   }
@@ -841,6 +856,9 @@
   }
   .min-w-\[16px\] {
     min-width: 16px;
+  }
+  .min-w-\[260px\] {
+    min-width: 260px;
   }
   .min-w-full {
     min-width: 100%;
@@ -1496,6 +1514,9 @@
   .object-cover {
     object-fit: cover;
   }
+  .p-1 {
+    padding: var(--spacing);
+  }
   .p-2 {
     padding: calc(var(--spacing) * 2);
   }
@@ -1606,6 +1627,9 @@
   }
   .pt-16 {
     padding-top: calc(var(--spacing) * 16);
+  }
+  .pr-1 {
+    padding-right: var(--spacing);
   }
   .pr-1\.5 {
     padding-right: calc(var(--spacing) * 1.5);
@@ -2363,6 +2387,9 @@
       border-color: color-mix(in oklab, var(--color-eac-red) 40%, transparent);
     }
   }
+  .focus\:bg-white:focus {
+    background-color: var(--color-white);
+  }
   .focus\:ring-2:focus {
     --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -2429,6 +2456,12 @@
     .sm\:right-6 {
       right: calc(var(--spacing) * 6);
     }
+    .sm\:col-span-2 {
+      grid-column: span 2 / span 2;
+    }
+    .sm\:col-span-3 {
+      grid-column: span 3 / span 3;
+    }
     .sm\:-mx-8 {
       margin-inline: calc(var(--spacing) * -8);
     }
@@ -2455,6 +2488,24 @@
     }
     .sm\:grid-cols-3 {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .sm\:grid-cols-5 {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .sm\:grid-cols-\[1fr_1fr_auto\] {
+      grid-template-columns: 1fr 1fr auto;
+    }
+    .sm\:grid-cols-\[90px_1fr_150px_auto\] {
+      grid-template-columns: 90px 1fr 150px auto;
+    }
+    .sm\:grid-cols-\[100px_1fr_1fr\] {
+      grid-template-columns: 100px 1fr 1fr;
+    }
+    .sm\:grid-cols-\[100px_1fr_auto_auto\] {
+      grid-template-columns: 100px 1fr auto auto;
+    }
+    .sm\:grid-cols-\[110px_1fr_auto\] {
+      grid-template-columns: 110px 1fr auto;
     }
     .sm\:flex-row {
       flex-direction: row;
@@ -2634,6 +2685,9 @@
     .lg\:grid-cols-\[1fr_360px\] {
       grid-template-columns: 1fr 360px;
     }
+    .lg\:grid-cols-\[110px_1fr_220px_1fr_auto\] {
+      grid-template-columns: 110px 1fr 220px 1fr auto;
+    }
     .lg\:grid-cols-\[170px_minmax\(0\,1fr\)\] {
       grid-template-columns: 170px minmax(0,1fr);
     }
@@ -2726,6 +2780,9 @@
     }
   }
   @media (width >= 80rem) {
+    .xl\:col-span-2 {
+      grid-column: span 2 / span 2;
+    }
     .xl\:block {
       display: block;
     }
@@ -2734,6 +2791,9 @@
     }
     .xl\:w-\[360px\] {
       width: 360px;
+    }
+    .xl\:grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .xl\:grid-cols-3 {
       grid-template-columns: repeat(3, minmax(0, 1fr));
