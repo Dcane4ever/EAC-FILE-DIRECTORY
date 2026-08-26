@@ -16,6 +16,7 @@
             </a>
             <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
                 <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/saved-files}" class="text-eac-text hover:text-eac-red transition">Saved Files</a>
                 <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
                 <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
                 <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
@@ -35,6 +36,7 @@
         </div>
         <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
+            <a th:href="@{/saved-files}" class="block text-eac-text hover:text-eac-red transition">Saved Files</a>
             <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
             <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
             <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
@@ -124,6 +126,20 @@
                                 </button>
                             </form>
                         </div>
+                        <form th:if="${!savedByCurrentUser}" th:action="@{/files/{id}/save(id=${file.id})}" method="post">
+                            <button type="submit"
+                                    class="w-full inline-flex items-center justify-center gap-2 border border-eac-border hover:border-eac-red/40 hover:text-eac-red transition text-sm font-semibold px-5 py-3 rounded-lg">
+                                <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                                Save file
+                            </button>
+                        </form>
+                        <form th:if="${savedByCurrentUser}" th:action="@{/files/{id}/unsave(id=${file.id})}" method="post">
+                            <button type="submit"
+                                    class="w-full inline-flex items-center justify-center gap-2 bg-eac-red-soft border border-red-100 text-eac-red hover:bg-white hover:border-eac-red/40 transition text-sm font-bold px-5 py-3 rounded-lg">
+                                <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
+                                Saved
+                            </button>
+                        </form>
                         <button type="button" id="shareButton"
                                 class="w-full inline-flex items-center justify-center gap-2 border border-eac-border hover:border-eac-red/40 hover:text-eac-red transition text-sm font-semibold px-5 py-3 rounded-lg">
                             <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/></svg>

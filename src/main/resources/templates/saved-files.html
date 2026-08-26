@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Files - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg text-eac-text">
+
+    <header class="bg-white border-b border-eac-border relative">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+            <a th:href="@{/home}" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory</span>
+            </a>
+            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
+                <a th:href="@{/saved-files}" class="text-eac-red font-semibold">Saved Files</a>
+                <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
+                <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
+                <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
+                <a th:href="@{/notifications}" class="relative text-eac-text hover:text-eac-red transition">
+                    Notifications
+                    <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}"
+                          class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
+                </a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
+            </nav>
+            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
+            <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
+            <a th:href="@{/saved-files}" class="block text-eac-red font-semibold">Saved Files</a>
+            <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
+            <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
+            <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
+            <a th:href="@{/notifications}" class="block text-eac-text hover:text-eac-red transition">
+                Notifications
+                <span th:if="${unreadNotificationCount > 0}" th:text="'(' + ${unreadNotificationCount} + ')'" class="text-eac-red font-semibold"></span>
+            </a>
+            <form th:action="@{/logout}" method="post" class="mt-2">
+                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <section class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+            <div class="bg-[linear-gradient(115deg,#6b1118_0%,#8b0e12_56%,#b31217_100%)] px-6 py-8 text-white sm:px-8">
+                <p class="text-sm font-black uppercase tracking-[0.22em] text-white/70">Personal library</p>
+                <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <h1 class="text-4xl font-black leading-tight sm:text-5xl">Saved files</h1>
+                        <p class="mt-3 max-w-2xl text-base font-medium leading-7 text-white/78">Keep important EAC records close without changing their access rules or original files.</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/16 bg-white/12 px-5 py-4 backdrop-blur">
+                        <p class="text-3xl font-black" th:text="${savedCount}">0</p>
+                        <p class="text-sm font-bold text-white/72">saved item(s)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-5 sm:p-7">
+                <div th:if="${savedFiles.empty}" class="rounded-xl border border-dashed border-eac-border bg-eac-bg p-10 text-center">
+                    <p class="font-bold text-eac-text">No saved files yet.</p>
+                    <p class="mt-1 text-sm text-eac-text-light">Open a file detail page and use Save file to add it here.</p>
+                    <a th:href="@{/browse}" class="mt-5 inline-flex rounded-lg bg-eac-red px-5 py-3 text-sm font-bold text-white transition hover:bg-eac-red-hover">Browse files</a>
+                </div>
+
+                <div th:unless="${savedFiles.empty}" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <article th:each="saved : ${savedFiles.content}" class="group rounded-2xl border border-eac-border bg-white p-5 transition hover:-translate-y-0.5 hover:border-eac-red/40 hover:shadow-[0_18px_44px_rgba(107,17,24,0.10)]">
+                        <div class="mb-3 flex flex-wrap items-center gap-2 text-xs font-bold text-eac-text-light">
+                            <span class="rounded-full bg-eac-red-soft px-3 py-1 text-eac-red" th:text="${saved.file.category.name}">Category</span>
+                            <span th:text="${saved.file.department.code}">EAC</span>
+                            <span th:text="${#temporals.format(saved.file.createdAt, 'yyyy')}">2026</span>
+                        </div>
+                        <a th:href="@{/files/{id}(id=${saved.file.id})}" class="block">
+                            <h2 class="line-clamp-2 font-black leading-snug text-eac-maroon transition group-hover:text-eac-red" th:text="${saved.file.title}">File title</h2>
+                        </a>
+                        <p class="mt-3 line-clamp-2 text-sm leading-6 text-eac-text-light" th:text="${saved.file.description}">Description</p>
+                        <div class="mt-5 flex items-center justify-between gap-3">
+                            <span class="text-xs font-bold text-eac-text-light" th:text="'Saved ' + ${#temporals.format(saved.createdAt, 'MMM d, yyyy')}">Saved today</span>
+                            <form th:action="@{/files/{id}/unsave(id=${saved.file.id})}" method="post">
+                                <button type="submit" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-black text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Remove</button>
+                            </form>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <div class="flex items-center justify-center gap-2 mt-8" th:if="${savedFiles.totalPages > 1}">
+            <a th:each="p : ${#numbers.sequence(0, savedFiles.totalPages - 1)}"
+               th:href="@{/saved-files(page=${p})}"
+               th:text="${p + 1}"
+               th:classappend="${p == savedFiles.number} ? 'bg-eac-red text-white' : 'bg-white text-eac-text border border-eac-border hover:border-eac-red'"
+               class="w-9 h-9 flex items-center justify-center rounded-md text-sm transition"></a>
+        </div>
+    </main>
+
+    <script>
+        var navToggle = document.getElementById('navToggle');
+        var navPanel = document.getElementById('navPanel');
+        if (navToggle && navPanel) {
+            navToggle.addEventListener('click', function () {
+                navPanel.classList.toggle('hidden');
+            });
+        }
+    </script>
+
+</body>
+</html>

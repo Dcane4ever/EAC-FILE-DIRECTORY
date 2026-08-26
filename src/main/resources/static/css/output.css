@@ -1379,6 +1379,9 @@
   .bg-\[linear-gradient\(115deg\,\#6b1118_0\%\,\#8b0e12_52\%\,\#b31217_100\%\)\] {
     background-image: linear-gradient(115deg,#6b1118 0%,#8b0e12 52%,#b31217 100%);
   }
+  .bg-\[linear-gradient\(115deg\,\#6b1118_0\%\,\#8b0e12_56\%\,\#b31217_100\%\)\] {
+    background-image: linear-gradient(115deg,#6b1118 0%,#8b0e12 56%,#b31217 100%);
+  }
   .bg-\[linear-gradient\(180deg\,\#7b0011_0\%\,\#a70018_100\%\)\] {
     background-image: linear-gradient(180deg,#7b0011 0%,#a70018 100%);
   }
@@ -2233,6 +2236,9 @@
     .hover\:bg-red-100:hover {
       background-color: var(--color-red-100);
     }
+    .hover\:bg-white:hover {
+      background-color: var(--color-white);
+    }
     .hover\:bg-white\/10:hover {
       background-color: color-mix(in srgb, #fff 10%, transparent);
     }
@@ -2602,6 +2608,9 @@
   @media (width >= 80rem) {
     .xl\:h-\[780px\] {
       height: 780px;
+    }
+    .xl\:grid-cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .xl\:p-12 {
       padding: calc(var(--spacing) * 12);

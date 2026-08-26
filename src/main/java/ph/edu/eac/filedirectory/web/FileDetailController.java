@@ -22,6 +22,7 @@ import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.FileStorageService;
+import ph.edu.eac.filedirectory.saved.SavedFileRepository;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.user.AppUser;
 import ph.edu.eac.filedirectory.user.Role;
@@ -56,13 +57,16 @@ public class FileDetailController {
     private final FileStorageService storageService;
     private final AuditService auditService;
     private final AccessRequestRepository accessRequestRepository;
+    private final SavedFileRepository savedFileRepository;
 
     public FileDetailController(FileRepository fileRepository, FileStorageService storageService,
-                                 AuditService auditService, AccessRequestRepository accessRequestRepository) {
+                                 AuditService auditService, AccessRequestRepository accessRequestRepository,
+                                 SavedFileRepository savedFileRepository) {
         this.fileRepository = fileRepository;
         this.storageService = storageService;
         this.auditService = auditService;
         this.accessRequestRepository = accessRequestRepository;
+        this.savedFileRepository = savedFileRepository;
     }
 
     @GetMapping("/files/{id}")
@@ -81,6 +85,8 @@ public class FileDetailController {
 
         boolean canDownloadDirectly = principal != null && canDownloadDirectly(file, principal.getAppUser());
         model.addAttribute("canDownloadDirectly", canDownloadDirectly);
+        model.addAttribute("savedByCurrentUser", principal != null
+                && savedFileRepository.existsByUserAndFile(principal.getAppUser(), file));
         if (!canDownloadDirectly && principal != null) {
             AccessRequest existing = accessRequestRepository
                     .findFirstByFileAndRequesterAndStatus(file, principal.getAppUser(), AccessRequestStatus.PENDING)
