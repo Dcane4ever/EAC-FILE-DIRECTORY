@@ -93,6 +93,18 @@ public class AuditService {
                 .target(AuditTargetType.FILE, fileId).metadata(title).reason(reason));
     }
 
+    public void fileArchived(AppUser actor, Long fileId, String title, String previousStatus, String reason) {
+        record(AuditEvent.builder(AuditAction.FILE_ARCHIVED).actor(actor)
+                .target(AuditTargetType.FILE, fileId).metadata(title)
+                .previousValue(previousStatus).newValue("ARCHIVED").reason(reason));
+    }
+
+    public void fileRestored(AppUser actor, Long fileId, String title, String restoredStatus) {
+        record(AuditEvent.builder(AuditAction.FILE_RESTORED).actor(actor)
+                .target(AuditTargetType.FILE, fileId).metadata(title)
+                .previousValue("ARCHIVED").newValue(restoredStatus));
+    }
+
     public void fileDownloaded(AppUser actor, Long fileId, String title) {
         record(AuditEvent.builder(AuditAction.FILE_DOWNLOADED).actor(actor)
                 .target(AuditTargetType.FILE, fileId).metadata(title));

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archived Files - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg text-eac-text">
+
+    <header class="bg-white border-b border-eac-border relative">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+            <a th:href="@{/admin/home}" class="flex items-center gap-3 shrink-0">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
+                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory <span class="text-eac-red font-normal">Admin</span></span>
+            </a>
+            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
+                <a th:href="@{/admin/queue}" class="text-eac-text hover:text-eac-red transition">Approval Queue</a>
+                <a th:href="@{/admin/archived}" class="text-eac-red font-semibold border-b-2 border-eac-red pb-1 -mb-1">Archived Files</a>
+                <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Manage Users</a>
+                <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Audit Log</a>
+                <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Settings</a>
+                <div class="h-6 w-px bg-eac-border"></div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <section class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+            <div class="bg-[linear-gradient(115deg,#6b1118_0%,#8b0e12_55%,#b31217_100%)] px-6 py-8 text-white sm:px-8">
+                <p class="text-sm font-black uppercase tracking-[0.22em] text-white/70">Moderation archive</p>
+                <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <h1 class="text-4xl font-black leading-tight sm:text-5xl">Archived files</h1>
+                        <p class="mt-3 max-w-2xl text-base font-medium leading-7 text-white/78">Hidden records stay preserved here for staff review and restoration.</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/16 bg-white/12 px-5 py-4 backdrop-blur">
+                        <p class="text-3xl font-black" th:text="${files.totalElements}">0</p>
+                        <p class="text-sm font-bold text-white/72">archived item(s)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-5 sm:p-7">
+                <div th:if="${infoMessage}" class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm" th:text="${infoMessage}"></div>
+
+                <div th:if="${files.empty}" class="rounded-xl border border-dashed border-eac-border bg-eac-bg p-10 text-center">
+                    <p class="font-bold text-eac-text">No archived files yet.</p>
+                    <p class="mt-1 text-sm text-eac-text-light">Files archived by staff will appear here.</p>
+                </div>
+
+                <div th:unless="${files.empty}" class="space-y-3">
+                    <article th:each="file : ${files.content}" class="rounded-2xl border border-eac-border bg-white p-5">
+                        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div class="min-w-0">
+                                <div class="mb-2 flex flex-wrap items-center gap-2 text-xs font-bold text-eac-text-light">
+                                    <span class="rounded-full bg-eac-navy/10 px-3 py-1 text-eac-navy">ARCHIVED</span>
+                                    <span th:text="${file.category.name}">Category</span>
+                                    <span th:text="${file.department.code}">EAC</span>
+                                    <span th:if="${file.statusBeforeArchive != null}" th:text="'Previous: ' + ${file.statusBeforeArchive}">Previous</span>
+                                </div>
+                                <a th:href="@{/files/{id}(id=${file.id})}" class="block">
+                                    <h2 class="line-clamp-2 font-black leading-snug text-eac-maroon transition hover:text-eac-red" th:text="${file.title}">File title</h2>
+                                </a>
+                                <p class="mt-2 line-clamp-2 text-sm leading-6 text-eac-text-light" th:text="${file.description}">Description</p>
+                                <p class="mt-3 text-xs text-eac-text-light" th:if="${file.archiveReason != null}" th:text="'Reason: ' + ${file.archiveReason}">Reason</p>
+                                <p class="mt-1 text-xs text-eac-text-light" th:if="${file.archivedAt != null}" th:text="'Archived on ' + ${#temporals.format(file.archivedAt, 'MMM d, yyyy HH:mm')}">Archived date</p>
+                            </div>
+                            <form th:action="@{/admin/files/{id}/restore(id=${file.id})}" method="post" class="shrink-0">
+                                <button type="submit" class="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-green-700 lg:w-auto">
+                                    Restore
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <div class="flex items-center justify-center gap-2 mt-8" th:if="${files.totalPages > 1}">
+            <a th:each="p : ${#numbers.sequence(0, files.totalPages - 1)}"
+               th:href="@{/admin/archived(page=${p})}"
+               th:text="${p + 1}"
+               th:classappend="${p == files.number} ? 'bg-eac-red text-white' : 'bg-white text-eac-text border border-eac-border hover:border-eac-red'"
+               class="w-9 h-9 flex items-center justify-center rounded-md text-sm transition"></a>
+        </div>
+    </main>
+
+</body>
+</html>

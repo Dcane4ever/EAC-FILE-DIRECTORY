@@ -1096,6 +1096,12 @@
   .border-eac-maroon {
     border-color: var(--color-eac-maroon);
   }
+  .border-eac-navy\/10 {
+    border-color: color-mix(in srgb, #1a1a2e 10%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-eac-navy) 10%, transparent);
+    }
+  }
   .border-eac-red {
     border-color: var(--color-eac-red);
   }
@@ -1250,6 +1256,12 @@
     background-color: color-mix(in srgb, #1a1a2e 5%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-eac-navy) 5%, transparent);
+    }
+  }
+  .bg-eac-navy\/10 {
+    background-color: color-mix(in srgb, #1a1a2e 10%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-eac-navy) 10%, transparent);
     }
   }
   .bg-eac-red {
@@ -2546,6 +2558,9 @@
     .lg\:h-\[750px\] {
       height: 750px;
     }
+    .lg\:w-auto {
+      width: auto;
+    }
     .lg\:grid-cols-2 {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2596,6 +2611,12 @@
     }
     .lg\:items-end {
       align-items: flex-end;
+    }
+    .lg\:items-start {
+      align-items: flex-start;
+    }
+    .lg\:justify-between {
+      justify-content: space-between;
     }
     .lg\:justify-self-end {
       justify-self: flex-end;

@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
+import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.Tag;
 import ph.edu.eac.filedirectory.file.TagRepository;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
@@ -164,6 +165,9 @@ public class FileMetadataController {
         AppUser user = principal.getAppUser();
         boolean isOwner = user.getId().equals(file.getUploader().getId());
         boolean isStaff = user.getRole() == Role.MODERATOR || user.getRole() == Role.ADMIN;
+        if (file.getStatus() == FileStatus.ARCHIVED && !isStaff) {
+            throw new AccessDeniedException("Archived files can only be edited by staff.");
+        }
         if (!isOwner && !isStaff) {
             throw new AccessDeniedException("You can only edit metadata for your own uploads.");
         }

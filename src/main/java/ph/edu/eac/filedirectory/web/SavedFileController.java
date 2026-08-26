@@ -87,6 +87,12 @@ public class SavedFileController {
     }
 
     private void requireViewable(FileEntity file, AppUser user) {
+        if (file.getStatus() == FileStatus.ARCHIVED) {
+            if (user.getRole() == Role.MODERATOR || user.getRole() == Role.ADMIN) {
+                return;
+            }
+            throw new AccessDeniedException("This file has been archived.");
+        }
         if (file.getStatus() == FileStatus.APPROVED) {
             return;
         }

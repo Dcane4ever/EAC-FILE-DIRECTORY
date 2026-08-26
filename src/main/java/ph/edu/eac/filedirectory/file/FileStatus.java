@@ -4,5 +4,6 @@ package ph.edu.eac.filedirectory.file;
 public enum FileStatus {
     PENDING,
     APPROVED,
-    REJECTED
+    REJECTED,
+    ARCHIVED
 }

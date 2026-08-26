@@ -16,6 +16,7 @@
             </a>
             <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
                 <a th:href="@{/admin/queue}" class="text-eac-red font-semibold border-b-2 border-eac-red pb-1 -mb-1">Approval Queue</a>
+                <a th:href="@{/admin/archived}" class="text-eac-text hover:text-eac-red transition">Archived Files</a>
                 <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Manage Users</a>
                 <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Audit Log</a>
                 <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" class="text-eac-text hover:text-eac-red transition">Settings</a>
@@ -30,6 +31,7 @@
         </div>
         <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
             <a th:href="@{/admin/queue}" class="block text-eac-red font-semibold">Approval Queue</a>
+            <a th:href="@{/admin/archived}" class="block text-eac-text hover:text-eac-red transition">Archived Files</a>
             <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Manage Users</a>
             <a th:href="@{/admin/users/audit-log}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Audit Log</a>
             <a th:href="@{/admin/users/settings}" sec:authorize="hasRole('ADMIN')" class="block text-eac-text hover:text-eac-red transition">Settings</a>

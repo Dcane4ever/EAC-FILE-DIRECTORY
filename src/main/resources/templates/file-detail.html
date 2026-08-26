@@ -79,7 +79,7 @@
                         <span th:if="${file.course != null}" th:text="${file.course.code}"></span>
                         <span th:if="${file.status.name() != 'APPROVED'}"
                               class="font-semibold px-2.5 py-1 rounded-full"
-                              th:classappend="${file.status.name() == 'REJECTED'} ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'"
+                              th:classappend="${file.status.name() == 'REJECTED'} ? 'bg-red-100 text-red-700' : (${file.status.name() == 'ARCHIVED'} ? 'bg-eac-navy/10 text-eac-navy' : 'bg-amber-100 text-amber-700')"
                               th:text="${file.status}"></span>
                     </div>
 
@@ -150,6 +150,19 @@
                             <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/></svg>
                             Share
                         </button>
+                        <form th:if="${isStaff and file.status.name() != 'ARCHIVED'}" th:action="@{/admin/files/{id}/archive(id=${file.id})}" method="post" class="rounded-lg border border-red-200 bg-red-50 p-3">
+                            <label class="mb-2 block text-xs font-bold text-red-700">Archive reason</label>
+                            <input type="text" name="reason" placeholder="Outdated, duplicate, incorrect..."
+                                   class="mb-2 w-full rounded-lg border border-red-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-eac-red/30">
+                            <button type="submit" class="w-full rounded-lg bg-eac-maroon px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red">
+                                Archive file
+                            </button>
+                        </form>
+                        <form th:if="${isStaff and file.status.name() == 'ARCHIVED'}" th:action="@{/admin/files/{id}/restore(id=${file.id})}" method="post">
+                            <button type="submit" class="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-green-700">
+                                Restore file
+                            </button>
+                        </form>
                     </div>
                 </aside>
             </div>
@@ -347,6 +360,16 @@
                     <div>
                         <dt class="text-eac-text-light">Description</dt>
                         <dd class="font-medium text-eac-text leading-6" th:text="${file.description}"></dd>
+                    </div>
+                </div>
+                <div th:if="${file.status.name() == 'ARCHIVED'}" class="flex gap-3 md:col-span-2 rounded-xl border border-eac-navy/10 bg-eac-navy/5 p-4">
+                    <span class="w-9 h-9 rounded-full bg-white text-eac-navy flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+                    </span>
+                    <div>
+                        <dt class="font-bold text-eac-navy">Archived file</dt>
+                        <dd class="mt-1 text-sm font-medium text-eac-text" th:text="${file.archiveReason}">Archive reason</dd>
+                        <dd th:if="${file.archivedAt != null}" class="mt-1 text-xs text-eac-text-light" th:text="'Archived on ' + ${#temporals.format(file.archivedAt, 'MMM d, yyyy HH:mm')}"></dd>
                     </div>
                 </div>
             </dl>

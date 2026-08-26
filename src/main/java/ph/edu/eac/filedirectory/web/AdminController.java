@@ -1,6 +1,10 @@
 package ph.edu.eac.filedirectory.web;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -130,6 +134,14 @@ public class AdminController {
         return "admin/queue";
     }
 
+    @GetMapping("/archived")
+    public String archived(@RequestParam(defaultValue = "0") int page, Model model) {
+        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "archivedAt"));
+        Page<FileEntity> files = fileRepository.findByStatus(FileStatus.ARCHIVED, pageable);
+        model.addAttribute("files", files);
+        return "admin/archived";
+    }
+
     @PostMapping("/departments/{id}/auto-approve")
     public String toggleAutoApprove(@PathVariable Long id,
                                      @RequestParam boolean enabled,
@@ -176,6 +188,58 @@ public class AdminController {
 
         redirectAttributes.addFlashAttribute("infoMessage", "Rejected \"" + file.getTitle() + "\".");
         return "redirect:/admin/queue";
+    }
+
+    @PostMapping("/files/{id}/archive")
+    @Transactional
+    public String archive(@PathVariable Long id,
+                          @RequestParam(required = false) String reason,
+                          @AuthenticationPrincipal EacUserDetails principal,
+                          RedirectAttributes redirectAttributes) {
+        AppUser moderator = requireModerator(principal);
+        FileEntity file = fileRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (file.getStatus() != FileStatus.ARCHIVED) {
+            FileStatus previousStatus = file.getStatus();
+            String archiveReason = reason == null || reason.isBlank() ? "No reason given" : reason.trim();
+            file.setStatusBeforeArchive(previousStatus);
+            file.setStatus(FileStatus.ARCHIVED);
+            file.setArchivedBy(moderator);
+            file.setArchivedAt(Instant.now());
+            file.setArchiveReason(archiveReason);
+            fileRepository.save(file);
+            auditService.fileArchived(moderator, file.getId(), file.getTitle(), previousStatus.name(), archiveReason);
+        }
+
+        redirectAttributes.addFlashAttribute("infoMessage", "Archived \"" + file.getTitle() + "\".");
+        return "redirect:/files/" + file.getId();
+    }
+
+    @PostMapping("/files/{id}/restore")
+    @Transactional
+    public String restore(@PathVariable Long id,
+                          @AuthenticationPrincipal EacUserDetails principal,
+                          RedirectAttributes redirectAttributes) {
+        AppUser moderator = requireModerator(principal);
+        FileEntity file = fileRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (file.getStatus() == FileStatus.ARCHIVED) {
+            FileStatus restoredStatus = file.getStatusBeforeArchive() == null
+                    ? FileStatus.APPROVED
+                    : file.getStatusBeforeArchive();
+            file.setStatus(restoredStatus);
+            file.setStatusBeforeArchive(null);
+            file.setArchivedBy(null);
+            file.setArchivedAt(null);
+            file.setArchiveReason(null);
+            fileRepository.save(file);
+            auditService.fileRestored(moderator, file.getId(), file.getTitle(), restoredStatus.name());
+        }
+
+        redirectAttributes.addFlashAttribute("infoMessage", "Restored \"" + file.getTitle() + "\".");
+        return "redirect:/files/" + file.getId();
     }
 
     /**

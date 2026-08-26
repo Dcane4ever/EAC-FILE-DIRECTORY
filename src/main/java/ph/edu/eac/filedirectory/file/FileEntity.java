@@ -114,6 +114,19 @@ public class FileEntity {
     @Column(length = 500)
     private String rejectionReason;
 
+    @ManyToOne
+    @JoinColumn(name = "archived_by")
+    private AppUser archivedBy;
+
+    private Instant archivedAt;
+
+    @Column(length = 500)
+    private String archiveReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 32)
+    private FileStatus statusBeforeArchive;
+
     @ManyToMany
     @JoinTable(
             name = "file_tags",
@@ -351,6 +364,38 @@ public class FileEntity {
 
     public void setRejectionReason(String rejectionReason) {
         this.rejectionReason = rejectionReason;
+    }
+
+    public AppUser getArchivedBy() {
+        return archivedBy;
+    }
+
+    public void setArchivedBy(AppUser archivedBy) {
+        this.archivedBy = archivedBy;
+    }
+
+    public Instant getArchivedAt() {
+        return archivedAt;
+    }
+
+    public void setArchivedAt(Instant archivedAt) {
+        this.archivedAt = archivedAt;
+    }
+
+    public String getArchiveReason() {
+        return archiveReason;
+    }
+
+    public void setArchiveReason(String archiveReason) {
+        this.archiveReason = archiveReason;
+    }
+
+    public FileStatus getStatusBeforeArchive() {
+        return statusBeforeArchive;
+    }
+
+    public void setStatusBeforeArchive(FileStatus statusBeforeArchive) {
+        this.statusBeforeArchive = statusBeforeArchive;
     }
 
     public Set<Tag> getTags() {

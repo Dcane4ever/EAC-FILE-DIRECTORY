@@ -251,6 +251,16 @@ public class FileDetailController {
     }
 
     private void requireViewable(FileEntity file, EacUserDetails principal) {
+        if (file.getStatus() == FileStatus.ARCHIVED) {
+            if (principal == null) {
+                throw new AccessDeniedException("Sign-in required");
+            }
+            Role role = principal.getAppUser().getRole();
+            if (role != Role.MODERATOR && role != Role.ADMIN) {
+                throw new AccessDeniedException("This file has been archived.");
+            }
+            return;
+        }
         if (file.getStatus() == FileStatus.APPROVED) {
             return;
         }
