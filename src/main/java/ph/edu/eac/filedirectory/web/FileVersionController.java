@@ -160,11 +160,11 @@ public class FileVersionController {
                                  org.springframework.ui.Model model) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
-        requireCanVersion(file, principal);
-        FileVersion version = requirePreviewableVersion(file, versionNumber);
+        FileVersion version = requireViewablePreviewVersion(file, versionNumber, principal);
 
         model.addAttribute("file", file);
         model.addAttribute("version", version);
+        model.addAttribute("canDownloadDirectly", canManageVersions(file, principal));
         return "version-preview";
     }
 
@@ -174,8 +174,7 @@ public class FileVersionController {
                                                           @AuthenticationPrincipal EacUserDetails principal) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
-        requireCanVersion(file, principal);
-        FileVersion version = requirePreviewableVersion(file, versionNumber);
+        FileVersion version = requireViewablePreviewVersion(file, versionNumber, principal);
         if (!version.isPreviewable()) {
             throw new ResponseStatusException(NOT_FOUND, "No PDF preview for this version");
         }
@@ -197,8 +196,7 @@ public class FileVersionController {
                                                      @AuthenticationPrincipal EacUserDetails principal) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
-        requireCanVersion(file, principal);
-        FileVersion version = requirePreviewableVersion(file, versionNumber);
+        FileVersion version = requireViewablePreviewVersion(file, versionNumber, principal);
         if (!version.isTextPreviewable()) {
             throw new ResponseStatusException(NOT_FOUND, "No text preview for this version");
         }
@@ -231,8 +229,7 @@ public class FileVersionController {
                                                        @AuthenticationPrincipal EacUserDetails principal) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
-        requireCanVersion(file, principal);
-        FileVersion version = requirePreviewableVersion(file, versionNumber);
+        FileVersion version = requireViewablePreviewVersion(file, versionNumber, principal);
         if (!onlyOfficeService.isSupported(version)) {
             throw new ResponseStatusException(NOT_FOUND, "No ONLYOFFICE preview for this version");
         }
@@ -315,17 +312,35 @@ public class FileVersionController {
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
     }
 
-    private AppUser requireCanVersion(FileEntity file, EacUserDetails principal) {
-        if (principal == null) {
-            throw new AccessDeniedException("Sign-in required");
+    /**
+     * Approved versions are part of an approved record's readable history.
+     * Pending and rejected revisions remain visible only to the uploader and
+     * staff, matching the file-detail page's version list.
+     */
+    private FileVersion requireViewablePreviewVersion(FileEntity file, int versionNumber, EacUserDetails principal) {
+        FileVersion version = requirePreviewableVersion(file, versionNumber);
+        if (canManageVersions(file, principal)) {
+            return version;
         }
-        AppUser user = principal.getAppUser();
-        boolean isOwner = user.getId().equals(file.getUploader().getId());
-        boolean isStaff = isStaff(user);
-        if (!isOwner && !isStaff) {
+        if (principal == null || file.getStatus() != FileStatus.APPROVED || version.getStatus() != FileStatus.APPROVED) {
+            throw new AccessDeniedException("This version is not available to view.");
+        }
+        return version;
+    }
+
+    private AppUser requireCanVersion(FileEntity file, EacUserDetails principal) {
+        if (!canManageVersions(file, principal)) {
             throw new AccessDeniedException("You can only manage versions for your own uploads.");
         }
-        return user;
+        return principal.getAppUser();
+    }
+
+    private boolean canManageVersions(FileEntity file, EacUserDetails principal) {
+        if (principal == null) {
+            return false;
+        }
+        AppUser user = principal.getAppUser();
+        return user.getId().equals(file.getUploader().getId()) || isStaff(user);
     }
 
     private boolean isStaff(AppUser user) {

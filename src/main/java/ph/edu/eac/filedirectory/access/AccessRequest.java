@@ -28,6 +28,14 @@ public class AccessRequest {
     @JoinColumn(name = "file_id", nullable = false)
     private FileEntity file;
 
+    /**
+     * Null means the requester asked for the file's current version. A value
+     * pins the grant to that historical version even if a newer version is
+     * approved before the requester downloads it.
+     */
+    @Column(name = "requested_version_number")
+    private Integer requestedVersionNumber;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "requester_id", nullable = false)
     private AppUser requester;
@@ -56,8 +64,13 @@ public class AccessRequest {
     }
 
     public AccessRequest(FileEntity file, AppUser requester) {
+        this(file, requester, null);
+    }
+
+    public AccessRequest(FileEntity file, AppUser requester, Integer requestedVersionNumber) {
         this.file = file;
         this.requester = requester;
+        this.requestedVersionNumber = requestedVersionNumber;
     }
 
     public Long getId() {
@@ -66,6 +79,10 @@ public class AccessRequest {
 
     public FileEntity getFile() {
         return file;
+    }
+
+    public Integer getRequestedVersionNumber() {
+        return requestedVersionNumber;
     }
 
     public AppUser getRequester() {

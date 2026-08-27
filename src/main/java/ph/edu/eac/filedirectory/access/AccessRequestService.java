@@ -71,17 +71,25 @@ public class AccessRequestService {
 
     @Transactional
     public RequestResult request(FileEntity file, AppUser requester) {
+        return request(file, requester, null);
+    }
+
+    @Transactional
+    public RequestResult request(FileEntity file, AppUser requester, Integer requestedVersionNumber) {
         if (file.getUploader().getId().equals(requester.getId())) {
             return RequestResult.rejected("You already have full access to your own upload.");
         }
         boolean alreadyPending = accessRequestRepository
-                .findFirstByFileAndRequesterAndStatus(file, requester, AccessRequestStatus.PENDING)
+                .findFirstByFileAndRequesterAndRequestedVersionNumberAndStatus(
+                        file, requester, requestedVersionNumber, AccessRequestStatus.PENDING)
                 .isPresent();
         if (alreadyPending) {
-            return RequestResult.rejected("You already have a pending request for this file.");
+            return RequestResult.rejected(requestedVersionNumber == null
+                    ? "You already have a pending request for this file."
+                    : "You already have a pending request for version " + requestedVersionNumber + ".");
         }
 
-        AccessRequest accessRequest = new AccessRequest(file, requester);
+        AccessRequest accessRequest = new AccessRequest(file, requester, requestedVersionNumber);
         accessRequestRepository.save(accessRequest);
 
         AppUser uploader = file.getUploader();

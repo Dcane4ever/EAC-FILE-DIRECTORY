@@ -15,6 +15,13 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
     /** Used to block a second PENDING request for the same file by the same person - see AccessRequestService.request(). */
     Optional<AccessRequest> findFirstByFileAndRequesterAndStatus(FileEntity file, AppUser requester, AccessRequestStatus status);
 
+    Optional<AccessRequest> findFirstByFileAndRequesterAndRequestedVersionNumberAndStatus(FileEntity file,
+                                                                                              AppUser requester,
+                                                                                              Integer requestedVersionNumber,
+                                                                                              AccessRequestStatus status);
+
+    List<AccessRequest> findByFileAndRequesterAndStatus(FileEntity file, AppUser requester, AccessRequestStatus status);
+
     /** "My Requests" page - AccessRequestController. */
     Page<AccessRequest> findByRequesterOrderByCreatedAtDesc(AppUser requester, Pageable pageable);
 

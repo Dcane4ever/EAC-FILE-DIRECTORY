@@ -21,6 +21,8 @@ import ph.edu.eac.filedirectory.audit.AuditService;
 import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStorageService;
+import ph.edu.eac.filedirectory.file.FileVersion;
+import ph.edu.eac.filedirectory.file.FileVersionRepository;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 
 import java.net.MalformedURLException;
@@ -44,15 +46,18 @@ public class FileAccessController {
     private final AccessGrantTokenRepository accessGrantTokenRepository;
     private final FileStorageService storageService;
     private final FileRepository fileRepository;
+    private final FileVersionRepository fileVersionRepository;
     private final AuditService auditService;
 
     public FileAccessController(AccessGrantTokenRepository accessGrantTokenRepository,
                                  FileStorageService storageService,
                                  FileRepository fileRepository,
+                                 FileVersionRepository fileVersionRepository,
                                  AuditService auditService) {
         this.accessGrantTokenRepository = accessGrantTokenRepository;
         this.storageService = storageService;
         this.fileRepository = fileRepository;
+        this.fileVersionRepository = fileVersionRepository;
         this.auditService = auditService;
     }
 
@@ -84,7 +89,13 @@ public class FileAccessController {
         }
 
         FileEntity file = accessRequest.getFile();
-        Path path = storageService.resolve(file.getFilePath());
+        FileVersion requestedVersion = accessRequest.getRequestedVersionNumber() == null ? null
+                : fileVersionRepository.findByFileAndVersionNumber(file, accessRequest.getRequestedVersionNumber())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested version is unavailable"));
+        String filePath = requestedVersion == null ? file.getFilePath() : requestedVersion.getFilePath();
+        String originalFilename = requestedVersion == null ? file.getOriginalFilename() : requestedVersion.getOriginalFilename();
+        String mimeType = requestedVersion == null ? file.getMimeType() : requestedVersion.getMimeType();
+        Path path = storageService.resolve(filePath);
         try {
             Resource resource = new UrlResource(path.toUri());
             if (!resource.exists() || !resource.isReadable()) {
@@ -99,8 +110,8 @@ public class FileAccessController {
             auditService.accessGrantDownloaded(principal.getAppUser(), file.getId(), file.getTitle());
 
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(file.getMimeType()))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getOriginalFilename() + "\"")
+                    .contentType(MediaType.parseMediaType(mimeType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + originalFilename + "\"")
                     .body(resource);
         } catch (MalformedURLException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not read file", e);

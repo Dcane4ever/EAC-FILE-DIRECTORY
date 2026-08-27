@@ -103,6 +103,39 @@ public interface FileRepository extends JpaRepository<FileEntity, Long>, JpaSpec
 
     Page<FileEntity> findByStatusAndCourseId(FileStatus status, Long courseId, Pageable pageable);
 
+    /**
+     * A small, intentionally explainable recommendation set for the detail
+     * page. Shared tags carry the most weight, followed by course, program,
+     * category, and department. Only approved records are candidates.
+     */
+    @Query("""
+            select candidate from FileEntity candidate
+            where candidate.status = :status
+              and candidate.id <> :fileId
+              and (
+                   candidate.department.id = :departmentId
+                   or candidate.category.id = :categoryId
+                   or (:programId is not null and candidate.program.id = :programId)
+                   or (:courseId is not null and candidate.course.id = :courseId)
+                   or exists (select tag from candidate.tags tag where tag.id in :tagIds)
+              )
+            order by
+              (case when exists (select tag from candidate.tags tag where tag.id in :tagIds) then 16 else 0 end
+               + case when :courseId is not null and candidate.course.id = :courseId then 8 else 0 end
+               + case when :programId is not null and candidate.program.id = :programId then 5 else 0 end
+               + case when candidate.category.id = :categoryId then 3 else 0 end
+               + case when candidate.department.id = :departmentId then 1 else 0 end) desc,
+              candidate.createdAt desc
+            """)
+    List<FileEntity> findSimilarApproved(@Param("status") FileStatus status,
+                                         @Param("fileId") Long fileId,
+                                         @Param("departmentId") Long departmentId,
+                                         @Param("categoryId") Long categoryId,
+                                         @Param("programId") Long programId,
+                                         @Param("courseId") Long courseId,
+                                         @Param("tagIds") java.util.Collection<Long> tagIds,
+                                         Pageable pageable);
+
     @Query("""
             select f from FileEntity f
             where f.status = :status

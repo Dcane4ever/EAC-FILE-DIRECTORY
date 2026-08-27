@@ -47,6 +47,7 @@
                         <div class="min-w-0">
                             <div class="mb-3 flex flex-wrap items-center gap-2">
                                 <span class="rounded-full px-3 py-1 text-xs font-black" th:classappend="${req.status.name() == 'APPROVED' ? ' bg-green-100 text-green-700' : (req.status.name() == 'DENIED' ? ' bg-red-100 text-red-700' : (req.status.name() == 'EXPIRED' ? ' bg-gray-100 text-gray-600' : ' bg-amber-100 text-amber-700'))}" th:text="${req.status}">PENDING</span>
+                                <span th:if="${req.requestedVersionNumber != null}" class="rounded-full bg-eac-red-soft px-3 py-1 text-xs font-black text-eac-red" th:text="${'Version ' + req.requestedVersionNumber}">Version</span>
                                 <span class="text-xs font-bold text-eac-text-light" th:text="${req.file.department.code + ' / ' + req.file.category.name}">Department</span>
                             </div>
                             <a th:href="@{/files/{id}(id=${req.file.id})}" class="text-lg font-black leading-snug text-eac-maroon transition hover:text-eac-red" th:text="${req.file.title}">File title</a>

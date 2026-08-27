@@ -2,6 +2,7 @@ package ph.edu.eac.filedirectory.web;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,8 @@ import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 
 /**
  * File detail page and direct-download endpoint.
@@ -109,13 +112,35 @@ public class FileDetailController {
         model.addAttribute("pendingVersion", canManageVersions
                 ? fileVersionRepository.findFirstByFileAndStatusOrderByVersionNumberDesc(file, FileStatus.PENDING).orElse(null)
                 : null);
+        List<Long> relatedTagIds = file.getTags().stream().map(tag -> tag.getId()).toList();
+        if (relatedTagIds.isEmpty()) {
+            // JPQL's IN clause needs a value; -1 cannot be a persisted identity.
+            relatedTagIds = List.of(-1L);
+        }
+        model.addAttribute("similarFiles", fileRepository.findSimilarApproved(
+                FileStatus.APPROVED,
+                file.getId(),
+                file.getDepartment().getId(),
+                file.getCategory().getId(),
+                file.getProgram() == null ? null : file.getProgram().getId(),
+                file.getCourse() == null ? null : file.getCourse().getId(),
+                relatedTagIds,
+                PageRequest.of(0, 4)));
         model.addAttribute("savedByCurrentUser", principal != null
                 && savedFileRepository.existsByUserAndFile(principal.getAppUser(), file));
         if (!canDownloadDirectly && principal != null) {
-            AccessRequest existing = accessRequestRepository
-                    .findFirstByFileAndRequesterAndStatus(file, principal.getAppUser(), AccessRequestStatus.PENDING)
-                    .orElse(null);
-            model.addAttribute("pendingAccessRequest", existing);
+            List<AccessRequest> pendingRequests = accessRequestRepository
+                    .findByFileAndRequesterAndStatus(file, principal.getAppUser(), AccessRequestStatus.PENDING);
+            model.addAttribute("pendingAccessRequest", pendingRequests.stream()
+                    .filter(request -> request.getRequestedVersionNumber() == null)
+                    .findFirst()
+                    .orElse(null));
+            model.addAttribute("pendingVersionRequestNumbers", pendingRequests.stream()
+                    .map(AccessRequest::getRequestedVersionNumber)
+                    .filter(java.util.Objects::nonNull)
+                    .collect(java.util.stream.Collectors.toSet()));
+        } else {
+            model.addAttribute("pendingVersionRequestNumbers", Set.of());
         }
         return "file-detail";
     }

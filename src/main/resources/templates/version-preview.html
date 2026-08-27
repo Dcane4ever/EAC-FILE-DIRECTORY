@@ -13,8 +13,10 @@
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
                 Back to file
             </a>
-            <a th:href="@{/files/{id}/versions/{versionNumber}/download(id=${file.id},versionNumber=${version.versionNumber})}"
+            <a th:if="${canDownloadDirectly}" th:href="@{/files/{id}/versions/{versionNumber}/download(id=${file.id},versionNumber=${version.versionNumber})}"
                class="rounded-lg bg-eac-red px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover">Download version</a>
+            <a th:unless="${canDownloadDirectly}" th:href="@{/files/{id}(id=${file.id})}"
+               class="rounded-lg border border-eac-border bg-white px-4 py-2.5 text-sm font-bold text-eac-red transition hover:border-eac-red/40">Request a copy</a>
         </div>
     </header>
 

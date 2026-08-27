@@ -21,6 +21,8 @@ import ph.edu.eac.filedirectory.access.AccessRequestStatus;
 import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
+import ph.edu.eac.filedirectory.file.FileVersion;
+import ph.edu.eac.filedirectory.file.FileVersionRepository;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.user.AppUser;
 
@@ -41,15 +43,18 @@ public class AccessRequestController {
     private final AccessRequestRepository accessRequestRepository;
     private final AccessGrantTokenRepository accessGrantTokenRepository;
     private final FileRepository fileRepository;
+    private final FileVersionRepository fileVersionRepository;
 
     public AccessRequestController(AccessRequestService accessRequestService,
                                     AccessRequestRepository accessRequestRepository,
                                     AccessGrantTokenRepository accessGrantTokenRepository,
-                                    FileRepository fileRepository) {
+                                    FileRepository fileRepository,
+                                    FileVersionRepository fileVersionRepository) {
         this.accessRequestService = accessRequestService;
         this.accessRequestRepository = accessRequestRepository;
         this.accessGrantTokenRepository = accessGrantTokenRepository;
         this.fileRepository = fileRepository;
+        this.fileVersionRepository = fileVersionRepository;
     }
 
     @PostMapping("/files/{id}/request-access")
@@ -68,6 +73,28 @@ public class AccessRequestController {
         AccessRequestService.RequestResult result = accessRequestService.request(file, requester);
         redirectAttributes.addFlashAttribute(result.created() ? "infoMessage" : "errorMessage",
                 result.created() ? "Access request sent to the uploader." : result.errorMessage());
+        return "redirect:/files/" + id;
+    }
+
+    @PostMapping("/files/{id}/versions/{versionNumber}/request-access")
+    public String requestVersionAccess(@PathVariable Long id,
+                                       @PathVariable int versionNumber,
+                                       @AuthenticationPrincipal EacUserDetails principal,
+                                       RedirectAttributes redirectAttributes) {
+        AppUser requester = requireSelf(principal);
+        FileEntity file = fileRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        FileVersion version = fileVersionRepository.findByFileAndVersionNumber(file, versionNumber)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (file.getStatus() != FileStatus.APPROVED || version.getStatus() != FileStatus.APPROVED) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This version isn't available for requests.");
+            return "redirect:/files/" + id;
+        }
+
+        AccessRequestService.RequestResult result = accessRequestService.request(file, requester, versionNumber);
+        redirectAttributes.addFlashAttribute(result.created() ? "infoMessage" : "errorMessage",
+                result.created() ? "Access request for version " + versionNumber + " sent to the uploader." : result.errorMessage());
         return "redirect:/files/" + id;
     }
 
