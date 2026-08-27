@@ -8,45 +8,7 @@
 </head>
 <body class="min-h-screen bg-eac-bg">
 
-    <header class="bg-white border-b border-eac-border relative">
-        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
-            <a th:href="@{/home}" class="flex items-center gap-3 shrink-0">
-                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
-                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory</span>
-            </a>
-            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
-                <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
-                <a th:href="@{/saved-files}" class="text-eac-text hover:text-eac-red transition">Saved Files</a>
-                <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
-                <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
-                <a th:href="@{/notifications}" class="relative text-eac-text hover:text-eac-red transition">
-                    Notifications
-                    <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}"
-                          class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
-                </a>
-                <div class="h-6 w-px bg-eac-border"></div>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-                </form>
-            </nav>
-            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
-        </div>
-        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
-            <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
-            <a th:href="@{/saved-files}" class="block text-eac-text hover:text-eac-red transition">Saved Files</a>
-            <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
-            <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
-            <a th:href="@{/notifications}" class="block text-eac-text hover:text-eac-red transition">
-                Notifications
-                <span th:if="${unreadNotificationCount > 0}" th:text="'(' + ${unreadNotificationCount} + ')'" class="text-eac-red font-semibold"></span>
-            </a>
-            <form th:action="@{/logout}" method="post" class="mt-2">
-                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-            </form>
-        </div>
-    </header>
+    <header th:replace="~{fragments/user-header :: header('upload')}"></header>
 
     <main class="max-w-3xl mx-auto px-6 py-10 sm:py-14">
         <div class="text-center mb-8">

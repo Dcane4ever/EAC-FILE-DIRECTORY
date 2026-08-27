@@ -5,111 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Uploads - EAC File Directory</title>
     <link rel="stylesheet" th:href="@{/css/output.css}">
+    <style>@keyframes user-rise{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}.user-rise{animation:user-rise 520ms cubic-bezier(.2,.8,.2,1) both}@media(prefers-reduced-motion:reduce){.user-rise{animation:none}}</style>
 </head>
-<body class="min-h-screen bg-eac-bg">
+<body class="min-h-screen bg-[#f7f7f8] text-eac-text">
+    <header th:replace="~{fragments/user-header :: header('uploads')}"></header>
 
-    <header class="bg-white border-b border-eac-border relative">
-        <div class="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
-            <a th:href="@{/home}" class="flex items-center gap-3 shrink-0">
-                <img th:src="@{/images/emblem.png}" alt="EAC" class="w-10 h-10">
-                <span class="font-bold text-lg text-eac-maroon whitespace-nowrap">EAC File Directory</span>
-            </a>
-            <nav class="hidden lg:flex items-center gap-7 text-sm font-medium">
-                <a th:href="@{/browse}" class="text-eac-text hover:text-eac-red transition">Browse</a>
-                <a th:href="@{/saved-files}" class="text-eac-text hover:text-eac-red transition">Saved Files</a>
-                <a th:href="@{/upload}" class="text-eac-text hover:text-eac-red transition">Upload</a>
-                <a th:href="@{/my-uploads}" class="text-eac-text hover:text-eac-red transition">My Uploads</a>
-                <a th:href="@{/my-requests}" class="text-eac-text hover:text-eac-red transition">My Requests</a>
-                <a th:href="@{/notifications}" class="relative text-eac-text hover:text-eac-red transition">
-                    Notifications
-                    <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}"
-                          class="absolute -top-2 -right-3 bg-eac-red text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"></span>
-                </a>
-                <div class="h-6 w-px bg-eac-border"></div>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-                </form>
-            </nav>
-            <button type="button" id="navToggle" aria-label="Toggle menu" class="lg:hidden text-eac-maroon p-2 -mr-2">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
-        </div>
-        <div id="navPanel" class="hidden lg:hidden border-t border-eac-border bg-white px-6 py-4 space-y-3 text-sm font-medium">
-            <a th:href="@{/browse}" class="block text-eac-text hover:text-eac-red transition">Browse</a>
-            <a th:href="@{/saved-files}" class="block text-eac-text hover:text-eac-red transition">Saved Files</a>
-            <a th:href="@{/upload}" class="block text-eac-text hover:text-eac-red transition">Upload</a>
-            <a th:href="@{/my-uploads}" class="block text-eac-text hover:text-eac-red transition">My Uploads</a>
-            <a th:href="@{/my-requests}" class="block text-eac-text hover:text-eac-red transition">My Requests</a>
-            <a th:href="@{/notifications}" class="block text-eac-text hover:text-eac-red transition">
-                Notifications
-                <span th:if="${unreadNotificationCount > 0}" th:text="'(' + ${unreadNotificationCount} + ')'" class="text-eac-red font-semibold"></span>
-            </a>
-            <form th:action="@{/logout}" method="post" class="mt-2">
-                <button type="submit" class="w-full bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold rounded-lg px-5 py-2.5">Sign Out</button>
-            </form>
-        </div>
-    </header>
-
-    <main class="max-w-4xl mx-auto px-6 py-10">
-        <h1 class="text-2xl font-bold text-eac-navy mb-1">My Uploads</h1>
-        <p class="text-eac-text-light text-sm mb-6">Track the review status of everything you've submitted.</p>
-
-        <div th:if="${infoMessage}" class="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm" th:text="${infoMessage}"></div>
-
-        <a th:href="@{/my-uploads/access-requests}"
-           class="mb-6 flex items-center justify-between gap-4 bg-white rounded-xl border border-eac-border p-5 hover:border-eac-red/40 hover:shadow-md transition">
+    <main class="user-rise mx-auto max-w-[1440px] px-5 py-8 sm:px-8 lg:py-10">
+        <section class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
-                <h2 class="font-semibold text-eac-text">Access Requests</h2>
-                <p class="text-sm text-eac-text-light mt-0.5">Review requests from other users to download your uploads.</p>
+                <h1 class="text-3xl font-black tracking-normal text-eac-text sm:text-4xl">My Uploads</h1>
+                <p class="mt-2 text-base font-medium text-eac-text-light">Track the review status of everything you've submitted.</p>
             </div>
-            <span th:if="${pendingAccessRequestCount > 0}" th:text="${pendingAccessRequestCount} + ' pending'"
-                  class="shrink-0 text-xs font-semibold bg-eac-red text-white rounded-full px-3 py-1 whitespace-nowrap"></span>
-            <svg class="w-5 h-5 text-eac-text-light shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            <div class="rounded-2xl border border-eac-border bg-white px-5 py-4 shadow-sm">
+                <div class="flex items-center gap-4">
+                    <span class="grid h-14 w-14 place-items-center rounded-2xl bg-eac-red-soft text-eac-red">
+                        <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
+                    </span>
+                    <div>
+                        <p class="text-xs font-bold text-eac-text-light">Total Uploads</p>
+                        <p class="text-3xl font-black text-eac-maroon" th:text="${files.totalElements}">0</p>
+                        <p class="text-xs font-semibold text-eac-text-light">Across all statuses</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div th:if="${infoMessage}" class="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700" th:text="${infoMessage}"></div>
+
+        <a th:href="@{/my-uploads/access-requests}" class="mt-7 flex max-w-3xl items-center justify-between gap-5 rounded-2xl border border-eac-border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-[0_18px_50px_rgba(107,17,24,0.10)]">
+            <div class="flex items-center gap-5">
+                <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-eac-red-soft text-eac-red">
+                    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 11 2 2 4-4"/></svg>
+                </span>
+                <div>
+                    <h2 class="font-black text-eac-text">Access Requests</h2>
+                    <p class="mt-1 text-sm font-medium text-eac-text-light">Review requests from other users to download your uploads.</p>
+                </div>
+            </div>
+            <span th:if="${pendingAccessRequestCount > 0}" th:text="${pendingAccessRequestCount} + ' pending'" class="hidden shrink-0 rounded-full bg-eac-red px-3 py-1 text-xs font-black text-white sm:inline-flex"></span>
+            <svg class="h-5 w-5 shrink-0 text-eac-text-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
         </a>
 
-        <div th:if="${files.empty}" class="rounded-xl border border-dashed border-eac-border bg-white p-10 text-center text-eac-text-light">
-            <p class="font-medium">You haven't uploaded anything yet.</p>
-            <p class="text-sm mt-1"><a th:href="@{/upload}" class="text-eac-red hover:underline">Upload your first file</a>.</p>
-        </div>
-
-        <div class="space-y-3" th:unless="${files.empty}">
-            <div th:each="file : ${files.content}" class="bg-white rounded-xl border border-eac-border p-5">
-                <div class="flex items-center justify-between gap-4">
-                    <div class="min-w-0">
-                        <a th:href="@{/files/{id}(id=${file.id})}"
-                           class="font-semibold text-eac-text hover:text-eac-red transition" th:text="${file.title}"></a>
-                        <p class="text-xs text-eac-text-light mt-1" th:text="${file.category.name} + ' · ' + ${file.department.code}"></p>
-                        <p th:if="${file.status.name() == 'REJECTED' and file.rejectionReason != null}"
-                           class="text-xs text-red-600 mt-1" th:text="'Reason: ' + ${file.rejectionReason}"></p>
-                    </div>
-                    <span class="text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap"
-                          th:classappend="${file.status.name() == 'APPROVED'} ? 'bg-green-100 text-green-700' : (${file.status.name() == 'REJECTED'} ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700')"
-                          th:text="${file.status}"></span>
+        <section class="mt-7 rounded-2xl border border-eac-border bg-white p-5 shadow-sm sm:p-6">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div class="flex flex-wrap gap-2" id="statusFilters">
+                    <button type="button" data-status="ALL" class="status-chip rounded-xl border border-eac-red bg-eac-red px-4 py-2.5 text-sm font-black text-white transition">All Uploads</button>
+                    <button type="button" data-status="PENDING" class="status-chip rounded-xl border border-eac-border bg-white px-4 py-2.5 text-sm font-black text-eac-text transition hover:border-eac-red/40 hover:text-eac-red">Pending</button>
+                    <button type="button" data-status="APPROVED" class="status-chip rounded-xl border border-eac-border bg-white px-4 py-2.5 text-sm font-black text-eac-text transition hover:border-eac-red/40 hover:text-eac-red">Approved</button>
+                    <button type="button" data-status="REJECTED" class="status-chip rounded-xl border border-eac-border bg-white px-4 py-2.5 text-sm font-black text-eac-text transition hover:border-eac-red/40 hover:text-eac-red">Rejected</button>
+                    <button type="button" data-status="ARCHIVED" class="status-chip rounded-xl border border-eac-border bg-white px-4 py-2.5 text-sm font-black text-eac-text transition hover:border-eac-red/40 hover:text-eac-red">Archived</button>
                 </div>
-
-                <!-- Access policy - changes take effect for requests made
-                     from now on; an already-pending request keeps whatever
-                     decision path it started with (see
-                     UploadController.updateAccessPolicy). Auto-submits on
-                     change rather than needing a separate save button. -->
-                <form th:action="@{/my-uploads/{id}/access-policy(id=${file.id})}" method="post"
-                      class="access-policy-form flex items-center gap-2 mt-3 pt-3 border-t border-eac-border">
-                    <label class="text-xs text-eac-text-light shrink-0">When someone requests access:</label>
-                    <select name="accessDecisionPolicy"
-                            class="access-policy-select text-xs border border-eac-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-eac-red/40">
-                        <option value="MANUAL" th:selected="${file.accessDecisionPolicy.name() == 'MANUAL'}">Review manually</option>
-                        <option value="AUTO_APPROVE" th:selected="${file.accessDecisionPolicy.name() == 'AUTO_APPROVE'}">Auto-approve</option>
-                        <option value="AUTO_REJECT" th:selected="${file.accessDecisionPolicy.name() == 'AUTO_REJECT'}">Auto-decline</option>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <label class="flex min-w-0 items-center gap-2 rounded-xl border border-eac-border bg-white px-4 py-2.5 shadow-sm sm:w-80">
+                        <svg class="h-4 w-4 shrink-0 text-eac-text-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input id="uploadSearch" type="search" placeholder="Search uploads..." class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-eac-text-light">
+                    </label>
+                    <button type="button" id="resetFilters" class="rounded-xl border border-eac-border bg-white px-4 py-2.5 text-sm font-black text-eac-text transition hover:border-eac-red/40 hover:text-eac-red">Clear</button>
+                    <select id="sortUploads" class="rounded-xl border border-eac-border bg-white px-4 py-2.5 text-sm font-black text-eac-text outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="title">Title A-Z</option>
                     </select>
-                    <div class="ml-auto flex items-center gap-3">
-                        <a th:href="@{/files/{id}(id=${file.id})}"
-                           class="text-xs font-semibold text-eac-maroon hover:text-eac-red transition">View file</a>
-                        <a th:href="@{/files/{id}/edit(id=${file.id})}"
-                           class="text-xs font-semibold text-eac-red hover:underline">Edit metadata</a>
-                    </div>
-                </form>
+                </div>
             </div>
-        </div>
+
+            <div th:if="${files.empty}" class="mt-6 rounded-2xl border border-dashed border-eac-border bg-eac-bg p-10 text-center">
+                <p class="text-lg font-black text-eac-text">No uploads yet.</p>
+                <p class="mt-2 text-sm font-medium text-eac-text-light">Your submitted files will appear here once uploaded.</p>
+                <a th:href="@{/upload}" class="mt-5 inline-flex rounded-xl bg-eac-red px-5 py-3 text-sm font-bold text-white transition hover:bg-eac-red-hover">Upload your first file</a>
+            </div>
+
+            <div id="uploadsList" class="mt-6 space-y-3" th:unless="${files.empty}">
+                <article th:each="file : ${files.content}" th:attr="data-status=${file.status.name()},data-title=${#strings.toLowerCase(file.title)},data-created=${file.createdAt}" class="upload-card rounded-2xl border border-eac-border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-[0_18px_45px_rgba(107,17,24,0.08)] sm:p-5">
+                    <div class="grid gap-4 lg:grid-cols-[86px_1fr_auto] lg:items-center">
+                        <a th:href="@{/files/{id}(id=${file.id})}" class="grid h-16 w-16 place-items-center rounded-2xl font-black" th:classappend="${file.extension() == 'pdf' ? ' bg-red-50 text-red-600' : (file.extension() == 'doc' or file.extension() == 'docx' ? ' bg-blue-50 text-blue-600' : (file.extension() == 'ppt' or file.extension() == 'pptx' ? ' bg-orange-50 text-orange-600' : (file.extension() == 'xls' or file.extension() == 'xlsx' ? ' bg-green-50 text-green-600' : (file.extension() == 'zip' ? ' bg-purple-50 text-purple-600' : ' bg-eac-bg text-eac-red'))))}">
+                            <span class="text-sm uppercase" th:text="${#strings.toUpperCase(file.extension())}">FILE</span>
+                        </a>
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <a th:href="@{/files/{id}(id=${file.id})}" class="text-lg font-black text-eac-text transition hover:text-eac-red" th:text="${file.title}">File title</a>
+                                <span class="rounded-full px-3 py-1 text-xs font-black" th:classappend="${file.status.name() == 'APPROVED' ? 'bg-green-100 text-green-700' : (file.status.name() == 'REJECTED' ? 'bg-red-100 text-red-700' : (file.status.name() == 'ARCHIVED' ? 'bg-eac-navy/10 text-eac-navy' : 'bg-amber-100 text-amber-700'))}" th:text="${file.status}">STATUS</span>
+                            </div>
+                            <p class="mt-1 text-sm font-medium text-eac-text-light" th:text="${file.category.name} + ' · ' + ${file.department.code}">Category</p>
+                            <p class="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-eac-text-light"><span>Uploaded on</span><span th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy')}">Date</span><span>·</span><span th:text="${#temporals.format(file.createdAt, 'h:mm a')}">Time</span><span>·</span><span th:text="'v' + ${file.versionNumber}">v1</span></p>
+                            <p th:if="${file.status.name() == 'REJECTED' and file.rejectionReason != null}" class="mt-2 text-xs font-semibold text-red-600" th:text="'Reason: ' + ${file.rejectionReason}"></p>
+                        </div>
+                        <div class="flex flex-col gap-3 lg:min-w-[520px] lg:flex-row lg:items-center lg:justify-end">
+                            <form th:action="@{/my-uploads/{id}/access-policy(id=${file.id})}" method="post" class="access-policy-form flex items-center gap-2">
+                                <label class="text-xs font-medium text-eac-text-light">When someone requests access:</label>
+                                <select name="accessDecisionPolicy" class="access-policy-select rounded-lg border border-eac-border bg-white px-3 py-2 text-xs font-bold text-eac-text outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/20">
+                                    <option value="MANUAL" th:selected="${file.accessDecisionPolicy.name() == 'MANUAL'}">Review manually</option>
+                                    <option value="AUTO_APPROVE" th:selected="${file.accessDecisionPolicy.name() == 'AUTO_APPROVE'}">Auto-approve</option>
+                                    <option value="AUTO_REJECT" th:selected="${file.accessDecisionPolicy.name() == 'AUTO_REJECT'}">Auto-decline</option>
+                                </select>
+                            </form>
+                            <div class="flex items-center gap-3 border-t border-eac-border pt-3 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+                                <a th:href="@{/files/{id}(id=${file.id})}" class="text-xs font-black text-eac-red transition hover:text-eac-red-hover">View file</a>
+                                <a th:href="@{/files/{id}/edit(id=${file.id})}" class="text-xs font-black text-eac-red transition hover:text-eac-red-hover">Edit metadata</a>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+            <div id="noFilteredUploads" class="mt-6 hidden rounded-2xl border border-dashed border-eac-border bg-eac-bg p-8 text-center">
+                <p class="font-black text-eac-text">No uploads match this view.</p>
+                <p class="mt-1 text-sm text-eac-text-light">Clear the filters or search for another file.</p>
+            </div>
+
+            <div class="mt-6 flex flex-col gap-4 text-sm text-eac-text-light sm:flex-row sm:items-center sm:justify-between">
+                <p th:unless="${files.empty}" th:text="|Showing ${files.number * files.size + 1} to ${files.number * files.size + files.numberOfElements} of ${files.totalElements} uploads|">Showing uploads</p>
+                <div class="flex items-center justify-center gap-2" th:if="${files.totalPages > 1}">
+                    <a th:if="${!files.first}" th:href="@{/my-uploads(page=${files.number - 1})}" class="grid h-10 w-10 place-items-center rounded-xl border border-eac-border bg-white font-bold text-eac-text transition hover:border-eac-red/40 hover:text-eac-red">&lt;</a>
+                    <a th:each="p : ${#numbers.sequence(0, files.totalPages - 1)}" th:href="@{/my-uploads(page=${p})}" th:text="${p + 1}" th:classappend="${p == files.number ? 'bg-eac-red text-white border-eac-red' : 'bg-white text-eac-text border-eac-border hover:border-eac-red/40 hover:text-eac-red'}" class="grid h-10 w-10 place-items-center rounded-xl border text-sm font-bold transition"></a>
+                    <a th:if="${!files.last}" th:href="@{/my-uploads(page=${files.number + 1})}" class="grid h-10 w-10 place-items-center rounded-xl border border-eac-border bg-white font-bold text-eac-text transition hover:border-eac-red/40 hover:text-eac-red">&gt;</a>
+                </div>
+                <label class="flex items-center gap-3"><span>Rows per page:</span><select class="rounded-xl border border-eac-border bg-white px-3 py-2 text-sm font-bold text-eac-text outline-none"><option>20</option></select></label>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -120,15 +133,65 @@
                 navPanel.classList.toggle('hidden');
             });
         }
-
-        // Access policy select auto-submits its own small form on change -
-        // no separate save button needed (see UploadController.updateAccessPolicy).
         document.querySelectorAll('.access-policy-select').forEach(function (select) {
             select.addEventListener('change', function () {
                 select.closest('form').submit();
             });
         });
+        var activeStatus = 'ALL';
+        var searchInput = document.getElementById('uploadSearch');
+        var sortSelect = document.getElementById('sortUploads');
+        var uploadsList = document.getElementById('uploadsList');
+        var emptyFiltered = document.getElementById('noFilteredUploads');
+        var cards = Array.prototype.slice.call(document.querySelectorAll('.upload-card'));
+        function applyUploadFilters() {
+            var query = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
+            var visibleCount = 0;
+            cards.forEach(function (card) {
+                var visible = (activeStatus === 'ALL' || card.dataset.status === activeStatus) && (!query || (card.dataset.title || '').indexOf(query) !== -1);
+                card.classList.toggle('hidden', !visible);
+                if (visible) visibleCount++;
+            });
+            if (emptyFiltered) emptyFiltered.classList.toggle('hidden', visibleCount > 0);
+        }
+        document.querySelectorAll('.status-chip').forEach(function (button) {
+            button.addEventListener('click', function () {
+                activeStatus = button.dataset.status;
+                document.querySelectorAll('.status-chip').forEach(function (chip) {
+                    var isActive = chip === button;
+                    chip.classList.toggle('bg-eac-red', isActive);
+                    chip.classList.toggle('border-eac-red', isActive);
+                    chip.classList.toggle('text-white', isActive);
+                    chip.classList.toggle('bg-white', !isActive);
+                    chip.classList.toggle('border-eac-border', !isActive);
+                    chip.classList.toggle('text-eac-text', !isActive);
+                });
+                applyUploadFilters();
+            });
+        });
+        if (searchInput) searchInput.addEventListener('input', applyUploadFilters);
+        if (sortSelect && uploadsList) {
+            sortSelect.addEventListener('change', function () {
+                var sorted = cards.slice().sort(function (a, b) {
+                    if (sortSelect.value === 'title') return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+                    var aTime = Date.parse(a.dataset.created || '');
+                    var bTime = Date.parse(b.dataset.created || '');
+                    return sortSelect.value === 'oldest' ? aTime - bTime : bTime - aTime;
+                });
+                sorted.forEach(function (card) { uploadsList.appendChild(card); });
+                cards = sorted;
+                applyUploadFilters();
+            });
+        }
+        var resetFilters = document.getElementById('resetFilters');
+        if (resetFilters) {
+            resetFilters.addEventListener('click', function () {
+                activeStatus = 'ALL';
+                if (searchInput) searchInput.value = '';
+                document.querySelector('[data-status="ALL"]')?.click();
+                applyUploadFilters();
+            });
+        }
     </script>
-
 </body>
 </html>

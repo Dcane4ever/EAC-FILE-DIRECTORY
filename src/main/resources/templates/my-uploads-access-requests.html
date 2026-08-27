@@ -7,25 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/output.css}">
 </head>
 <body class="min-h-screen bg-[#f7f7f8] text-eac-text">
-    <header class="border-b border-eac-border bg-white">
-        <div class="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
-            <a th:href="@{/home}" class="flex shrink-0 items-center gap-3"><img th:src="@{/images/emblem.png}" alt="EAC" class="h-10 w-10"><span class="whitespace-nowrap text-lg font-bold text-eac-maroon">EAC File Directory</span></a>
-            <nav class="hidden items-center gap-7 text-sm font-medium lg:flex">
-                <a th:href="@{/browse}" class="text-eac-text transition hover:text-eac-red">Browse</a>
-                <a th:href="@{/saved-files}" class="text-eac-text transition hover:text-eac-red">Saved Files</a>
-                <a th:href="@{/upload}" class="text-eac-text transition hover:text-eac-red">Upload</a>
-                <a th:href="@{/my-uploads}" class="font-semibold text-eac-red">My Uploads</a>
-                <a th:href="@{/my-requests}" class="text-eac-text transition hover:text-eac-red">My Requests</a>
-                <a th:href="@{/notifications}" class="relative text-eac-text transition hover:text-eac-red">Notifications<span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}" class="absolute -right-3 -top-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-eac-red px-1 text-[10px] font-bold text-white"></span></a>
-                <div class="h-6 w-px bg-eac-border"></div>
-                <form th:action="@{/logout}" method="post"><button type="submit" class="rounded-lg bg-eac-red px-5 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover">Sign Out</button></form>
-            </nav>
-            <button type="button" id="navToggle" aria-label="Toggle menu" class="p-2 text-eac-maroon lg:hidden">Menu</button>
-        </div>
-        <div id="navPanel" class="hidden border-t border-eac-border bg-white px-6 py-4 text-sm font-medium lg:hidden">
-            <div class="space-y-3"><a th:href="@{/browse}" class="block">Browse</a><a th:href="@{/saved-files}" class="block">Saved Files</a><a th:href="@{/upload}" class="block">Upload</a><a th:href="@{/my-uploads}" class="block font-semibold text-eac-red">My Uploads</a><a th:href="@{/my-requests}" class="block">My Requests</a><a th:href="@{/notifications}" class="block">Notifications</a></div>
-        </div>
-    </header>
+    <header th:replace="~{fragments/user-header :: header('uploads')}"></header>
 
     <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         <a th:href="@{/my-uploads}" class="inline-flex text-sm font-bold text-eac-red transition hover:text-eac-red-hover">Back to My Uploads</a>
@@ -60,7 +42,7 @@
                     <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                         <div class="min-w-0">
                             <div class="mb-3 flex flex-wrap items-center gap-2">
-                                <span class="rounded-full px-3 py-1 text-xs font-black" th:classappend="${req.status.name() == 'APPROVED'} ? ' bg-green-100 text-green-700' : (${req.status.name() == 'DENIED'} ? ' bg-red-100 text-red-700' : (${req.status.name() == 'EXPIRED'} ? ' bg-gray-100 text-gray-600' : ' bg-amber-100 text-amber-700'))" th:text="${req.status}">PENDING</span>
+                                <span class="rounded-full px-3 py-1 text-xs font-black" th:classappend="${req.status.name() == 'APPROVED' ? ' bg-green-100 text-green-700' : (req.status.name() == 'DENIED' ? ' bg-red-100 text-red-700' : (req.status.name() == 'EXPIRED' ? ' bg-gray-100 text-gray-600' : ' bg-amber-100 text-amber-700'))}" th:text="${req.status}">PENDING</span>
                                 <span class="text-xs font-bold text-eac-text-light" th:text="${req.file.department.code + ' / ' + req.file.category.name}">Department</span>
                             </div>
                             <a th:href="@{/files/{id}(id=${req.file.id})}" class="text-lg font-black leading-snug text-eac-maroon transition hover:text-eac-red" th:text="${req.file.title}">File title</a>

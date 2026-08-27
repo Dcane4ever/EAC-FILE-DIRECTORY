@@ -130,7 +130,7 @@
                                             <p class="mt-2 text-xs font-bold text-eac-text-light" th:text="${file.category.name + ' / ' + #strings.toUpperCase(file.extension())}">Category</p>
                                         </td>
                                         <td class="px-4 py-5">
-                                            <span class="inline-flex rounded-full px-3 py-1 text-xs font-black" th:classappend="${file.status.name() == 'APPROVED'} ? ' bg-green-100 text-green-700' : (${file.status.name() == 'REJECTED'} ? ' bg-red-100 text-red-700' : (${file.status.name() == 'ARCHIVED'} ? ' bg-eac-navy/10 text-eac-navy' : ' bg-amber-100 text-amber-700'))" th:text="${file.status}">STATUS</span>
+                                            <span class="inline-flex rounded-full px-3 py-1 text-xs font-black" th:classappend="${file.status.name() == 'APPROVED' ? ' bg-green-100 text-green-700' : (file.status.name() == 'REJECTED' ? ' bg-red-100 text-red-700' : (file.status.name() == 'ARCHIVED' ? ' bg-eac-navy/10 text-eac-navy' : ' bg-amber-100 text-amber-700'))}" th:text="${file.status}">STATUS</span>
                                         </td>
                                         <td class="px-4 py-5 text-xs">
                                             <a th:href="@{/users/{id}(id=${file.uploader.id})}" class="font-bold text-eac-text hover:text-eac-red" th:text="${file.uploader.fullName}">Uploader</a>
