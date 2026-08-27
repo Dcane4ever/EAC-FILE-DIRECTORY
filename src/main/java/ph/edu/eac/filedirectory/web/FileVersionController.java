@@ -91,42 +91,34 @@ public class FileVersionController {
         }
 
         FileStorageService.StoredFile stored = storageService.store(upload, file.getDepartment());
-        int nextVersion = currentVersion + 1;
+        int latestKnownVersion = fileVersionRepository.findByFileOrderByVersionNumberDesc(file).stream()
+                .mapToInt(FileVersion::getVersionNumber)
+                .max()
+                .orElse(currentVersion);
+        int nextVersion = latestKnownVersion + 1;
         String originalFilename = upload.getOriginalFilename() == null ? "file" : upload.getOriginalFilename();
         String mimeType = upload.getContentType() == null ? "application/octet-stream" : upload.getContentType();
         String cleanNote = blankToNull(note);
 
-        file.setFilePath(stored.relativePath());
-        file.setOriginalFilename(originalFilename);
-        file.setFileSize(stored.size());
-        file.setMimeType(mimeType);
-        file.setChecksum(stored.checksumSha256());
-        file.setVersionNumber(nextVersion);
+        FileVersion version = new FileVersion(file, nextVersion, stored.relativePath(), originalFilename,
+                stored.size(), mimeType, stored.checksumSha256(), actor, cleanNote);
 
-        if (!isStaff(actor)) {
-            file.setStatus(FileStatus.PENDING);
-            file.setApprovedBy(null);
-            file.setApprovedAt(null);
-            file.setRejectionReason(null);
-        } else if (file.getStatus() == FileStatus.REJECTED) {
-            file.setStatus(FileStatus.PENDING);
-            file.setApprovedBy(null);
-            file.setApprovedAt(null);
-            file.setRejectionReason(null);
-        } else if (file.getStatus() == FileStatus.ARCHIVED) {
-            file.setStatusBeforeArchive(null);
-            file.setArchivedBy(null);
-            file.setArchivedAt(null);
-            file.setArchiveReason(null);
-            file.setStatus(FileStatus.PENDING);
+        if (isStaff(actor)) {
+            promoteVersion(file, version, actor);
         } else if (file.getStatus() == FileStatus.APPROVED) {
-            file.setApprovedBy(actor);
-            file.setApprovedAt(Instant.now());
+            rejectOlderPendingVersions(file, actor, "Superseded by version " + nextVersion);
+            version.setStatus(FileStatus.PENDING);
+            fileVersionRepository.save(version);
+        } else {
+            promoteVersion(file, version, actor);
+            file.setStatus(FileStatus.PENDING);
+            file.setApprovedBy(null);
+            file.setApprovedAt(null);
+            file.setRejectionReason(null);
         }
 
         fileRepository.save(file);
-        fileVersionRepository.save(new FileVersion(file, nextVersion, stored.relativePath(), originalFilename,
-                stored.size(), mimeType, stored.checksumSha256(), actor, cleanNote));
+        fileVersionRepository.save(version);
         auditService.fileVersionUploaded(actor, file.getId(), file.getTitle(), nextVersion, cleanNote);
 
         redirectAttributes.addFlashAttribute("infoMessage",
@@ -279,8 +271,40 @@ public class FileVersionController {
     }
 
     private FileVersion snapshot(FileEntity file, int versionNumber, AppUser uploadedBy, String note) {
-        return new FileVersion(file, versionNumber, file.getFilePath(), file.getOriginalFilename(),
+        FileVersion version = new FileVersion(file, versionNumber, file.getFilePath(), file.getOriginalFilename(),
                 file.getFileSize(), file.getMimeType(), file.getChecksum(), uploadedBy, note);
+        version.setStatus(file.getStatus() == FileStatus.APPROVED ? FileStatus.APPROVED : FileStatus.PENDING);
+        version.setApprovedBy(file.getApprovedBy());
+        version.setApprovedAt(file.getApprovedAt());
+        version.setRejectionReason(file.getRejectionReason());
+        return version;
+    }
+
+    private void promoteVersion(FileEntity file, FileVersion version, AppUser approver) {
+        file.setFilePath(version.getFilePath());
+        file.setOriginalFilename(version.getOriginalFilename());
+        file.setFileSize(version.getFileSize());
+        file.setMimeType(version.getMimeType());
+        file.setChecksum(version.getChecksum());
+        file.setVersionNumber(version.getVersionNumber());
+        file.setStatus(FileStatus.APPROVED);
+        file.setApprovedBy(approver);
+        file.setApprovedAt(Instant.now());
+        file.setRejectionReason(null);
+        version.setStatus(FileStatus.APPROVED);
+        version.setApprovedBy(approver);
+        version.setApprovedAt(file.getApprovedAt());
+        version.setRejectionReason(null);
+    }
+
+    private void rejectOlderPendingVersions(FileEntity file, AppUser actor, String reason) {
+        for (FileVersion pending : fileVersionRepository.findByFileAndStatusOrderByVersionNumberDesc(file, FileStatus.PENDING)) {
+            pending.setStatus(FileStatus.REJECTED);
+            pending.setApprovedBy(actor);
+            pending.setApprovedAt(Instant.now());
+            pending.setRejectionReason(reason);
+            fileVersionRepository.save(pending);
+        }
     }
 
     private FileVersion requirePreviewableVersion(FileEntity file, int versionNumber) {

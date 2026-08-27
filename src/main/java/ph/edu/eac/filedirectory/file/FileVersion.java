@@ -37,9 +37,22 @@ public class FileVersion {
     @Column(length = 128)
     private String checksum;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 32)
+    private FileStatus status = FileStatus.APPROVED;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "uploaded_by", nullable = false)
     private AppUser uploadedBy;
+
+    @ManyToOne
+    @JoinColumn(name = "approved_by")
+    private AppUser approvedBy;
+
+    private Instant approvedAt;
+
+    @Column(length = 500)
+    private String rejectionReason;
 
     @Column(length = 500)
     private String note;
@@ -124,6 +137,38 @@ public class FileVersion {
 
     public AppUser getUploadedBy() {
         return uploadedBy;
+    }
+
+    public FileStatus getStatus() {
+        return status == null ? FileStatus.APPROVED : status;
+    }
+
+    public void setStatus(FileStatus status) {
+        this.status = status;
+    }
+
+    public AppUser getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(AppUser approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public Instant getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(Instant approvedAt) {
+        this.approvedAt = approvedAt;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 
     public String getNote() {

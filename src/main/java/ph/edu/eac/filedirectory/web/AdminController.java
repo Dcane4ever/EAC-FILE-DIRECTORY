@@ -20,6 +20,8 @@ import ph.edu.eac.filedirectory.file.FileSortOption;
 import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.FileSpecifications;
 import ph.edu.eac.filedirectory.file.FileTypeValidator;
+import ph.edu.eac.filedirectory.file.FileVersion;
+import ph.edu.eac.filedirectory.file.FileVersionRepository;
 import ph.edu.eac.filedirectory.notification.NotificationService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.taxonomy.CategoryRepository;
@@ -56,15 +58,18 @@ public class AdminController {
     private final FileRepository fileRepository;
     private final DepartmentRepository departmentRepository;
     private final CategoryRepository categoryRepository;
+    private final FileVersionRepository fileVersionRepository;
     private final NotificationService notificationService;
     private final AuditService auditService;
 
     public AdminController(FileRepository fileRepository, DepartmentRepository departmentRepository,
                             CategoryRepository categoryRepository,
+                            FileVersionRepository fileVersionRepository,
                             NotificationService notificationService, AuditService auditService) {
         this.fileRepository = fileRepository;
         this.departmentRepository = departmentRepository;
         this.categoryRepository = categoryRepository;
+        this.fileVersionRepository = fileVersionRepository;
         this.notificationService = notificationService;
         this.auditService = auditService;
     }
@@ -79,7 +84,18 @@ public class AdminController {
                          @RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size,
                          Model model) {
-        List<FileEntity> pending = fileRepository.findByStatusOrderByCreatedAtAsc(FileStatus.PENDING);
+        List<FileEntity> pendingOriginals = fileRepository.findByStatusOrderByCreatedAtAsc(FileStatus.PENDING);
+        List<FileVersion> pendingVersions = fileVersionRepository.findByStatusOrderByCreatedAtAsc(FileStatus.PENDING);
+        Map<Long, FileVersion> pendingVersionByFileId = pendingVersions.stream()
+                .collect(Collectors.toMap(v -> v.getFile().getId(), v -> v, (older, newer) ->
+                        older.getVersionNumber() >= newer.getVersionNumber() ? older : newer, LinkedHashMap::new));
+        Map<Long, FileEntity> pendingById = new LinkedHashMap<>();
+        pendingOriginals.forEach(file -> pendingById.put(file.getId(), file));
+        pendingVersions.stream()
+                .map(FileVersion::getFile)
+                .filter(file -> file.getStatus() != FileStatus.ARCHIVED)
+                .forEach(file -> pendingById.putIfAbsent(file.getId(), file));
+        List<FileEntity> pending = new ArrayList<>(pendingById.values());
 
         Map<Department, List<FileEntity>> byDepartment = pending.stream()
                 .collect(Collectors.groupingBy(FileEntity::getDepartment, LinkedHashMap::new, Collectors.toList()));
@@ -127,6 +143,7 @@ public class AdminController {
         model.addAttribute("allDepartments", allDepartments);
         model.addAttribute("departmentCounts", byDepartment.entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey().getId(), e -> e.getValue().size())));
+        model.addAttribute("pendingVersionByFileId", pendingVersionByFileId);
         model.addAttribute("groups", pageOfGroups);
         model.addAttribute("totalPending", pending.size());
         model.addAttribute("totalDepartments", totalDepartments);
@@ -356,6 +373,17 @@ public class AdminController {
     }
 
     private void approveOne(FileEntity file, AppUser moderator) {
+        Optional<FileVersion> pendingVersion = fileVersionRepository.findFirstByFileAndStatusOrderByVersionNumberDesc(file, FileStatus.PENDING);
+        if (pendingVersion.isPresent() && file.getStatus() != FileStatus.PENDING) {
+            FileVersion version = pendingVersion.get();
+            promotePendingVersion(file, version, moderator);
+            rejectOlderPendingVersions(file, version.getVersionNumber(), moderator, "Superseded by approved version " + version.getVersionNumber());
+            fileRepository.save(file);
+            fileVersionRepository.save(version);
+            notificationService.uploadApproved(file.getUploader(), file.getTitle(), file.getId());
+            auditService.fileApproved(moderator, file.getId(), file.getTitle());
+            return;
+        }
         file.setStatus(FileStatus.APPROVED);
         file.setApprovedBy(moderator);
         file.setApprovedAt(Instant.now());
@@ -367,6 +395,19 @@ public class AdminController {
     }
 
     private void rejectOne(FileEntity file, AppUser moderator, String reason) {
+        Optional<FileVersion> pendingVersion = fileVersionRepository.findFirstByFileAndStatusOrderByVersionNumberDesc(file, FileStatus.PENDING);
+        if (pendingVersion.isPresent() && file.getStatus() != FileStatus.PENDING) {
+            FileVersion version = pendingVersion.get();
+            String rejectionReason = reason == null || reason.isBlank() ? "No reason given" : reason.trim();
+            version.setStatus(FileStatus.REJECTED);
+            version.setApprovedBy(moderator);
+            version.setApprovedAt(Instant.now());
+            version.setRejectionReason(rejectionReason);
+            fileVersionRepository.save(version);
+            notificationService.uploadRejected(file.getUploader(), file.getTitle(), file.getId(), rejectionReason);
+            auditService.fileRejected(moderator, file.getId(), file.getTitle(), rejectionReason);
+            return;
+        }
         file.setStatus(FileStatus.REJECTED);
         file.setApprovedBy(moderator);
         file.setApprovedAt(Instant.now());
@@ -376,6 +417,36 @@ public class AdminController {
 
         notificationService.uploadRejected(file.getUploader(), file.getTitle(), file.getId(), rejectionReason);
         auditService.fileRejected(moderator, file.getId(), file.getTitle(), rejectionReason);
+    }
+
+    private void promotePendingVersion(FileEntity file, FileVersion version, AppUser moderator) {
+        file.setFilePath(version.getFilePath());
+        file.setOriginalFilename(version.getOriginalFilename());
+        file.setFileSize(version.getFileSize());
+        file.setMimeType(version.getMimeType());
+        file.setChecksum(version.getChecksum());
+        file.setVersionNumber(version.getVersionNumber());
+        file.setStatus(FileStatus.APPROVED);
+        file.setApprovedBy(moderator);
+        file.setApprovedAt(Instant.now());
+        file.setRejectionReason(null);
+        version.setStatus(FileStatus.APPROVED);
+        version.setApprovedBy(moderator);
+        version.setApprovedAt(file.getApprovedAt());
+        version.setRejectionReason(null);
+    }
+
+    private void rejectOlderPendingVersions(FileEntity file, int approvedVersionNumber, AppUser moderator, String reason) {
+        for (FileVersion pending : fileVersionRepository.findByFileAndStatusOrderByVersionNumberDesc(file, FileStatus.PENDING)) {
+            if (pending.getVersionNumber() == approvedVersionNumber) {
+                continue;
+            }
+            pending.setStatus(FileStatus.REJECTED);
+            pending.setApprovedBy(moderator);
+            pending.setApprovedAt(Instant.now());
+            pending.setRejectionReason(reason);
+            fileVersionRepository.save(pending);
+        }
     }
 
     /**

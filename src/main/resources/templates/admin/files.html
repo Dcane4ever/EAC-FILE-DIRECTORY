@@ -125,7 +125,7 @@
                                 <tbody class="divide-y divide-eac-border">
                                     <tr th:each="file : ${files.content}" class="align-top transition hover:bg-eac-bg/70">
                                         <td class="px-4 py-5">
-                                            <a th:href="@{/files/{id}(id=${file.id})}" class="font-black leading-snug text-eac-maroon hover:text-eac-red" th:text="${file.title}">File title</a>
+                                            <a th:href="@{/files/{id}(id=${file.id},returnTo='/admin/files')}" class="font-black leading-snug text-eac-maroon hover:text-eac-red" th:text="${file.title}">File title</a>
                                             <p class="mt-1 line-clamp-2 max-w-md text-xs leading-5 text-eac-text-light" th:text="${file.description}">Description</p>
                                             <p class="mt-2 text-xs font-bold text-eac-text-light" th:text="${file.category.name + ' / ' + #strings.toUpperCase(file.extension())}">Category</p>
                                         </td>
@@ -143,8 +143,8 @@
                                         <td class="px-4 py-5 text-xs font-medium text-eac-text-light" th:text="${#temporals.format(file.createdAt, 'MMM d, yyyy')}">Date</td>
                                         <td class="px-4 py-5 text-right">
                                             <div class="flex flex-wrap justify-end gap-2">
-                                                <a th:href="@{/files/{id}(id=${file.id})}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">View</a>
-                                                <a th:href="@{/files/{id}/edit(id=${file.id})}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Edit</a>
+                                                <a th:href="@{/files/{id}(id=${file.id},returnTo='/admin/files')}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">View</a>
+                                                <a th:href="@{/files/{id}/edit(id=${file.id},returnTo='/admin/files')}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Edit</a>
                                                 <form th:if="${file.status.name() == 'PENDING' or file.status.name() == 'REJECTED'}" th:action="@{/admin/files/{id}/approve(id=${file.id})}" method="post">
                                                     <button type="submit" class="rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-green-700">Approve</button>
                                                 </form>

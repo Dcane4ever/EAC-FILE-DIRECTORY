@@ -33,6 +33,8 @@ import java.time.Year;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -64,12 +66,13 @@ public class FileMetadataController {
 
     @GetMapping("/files/{id}/edit")
     public String editForm(@PathVariable Long id,
+                           @RequestParam(required = false) String returnTo,
                            @AuthenticationPrincipal EacUserDetails principal,
                            Model model) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
         requireCanEdit(file, principal);
-        addFormAttributes(model, file);
+        addFormAttributes(model, file, safeReturnTo(returnTo, principal));
         return "file-edit";
     }
 
@@ -86,23 +89,25 @@ public class FileMetadataController {
                          @RequestParam(required = false) Long courseId,
                          @RequestParam Long categoryId,
                          @RequestParam(required = false) String tags,
+                         @RequestParam(required = false) String returnTo,
                          @AuthenticationPrincipal EacUserDetails principal,
                          RedirectAttributes redirectAttributes,
                          Model model) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
         requireCanEdit(file, principal);
+        String safeReturnTo = safeReturnTo(returnTo, principal);
 
         if (title == null || title.isBlank()) {
-            return reject(model, file, "Title is required.");
+            return reject(model, file, safeReturnTo, "Title is required.");
         }
         if (countTags(tags) > MAX_TAGS) {
-            return reject(model, file, "You can add at most " + MAX_TAGS + " tags.");
+            return reject(model, file, safeReturnTo, "You can add at most " + MAX_TAGS + " tags.");
         }
         if (academicYear != null) {
             int nextYear = Year.now().getValue() + 1;
             if (academicYear < 1900 || academicYear > nextYear) {
-                return reject(model, file, "Academic year must be between 1900 and " + nextYear + ".");
+                return reject(model, file, safeReturnTo, "Academic year must be between 1900 and " + nextYear + ".");
             }
         }
 
@@ -114,10 +119,10 @@ public class FileMetadataController {
         Course course = courseId != null ? courseRepository.findById(courseId).orElse(null) : null;
 
         if (program != null && !program.getDepartment().getId().equals(department.getId())) {
-            return reject(model, file, "Selected program does not belong to the selected department.");
+            return reject(model, file, safeReturnTo, "Selected program does not belong to the selected department.");
         }
         if (course != null && !course.getDepartment().getId().equals(department.getId())) {
-            return reject(model, file, "Selected course does not belong to the selected department.");
+            return reject(model, file, safeReturnTo, "Selected course does not belong to the selected department.");
         }
 
         file.setTitle(title.trim());
@@ -133,17 +138,18 @@ public class FileMetadataController {
         fileRepository.save(file);
 
         redirectAttributes.addFlashAttribute("infoMessage", "Metadata updated for \"" + file.getTitle() + "\".");
-        return "redirect:/files/" + file.getId();
+        return "redirect:/files/" + file.getId() + encodedReturnToQuery(safeReturnTo);
     }
 
-    private String reject(Model model, FileEntity file, String message) {
+    private String reject(Model model, FileEntity file, String returnTo, String message) {
         model.addAttribute("errorMessage", message);
-        addFormAttributes(model, file);
+        addFormAttributes(model, file, returnTo);
         return "file-edit";
     }
 
-    private void addFormAttributes(Model model, FileEntity file) {
+    private void addFormAttributes(Model model, FileEntity file, String returnTo) {
         model.addAttribute("file", file);
+        model.addAttribute("returnTo", returnTo);
         model.addAttribute("departments", departmentRepository.findAll(Sort.by("name")));
         model.addAttribute("categories", categoryRepository.findAll(Sort.by("name")));
         model.addAttribute("programs", file.getDepartment() != null
@@ -156,6 +162,40 @@ public class FileMetadataController {
                 .map(Tag::getName)
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(java.util.stream.Collectors.joining(", ")));
+    }
+
+    private String safeReturnTo(String returnTo, EacUserDetails principal) {
+        if (returnTo == null || returnTo.isBlank() || returnTo.contains("\r") || returnTo.contains("\n")) {
+            return null;
+        }
+        if (!returnTo.startsWith("/") || returnTo.startsWith("//")) {
+            return null;
+        }
+        if (returnTo.startsWith("/admin/")) {
+            if (principal == null) {
+                return null;
+            }
+            Role role = principal.getAppUser().getRole();
+            boolean isStaff = role == Role.MODERATOR || role == Role.ADMIN;
+            if (!isStaff) {
+                return null;
+            }
+            if (returnTo.startsWith("/admin/queue") || returnTo.startsWith("/admin/files")) {
+                return returnTo;
+            }
+            return null;
+        }
+        if (returnTo.startsWith("/my-uploads") || returnTo.startsWith("/browse")) {
+            return returnTo;
+        }
+        return null;
+    }
+
+    private String encodedReturnToQuery(String returnTo) {
+        if (returnTo == null) {
+            return "";
+        }
+        return "?returnTo=" + URLEncoder.encode(returnTo, StandardCharsets.UTF_8);
     }
 
     private void requireCanEdit(FileEntity file, EacUserDetails principal) {

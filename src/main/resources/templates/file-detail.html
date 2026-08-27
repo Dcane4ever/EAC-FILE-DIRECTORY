@@ -11,9 +11,9 @@
     <header th:replace="~{fragments/user-header :: header('browse')}"></header>
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <a th:href="@{/browse}" class="inline-flex items-center gap-2 text-sm font-semibold text-eac-red hover:text-eac-red-hover transition">
+        <a th:href="${returnTo != null ? returnTo : '/browse'}" class="inline-flex items-center gap-2 text-sm font-semibold text-eac-red hover:text-eac-red-hover transition">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-            Back to Browse
+            <span th:text="${returnLabel}">Back to Browse</span>
         </a>
 
         <div th:if="${infoMessage}" id="flashToast"
@@ -68,7 +68,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <a th:if="${canEditMetadata}" th:href="@{/files/{id}/edit(id=${file.id})}"
+                        <a th:if="${canEditMetadata}" th:href="@{/files/{id}/edit(id=${file.id},returnTo=${returnTo})}"
                            class="w-full inline-flex items-center justify-center gap-2 border border-eac-border hover:border-eac-red/40 hover:text-eac-red transition text-sm font-semibold px-5 py-3 rounded-lg">
                             <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
                             Edit metadata
@@ -240,9 +240,12 @@
             <div class="px-5 sm:px-6 py-4 border-b border-eac-border flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h2 class="font-bold text-eac-maroon">Version history</h2>
-                    <p class="text-sm text-eac-text-light mt-1">Upload corrected files without overwriting the original stored copy.</p>
+                    <p class="text-sm text-eac-text-light mt-1">Approved versions stay public while replacements wait for staff review.</p>
                 </div>
                 <span class="self-start lg:self-auto rounded-full bg-eac-red-soft px-3 py-1 text-xs font-bold text-eac-red" th:text="'Current v' + ${file.versionNumber}">Current v1</span>
+            </div>
+            <div th:if="${pendingVersion != null}" class="border-b border-eac-border bg-amber-50 px-5 py-3 text-sm font-bold text-amber-800 sm:px-6">
+                Version <span th:text="${pendingVersion.versionNumber}">2</span> is waiting for staff approval. The public preview remains on version <span th:text="${file.versionNumber}">1</span>.
             </div>
 
             <div class="grid gap-0 lg:grid-cols-[1fr_380px]">
@@ -258,6 +261,8 @@
                                     <div class="flex flex-wrap items-center gap-2">
                                         <p class="font-black text-eac-maroon" th:text="'Version ' + ${version.versionNumber}">Version</p>
                                         <span th:if="${version.versionNumber == file.versionNumber}" class="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-black text-green-700">Current</span>
+                                        <span th:if="${version.status.name() == 'PENDING'}" class="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-black text-amber-700">Pending review</span>
+                                        <span th:if="${version.status.name() == 'REJECTED'}" class="rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-black text-red-700">Rejected</span>
                                     </div>
                                     <p class="mt-1 break-all text-sm font-semibold text-eac-text" th:text="${version.originalFilename}">filename.pdf</p>
                                     <p class="mt-1 text-xs text-eac-text-light">
@@ -266,6 +271,7 @@
                                         <span th:text="${#temporals.format(version.createdAt, 'MMM d, yyyy HH:mm')}">Date</span>
                                     </p>
                                     <p th:if="${version.note != null and !#strings.isEmpty(version.note)}" class="mt-2 text-sm leading-6 text-eac-text" th:text="${version.note}">Note</p>
+                                    <p th:if="${version.rejectionReason != null and !#strings.isEmpty(version.rejectionReason)}" class="mt-2 text-sm font-semibold leading-6 text-red-600" th:text="'Decision note: ' + ${version.rejectionReason}">Decision note</p>
                                 </div>
                                 <div class="flex shrink-0 flex-wrap gap-2">
                                     <button th:if="${version.versionNumber >= file.versionNumber - 2 and (version.previewable or version.officePreviewable or version.textPreviewable)}"
@@ -291,7 +297,7 @@
 
                 <aside th:if="${canManageVersions}" class="border-t border-eac-border bg-eac-bg/60 p-5 sm:p-6 lg:border-l lg:border-t-0">
                     <h3 class="font-bold text-eac-maroon">Upload a new version</h3>
-                    <p class="mt-2 text-sm leading-6 text-eac-text-light">Use the same file type. The latest version becomes the active preview and download file.</p>
+                    <p class="mt-2 text-sm leading-6 text-eac-text-light">Use the same file type. For uploaders, the current approved file stays public until staff approves the new version.</p>
                     <form th:action="@{/files/{id}/versions(id=${file.id})}" method="post" enctype="multipart/form-data" class="mt-5 space-y-3">
                         <input type="file" name="file" required th:attr="accept=${'.' + file.extension()}"
                                class="block w-full rounded-lg border border-eac-border bg-white px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-eac-red-soft file:px-3 file:py-2 file:text-xs file:font-bold file:text-eac-red">

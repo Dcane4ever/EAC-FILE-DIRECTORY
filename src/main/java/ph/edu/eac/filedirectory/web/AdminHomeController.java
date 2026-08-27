@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
+import ph.edu.eac.filedirectory.file.FileVersionRepository;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.taxonomy.DepartmentRepository;
 import ph.edu.eac.filedirectory.user.AppUserRepository;
@@ -24,13 +25,16 @@ import ph.edu.eac.filedirectory.user.Role;
 public class AdminHomeController {
 
     private final FileRepository fileRepository;
+    private final FileVersionRepository fileVersionRepository;
     private final DepartmentRepository departmentRepository;
     private final AppUserRepository userRepository;
 
     public AdminHomeController(FileRepository fileRepository,
+                                FileVersionRepository fileVersionRepository,
                                 DepartmentRepository departmentRepository,
                                 AppUserRepository userRepository) {
         this.fileRepository = fileRepository;
+        this.fileVersionRepository = fileVersionRepository;
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
     }
@@ -40,7 +44,8 @@ public class AdminHomeController {
         if (principal != null) {
             model.addAttribute("user", principal.getAppUser());
         }
-        model.addAttribute("pendingCount", fileRepository.countByStatus(FileStatus.PENDING));
+        model.addAttribute("pendingCount", fileRepository.countByStatus(FileStatus.PENDING)
+                + fileVersionRepository.findByStatusOrderByCreatedAtAsc(FileStatus.PENDING).size());
         model.addAttribute("departmentCount", departmentRepository.count());
         model.addAttribute("autoApproveCount", departmentRepository.countByAutoApproveTrue());
         model.addAttribute("userCount", userRepository.count());

@@ -163,7 +163,9 @@
                                                         <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                                                             <div class="min-w-0">
                                                                 <span class="rounded-md bg-eac-bg px-2 py-1 text-xs font-black text-eac-text-light" th:text="${file.category.name}">Category</span>
+                                                                <span th:if="${pendingVersionByFileId.get(file.id) != null}" class="ml-2 rounded-md bg-amber-100 px-2 py-1 text-xs font-black text-amber-700" th:text="'Version update v' + ${pendingVersionByFileId.get(file.id).versionNumber}">Version update</span>
                                                                 <h4 class="mt-3 text-base font-black text-eac-text" th:text="${file.title}">File title</h4>
+                                                                <p th:if="${pendingVersionByFileId.get(file.id) != null}" class="mt-1 text-sm font-bold text-eac-red">Current public version remains v<span th:text="${file.versionNumber}">1</span> until this update is approved.</p>
                                                                 <p class="mt-1 text-sm leading-6 text-eac-text-light" th:text="${file.description}">Description</p>
                                                                 <p class="mt-3 text-xs font-semibold text-eac-text-light">
                                                                     <span th:text="${file.uploader.fullName} + ' (' + ${file.uploader.email} + ')'">Uploader</span>
@@ -174,8 +176,8 @@
                                                                 </p>
                                                             </div>
                                                             <div class="flex shrink-0 flex-wrap items-center gap-2">
-                                                                <a th:href="@{/files/{id}/edit(id=${file.id})}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Edit</a>
-                                                                <a th:href="@{/files/{id}(id=${file.id})}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Preview</a>
+                                                                <a th:href="@{/files/{id}/edit(id=${file.id},returnTo='/admin/queue')}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Edit</a>
+                                                                <a th:href="@{/files/{id}(id=${file.id},returnTo='/admin/queue')}" class="rounded-lg border border-eac-border px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Preview</a>
                                                             </div>
                                                         </div>
 

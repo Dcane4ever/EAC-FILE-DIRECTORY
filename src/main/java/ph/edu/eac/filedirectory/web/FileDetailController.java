@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import ph.edu.eac.filedirectory.access.AccessRequest;
@@ -74,13 +75,19 @@ public class FileDetailController {
     }
 
     @GetMapping("/files/{id}")
-    public String detail(@PathVariable Long id, @AuthenticationPrincipal EacUserDetails principal, Model model) {
+    public String detail(@PathVariable Long id,
+                         @RequestParam(required = false) String returnTo,
+                         @AuthenticationPrincipal EacUserDetails principal,
+                         Model model) {
         FileEntity file = fileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         requireViewable(file, principal);
 
         model.addAttribute("file", file);
+        String safeReturnTo = safeReturnTo(returnTo, principal);
+        model.addAttribute("returnTo", safeReturnTo);
+        model.addAttribute("returnLabel", returnLabel(safeReturnTo));
         // preview-guard.js's devtools-reload reaction is a best-effort
         // deterrent (see that file's header comment for exactly what it
         // can't actually stop) - staff are exempted so their own review
@@ -90,8 +97,18 @@ public class FileDetailController {
         boolean canDownloadDirectly = principal != null && canDownloadDirectly(file, principal.getAppUser());
         model.addAttribute("canDownloadDirectly", canDownloadDirectly);
         model.addAttribute("canEditMetadata", principal != null && canEditMetadata(file, principal.getAppUser()));
-        model.addAttribute("canManageVersions", principal != null && canDownloadDirectly(file, principal.getAppUser()));
-        model.addAttribute("versions", fileVersionRepository.findByFileOrderByVersionNumberDesc(file));
+        boolean canManageVersions = principal != null && canDownloadDirectly(file, principal.getAppUser());
+        model.addAttribute("canManageVersions", canManageVersions);
+        var versions = fileVersionRepository.findByFileOrderByVersionNumberDesc(file);
+        if (!canManageVersions) {
+            versions = versions.stream()
+                    .filter(version -> version.getStatus() == FileStatus.APPROVED)
+                    .toList();
+        }
+        model.addAttribute("versions", versions);
+        model.addAttribute("pendingVersion", canManageVersions
+                ? fileVersionRepository.findFirstByFileAndStatusOrderByVersionNumberDesc(file, FileStatus.PENDING).orElse(null)
+                : null);
         model.addAttribute("savedByCurrentUser", principal != null
                 && savedFileRepository.existsByUserAndFile(principal.getAppUser(), file));
         if (!canDownloadDirectly && principal != null) {
@@ -248,6 +265,44 @@ public class FileDetailController {
 
     private boolean canEditMetadata(FileEntity file, AppUser user) {
         return canDownloadDirectly(file, user);
+    }
+
+    private String safeReturnTo(String returnTo, EacUserDetails principal) {
+        if (returnTo == null || returnTo.isBlank() || returnTo.contains("\r") || returnTo.contains("\n")) {
+            return null;
+        }
+        if (!returnTo.startsWith("/") || returnTo.startsWith("//")) {
+            return null;
+        }
+        if (returnTo.startsWith("/admin/")) {
+            if (principal == null || !isStaff(principal)) {
+                return null;
+            }
+            if (returnTo.startsWith("/admin/queue") || returnTo.startsWith("/admin/files")) {
+                return returnTo;
+            }
+            return null;
+        }
+        if (returnTo.startsWith("/my-uploads") || returnTo.startsWith("/browse")) {
+            return returnTo;
+        }
+        return null;
+    }
+
+    private String returnLabel(String returnTo) {
+        if (returnTo == null) {
+            return "Back to Browse";
+        }
+        if (returnTo.startsWith("/admin/queue")) {
+            return "Back to Approval Queue";
+        }
+        if (returnTo.startsWith("/admin/files")) {
+            return "Back to Manage Files";
+        }
+        if (returnTo.startsWith("/my-uploads")) {
+            return "Back to My Uploads";
+        }
+        return "Back to Browse";
     }
 
     private void requireDirectDownload(FileEntity file, EacUserDetails principal) {
