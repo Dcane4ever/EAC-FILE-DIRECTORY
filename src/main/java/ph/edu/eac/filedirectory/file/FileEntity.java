@@ -101,6 +101,8 @@ public class FileEntity {
     @Column(nullable = false)
     private long downloadCount = 0;
 
+    private Integer versionNumber = 1;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -260,16 +262,32 @@ public class FileEntity {
         return filePath;
     }
 
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
     public String getOriginalFilename() {
         return originalFilename;
+    }
+
+    public void setOriginalFilename(String originalFilename) {
+        this.originalFilename = originalFilename;
     }
 
     public long getFileSize() {
         return fileSize;
     }
 
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
     public String getMimeType() {
         return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 
     /**
@@ -330,8 +348,20 @@ public class FileEntity {
         return checksum;
     }
 
+    public void setChecksum(String checksum) {
+        this.checksum = checksum;
+    }
+
     public long getDownloadCount() {
         return downloadCount;
+    }
+
+    public int getVersionNumber() {
+        return versionNumber == null || versionNumber < 1 ? 1 : versionNumber;
+    }
+
+    public void setVersionNumber(int versionNumber) {
+        this.versionNumber = Math.max(1, versionNumber);
     }
 
     public void incrementDownloadCount() {

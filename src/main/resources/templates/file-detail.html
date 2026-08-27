@@ -103,6 +103,7 @@
                         <div>
                             <p class="text-xs font-bold tracking-wide uppercase text-eac-red" th:text="${#strings.toUpperCase(file.extension())}">FILE</p>
                             <p class="text-xs text-eac-text-light mt-0.5 break-all" th:text="${file.originalFilename}"></p>
+                            <p class="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-eac-maroon" th:text="'Version ' + ${file.versionNumber}">Version 1</p>
                         </div>
                     </div>
 
@@ -188,6 +189,7 @@
                 <div>
                     <h2 class="font-bold text-eac-maroon">Preview</h2>
                     <p class="text-xs text-eac-text-light mt-0.5" th:text="${file.originalFilename}"></p>
+                    <p id="previewVersionLabel" class="mt-1 text-xs font-bold text-eac-red" th:text="'Previewing current version v' + ${file.versionNumber}">Previewing current version v1</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <a th:if="${file.previewable}" th:href="@{/files/{id}/preview-content(id=${file.id})}" target="_blank" rel="noopener"
@@ -272,6 +274,75 @@
                     </div>
                 </div>
             </dl>
+        </section>
+
+        <section class="mt-5 bg-white rounded-xl border border-eac-border shadow-sm overflow-hidden">
+            <div class="px-5 sm:px-6 py-4 border-b border-eac-border flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <h2 class="font-bold text-eac-maroon">Version history</h2>
+                    <p class="text-sm text-eac-text-light mt-1">Upload corrected files without overwriting the original stored copy.</p>
+                </div>
+                <span class="self-start lg:self-auto rounded-full bg-eac-red-soft px-3 py-1 text-xs font-bold text-eac-red" th:text="'Current v' + ${file.versionNumber}">Current v1</span>
+            </div>
+
+            <div class="grid gap-0 lg:grid-cols-[1fr_380px]">
+                <div class="p-5 sm:p-6">
+                    <div th:if="${#lists.isEmpty(versions)}" class="rounded-xl border border-dashed border-eac-border bg-eac-bg p-5">
+                        <p class="font-bold text-eac-text">Version 1 is the original upload.</p>
+                        <p class="mt-1 text-sm text-eac-text-light">New versions will appear here after the uploader or staff uploads a corrected file.</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(versions)}" class="space-y-3">
+                        <article th:each="version : ${versions}" class="rounded-xl border border-eac-border bg-eac-bg/70 p-4">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-black text-eac-maroon" th:text="'Version ' + ${version.versionNumber}">Version</p>
+                                        <span th:if="${version.versionNumber == file.versionNumber}" class="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-black text-green-700">Current</span>
+                                    </div>
+                                    <p class="mt-1 break-all text-sm font-semibold text-eac-text" th:text="${version.originalFilename}">filename.pdf</p>
+                                    <p class="mt-1 text-xs text-eac-text-light">
+                                        <span th:text="'Uploaded by ' + ${version.uploadedBy.fullName}">Uploaded by</span>
+                                        <span> on </span>
+                                        <span th:text="${#temporals.format(version.createdAt, 'MMM d, yyyy HH:mm')}">Date</span>
+                                    </p>
+                                    <p th:if="${version.note != null and !#strings.isEmpty(version.note)}" class="mt-2 text-sm leading-6 text-eac-text" th:text="${version.note}">Note</p>
+                                </div>
+                                <div class="flex shrink-0 flex-wrap gap-2">
+                                    <button th:if="${version.versionNumber >= file.versionNumber - 2 and (version.previewable or version.officePreviewable or version.textPreviewable)}"
+                                       type="button"
+                                       class="version-preview-button inline-flex items-center justify-center rounded-lg bg-eac-red px-3 py-2 text-xs font-bold text-white transition hover:bg-eac-red-hover"
+                                       th:attr="data-version=${version.versionNumber},
+                                                data-label=${'Previewing version v' + version.versionNumber},
+                                                data-kind=${version.previewable ? 'pdf' : (version.officePreviewable ? 'office' : (version.textPreviewable ? 'text' : 'none'))},
+                                                data-preview-url=@{/files/{id}/versions/{versionNumber}/preview-content(id=${file.id},versionNumber=${version.versionNumber})},
+                                                data-text-url=@{/files/{id}/versions/{versionNumber}/text-content(id=${file.id},versionNumber=${version.versionNumber})},
+                                                data-office-config-url=@{/files/{id}/versions/{versionNumber}/onlyoffice-config(id=${file.id},versionNumber=${version.versionNumber})}">
+                                        Preview
+                                    </button>
+                                    <a th:href="@{/files/{id}/versions/{versionNumber}/download(id=${file.id},versionNumber=${version.versionNumber})}"
+                                       class="inline-flex items-center justify-center rounded-lg border border-eac-border bg-white px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <aside th:if="${canManageVersions}" class="border-t border-eac-border bg-eac-bg/60 p-5 sm:p-6 lg:border-l lg:border-t-0">
+                    <h3 class="font-bold text-eac-maroon">Upload a new version</h3>
+                    <p class="mt-2 text-sm leading-6 text-eac-text-light">Use the same file type. The latest version becomes the active preview and download file.</p>
+                    <form th:action="@{/files/{id}/versions(id=${file.id})}" method="post" enctype="multipart/form-data" class="mt-5 space-y-3">
+                        <input type="file" name="file" required th:attr="accept=${'.' + file.extension()}"
+                               class="block w-full rounded-lg border border-eac-border bg-white px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-eac-red-soft file:px-3 file:py-2 file:text-xs file:font-bold file:text-eac-red">
+                        <textarea name="note" rows="3" maxlength="500" placeholder="Revision note, optional"
+                                  class="w-full rounded-lg border border-eac-border bg-white px-3 py-2 text-sm outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/20"></textarea>
+                        <button type="submit" class="w-full rounded-lg bg-eac-red px-4 py-3 text-sm font-bold text-white transition hover:bg-eac-red-hover">
+                            Upload new version
+                        </button>
+                    </form>
+                </aside>
+            </div>
         </section>
 
         <section id="details" class="mt-5 bg-white rounded-xl border border-eac-border shadow-sm p-6 sm:p-7">
@@ -390,48 +461,55 @@
     <script th:if="${file.officePreviewable}" th:src="@{/js/onlyoffice-preview.js}"></script>
 
     <script type="module" th:inline="javascript">
+        const fileId = /*[[${file.id}]]*/ 0;
+        const fileTitle = /*[[${file.title}]]*/ 'Document preview';
+        const workerUrl = /*[[@{/vendor/pdfjs/pdf.worker.min.mjs}]]*/ '';
+        const libUrl = /*[[@{/vendor/pdfjs/pdf.min.mjs}]]*/ '';
+        const pdfPreviewJsUrl = /*[[@{/js/pdf-preview.js}]]*/ '';
+        const currentPdfPreviewUrl = /*[[@{/files/{id}/preview-content(id=${file.id})}]]*/ '';
+        const currentTextContentUrl = /*[[@{/files/{id}/text-content(id=${file.id})}]]*/ '';
+        const currentOnlyOfficeConfigUrl = /*[[@{/files/{id}/onlyoffice-config(id=${file.id})}]]*/ '';
+        const previewVersionLabel = document.getElementById('previewVersionLabel');
         const previewContainer = document.getElementById('pdfPreviewContainer');
-        if (previewContainer) {
-            const previewUrl = /*[[@{/files/{id}/preview-content(id=${file.id})}]]*/ '';
-            const workerUrl = /*[[@{/vendor/pdfjs/pdf.worker.min.mjs}]]*/ '';
-            const libUrl = /*[[@{/vendor/pdfjs/pdf.min.mjs}]]*/ '';
-            const pdfPreviewJsUrl = /*[[@{/js/pdf-preview.js}]]*/ '';
-            const fileTitle = /*[[${file.title}]]*/ 'Document preview';
+        const openOnlyOfficeBtn = document.getElementById('openOnlyOfficePreviewBtn');
+        const onlyOfficeInlinePreview = document.getElementById('onlyOfficeInlinePreview');
+        const textPreviewContent = document.getElementById('textPreviewContent');
 
-            import(pdfPreviewJsUrl).then(() => {
-                PdfPreview.init(previewContainer, {
-                    previewUrl, workerUrl, libUrl,
-                    onOpenFullscreen: () => PdfPreview.openFullscreen({ previewUrl, workerUrl, libUrl, title: fileTitle })
-                });
+        let activeOnlyOfficeConfigUrl = currentOnlyOfficeConfigUrl;
+        let activePreviewTitle = fileTitle;
+        let onlyOfficeInstance = null;
+
+        async function loadPdfPreview(previewUrl, title) {
+            if (!previewContainer) return;
+            const pdfModule = await import(pdfPreviewJsUrl);
+            const pdfApi = window.PdfPreview || pdfModule.PdfPreview;
+            pdfApi.init(previewContainer, {
+                previewUrl, workerUrl, libUrl,
+                onOpenFullscreen: () => pdfApi.openFullscreen({ previewUrl, workerUrl, libUrl, title })
             });
         }
 
-        const openOnlyOfficeBtn = document.getElementById('openOnlyOfficePreviewBtn');
-        const onlyOfficeInlinePreview = document.getElementById('onlyOfficeInlinePreview');
-        if (openOnlyOfficeBtn || onlyOfficeInlinePreview) {
-            const fileId = /*[[${file.id}]]*/ 0;
-            const fileTitle = /*[[${file.title}]]*/ 'Document preview';
-            const onlyOfficeConfigUrl = /*[[@{/files/{id}/onlyoffice-config(id=${file.id})}]]*/ '';
-
-            if (onlyOfficeInlinePreview) {
-                OnlyOfficePreview.init(onlyOfficeInlinePreview, {
-                    fileId,
-                    configUrl: onlyOfficeConfigUrl,
-                    title: fileTitle,
-                    fallbackAction: () => OnlyOfficePreview.openFullscreen({ fileId, configUrl: onlyOfficeConfigUrl, title: fileTitle })
-                });
+        function loadOnlyOfficePreview(configUrl, title) {
+            if (!onlyOfficeInlinePreview || !window.OnlyOfficePreview) return;
+            if (onlyOfficeInstance) {
+                onlyOfficeInstance.destroy();
+                onlyOfficeInstance = null;
             }
-
-            if (openOnlyOfficeBtn) {
-                openOnlyOfficeBtn.addEventListener('click', () => {
-                    OnlyOfficePreview.openFullscreen({ fileId, configUrl: onlyOfficeConfigUrl, title: fileTitle });
-                });
-            }
+            activeOnlyOfficeConfigUrl = configUrl;
+            activePreviewTitle = title;
+            OnlyOfficePreview.init(onlyOfficeInlinePreview, {
+                fileId,
+                configUrl,
+                title,
+                fallbackAction: () => OnlyOfficePreview.openFullscreen({ fileId, configUrl, title })
+            }).then((result) => {
+                onlyOfficeInstance = result;
+            });
         }
 
-        const textPreviewContent = document.getElementById('textPreviewContent');
-        if (textPreviewContent) {
-            const textContentUrl = /*[[@{/files/{id}/text-content(id=${file.id})}]]*/ '';
+        function loadTextPreview(textContentUrl) {
+            if (!textPreviewContent) return;
+            textPreviewContent.textContent = 'Loading preview...';
             fetch(textContentUrl, { credentials: 'same-origin' })
                 .then((response) => {
                     if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -444,6 +522,43 @@
                     textPreviewContent.textContent = 'Could not load the preview. Please try again later.';
                 });
         }
+
+        if (previewContainer) {
+            loadPdfPreview(currentPdfPreviewUrl, fileTitle);
+        }
+        if (onlyOfficeInlinePreview) {
+            loadOnlyOfficePreview(currentOnlyOfficeConfigUrl, fileTitle);
+        }
+        if (openOnlyOfficeBtn) {
+            openOnlyOfficeBtn.addEventListener('click', () => {
+                OnlyOfficePreview.openFullscreen({ fileId, configUrl: activeOnlyOfficeConfigUrl, title: activePreviewTitle });
+            });
+        }
+        if (textPreviewContent) {
+            loadTextPreview(currentTextContentUrl);
+        }
+
+        document.querySelectorAll('.version-preview-button').forEach((button) => {
+            button.addEventListener('click', () => {
+                const kind = button.dataset.kind;
+                const versionTitle = fileTitle + ' v' + button.dataset.version;
+                if (previewVersionLabel) {
+                    previewVersionLabel.textContent = button.dataset.label || ('Previewing version v' + button.dataset.version);
+                }
+                document.querySelectorAll('.version-preview-button').forEach((item) => {
+                    item.classList.toggle('bg-eac-maroon', item === button);
+                    item.classList.toggle('bg-eac-red', item !== button);
+                });
+                document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (kind === 'pdf') {
+                    loadPdfPreview(button.dataset.previewUrl, versionTitle);
+                } else if (kind === 'office') {
+                    loadOnlyOfficePreview(button.dataset.officeConfigUrl, versionTitle);
+                } else if (kind === 'text') {
+                    loadTextPreview(button.dataset.textUrl);
+                }
+            });
+        });
     </script>
 
     <script>

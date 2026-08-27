@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Version ' + ${version.versionNumber} + ' - ' + ${file.title}">Version Preview</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg text-eac-text">
+    <header class="border-b border-eac-border bg-white">
+        <div class="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+            <a th:href="@{/files/{id}(id=${file.id})}" class="inline-flex items-center gap-2 text-sm font-bold text-eac-red hover:text-eac-red-hover">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                Back to file
+            </a>
+            <a th:href="@{/files/{id}/versions/{versionNumber}/download(id=${file.id},versionNumber=${version.versionNumber})}"
+               class="rounded-lg bg-eac-red px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover">Download version</a>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+        <section class="mb-5 rounded-xl border border-eac-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red" th:text="'Version ' + ${version.versionNumber}">Version</p>
+            <h1 class="mt-2 text-2xl font-black text-eac-maroon" th:text="${file.title}">File title</h1>
+            <p class="mt-2 break-all text-sm font-semibold text-eac-text-light" th:text="${version.originalFilename}">filename</p>
+            <p th:if="${version.note != null and !#strings.isEmpty(version.note)}" class="mt-3 rounded-lg bg-eac-bg px-4 py-3 text-sm text-eac-text" th:text="${version.note}">Version note</p>
+        </section>
+
+        <section class="overflow-hidden rounded-xl border border-eac-border bg-white shadow-sm">
+            <div class="border-b border-eac-border px-5 py-4">
+                <h2 class="font-bold text-eac-maroon">Preview</h2>
+                <p class="mt-0.5 text-xs text-eac-text-light">Only the latest three versions can be previewed. Older versions remain downloadable.</p>
+            </div>
+
+            <div th:if="${version.previewable}" id="pdfPreviewContainer" class="min-h-[72vh]">
+                <p class="p-6 text-sm text-eac-text-light">Loading preview...</p>
+            </div>
+            <div th:if="${version.officePreviewable}" class="h-[520px] min-h-[520px] bg-eac-bg/70 p-3 sm:h-[640px] sm:p-5 md:h-[700px] lg:h-[750px]">
+                <div id="onlyOfficeVersionPreview" class="h-full min-h-full w-full overflow-hidden rounded-lg border border-eac-border bg-white shadow-sm">
+                    <div class="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+                        <span class="flex h-14 w-14 items-center justify-center rounded-xl bg-eac-red-soft text-eac-red">
+                            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m10 12 4 3-4 3v-6z"/></svg>
+                        </span>
+                        <span>
+                            <span class="block font-bold text-eac-maroon">Preparing version preview...</span>
+                            <span class="mt-1 block text-sm text-eac-text-light">Please wait while OnlyOffice loads the document.</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${version.textPreviewable}" class="max-h-[72vh] min-h-[420px] overflow-auto bg-eac-bg/70 p-4 sm:p-8">
+                <pre id="textPreviewContent" class="mx-auto m-0 max-w-4xl whitespace-pre-wrap break-words border border-eac-border bg-white p-6 font-mono text-sm text-eac-text shadow-sm sm:p-8">Loading preview...</pre>
+            </div>
+            <div th:unless="${version.previewable or version.officePreviewable or version.textPreviewable}" class="flex min-h-[320px] flex-col items-center justify-center bg-eac-bg/70 p-10 text-center text-eac-text-light">
+                <p class="font-semibold text-eac-text">Preview is not available for this file type.</p>
+                <p class="mt-1 text-sm">Download this version to inspect it.</p>
+            </div>
+        </section>
+    </main>
+
+    <script th:if="${version.officePreviewable}" th:src="@{/js/onlyoffice-preview.js}"></script>
+    <script type="module" th:inline="javascript">
+        const previewContainer = document.getElementById('pdfPreviewContainer');
+        if (previewContainer) {
+            const previewUrl = /*[[@{/files/{id}/versions/{versionNumber}/preview-content(id=${file.id},versionNumber=${version.versionNumber})}]]*/ '';
+            const workerUrl = /*[[@{/vendor/pdfjs/pdf.worker.min.mjs}]]*/ '';
+            const libUrl = /*[[@{/vendor/pdfjs/pdf.min.mjs}]]*/ '';
+            const pdfPreviewJsUrl = /*[[@{/js/pdf-preview.js}]]*/ '';
+            const fileTitle = /*[[${file.title}]]*/ 'Version preview';
+            import(pdfPreviewJsUrl).then(() => {
+                PdfPreview.init(previewContainer, {
+                    previewUrl, workerUrl, libUrl,
+                    onOpenFullscreen: () => PdfPreview.openFullscreen({ previewUrl, workerUrl, libUrl, title: fileTitle })
+                });
+            });
+        }
+
+        const onlyOfficeVersionPreview = document.getElementById('onlyOfficeVersionPreview');
+        if (onlyOfficeVersionPreview) {
+            const fileId = /*[[${file.id}]]*/ 0;
+            const versionNumber = /*[[${version.versionNumber}]]*/ 1;
+            const fileTitle = /*[[${file.title}]]*/ 'Version preview';
+            const configUrl = /*[[@{/files/{id}/versions/{versionNumber}/onlyoffice-config(id=${file.id},versionNumber=${version.versionNumber})}]]*/ '';
+            OnlyOfficePreview.init(onlyOfficeVersionPreview, {
+                fileId,
+                configUrl,
+                title: fileTitle + ' v' + versionNumber,
+                fallbackAction: () => OnlyOfficePreview.openFullscreen({ fileId, configUrl, title: fileTitle + ' v' + versionNumber })
+            });
+        }
+
+        const textPreviewContent = document.getElementById('textPreviewContent');
+        if (textPreviewContent) {
+            const textContentUrl = /*[[@{/files/{id}/versions/{versionNumber}/text-content(id=${file.id},versionNumber=${version.versionNumber})}]]*/ '';
+            fetch(textContentUrl, { credentials: 'same-origin' })
+                .then((response) => {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.text();
+                })
+                .then((text) => {
+                    textPreviewContent.textContent = text;
+                })
+                .catch(() => {
+                    textPreviewContent.textContent = 'Could not load the preview. Please try again later.';
+                });
+        }
+    </script>
+</body>
+</html>

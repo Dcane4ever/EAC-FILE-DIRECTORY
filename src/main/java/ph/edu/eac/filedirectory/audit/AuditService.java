@@ -116,6 +116,12 @@ public class AuditService {
                 .previousValue(previousPolicy).newValue(newPolicy));
     }
 
+    public void fileVersionUploaded(AppUser actor, Long fileId, String title, int versionNumber, String note) {
+        record(AuditEvent.builder(AuditAction.FILE_VERSION_UPLOADED).actor(actor)
+                .target(AuditTargetType.FILE, fileId).metadata(title)
+                .newValue("v" + versionNumber).reason(note));
+    }
+
     // --- Access requests ---
 
     public void accessRequested(AppUser actor, Long fileId, String title) {

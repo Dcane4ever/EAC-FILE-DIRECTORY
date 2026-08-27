@@ -650,6 +650,9 @@
   .max-h-\[70vh\] {
     max-height: 70vh;
   }
+  .max-h-\[72vh\] {
+    max-height: 72vh;
+  }
   .max-h-\[76vh\] {
     max-height: 76vh;
   }
@@ -945,6 +948,9 @@
   .justify-end {
     justify-content: flex-end;
   }
+  .gap-0 {
+    gap: 0px;
+  }
   .gap-1 {
     gap: var(--spacing);
   }
@@ -1032,6 +1038,9 @@
   }
   :where(.divide-eac-border > :not(:last-child)) {
     border-color: var(--color-eac-border);
+  }
+  .self-start {
+    align-self: flex-start;
   }
   .truncate {
     overflow: hidden;
@@ -1734,6 +1743,9 @@
   .text-\[10px\] {
     font-size: 10px;
   }
+  .text-\[11px\] {
+    font-size: 11px;
+  }
   .leading-5 {
     --tw-leading: calc(var(--spacing) * 5);
     line-height: calc(var(--spacing) * 5);
@@ -2182,6 +2194,36 @@
     .group-hover\:text-eac-red:is(:where(.group):hover *) {
       color: var(--color-eac-red);
     }
+  }
+  .file\:mr-3::file-selector-button {
+    margin-right: calc(var(--spacing) * 3);
+  }
+  .file\:rounded-md::file-selector-button {
+    border-radius: var(--radius-md);
+  }
+  .file\:border-0::file-selector-button {
+    border-style: var(--tw-border-style);
+    border-width: 0px;
+  }
+  .file\:bg-eac-red-soft::file-selector-button {
+    background-color: var(--color-eac-red-soft);
+  }
+  .file\:px-3::file-selector-button {
+    padding-inline: calc(var(--spacing) * 3);
+  }
+  .file\:py-2::file-selector-button {
+    padding-block: calc(var(--spacing) * 2);
+  }
+  .file\:text-xs::file-selector-button {
+    font-size: var(--text-xs);
+    line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+  .file\:font-bold::file-selector-button {
+    --tw-font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-bold);
+  }
+  .file\:text-eac-red::file-selector-button {
+    color: var(--color-eac-red);
   }
   .placeholder\:text-eac-text-light::placeholder {
     color: var(--color-eac-text-light);
@@ -2685,6 +2727,9 @@
     .lg\:grid-cols-\[1fr_360px\] {
       grid-template-columns: 1fr 360px;
     }
+    .lg\:grid-cols-\[1fr_380px\] {
+      grid-template-columns: 1fr 380px;
+    }
     .lg\:grid-cols-\[110px_1fr_220px_1fr_auto\] {
       grid-template-columns: 110px 1fr 220px 1fr auto;
     }
@@ -2727,8 +2772,15 @@
     .lg\:justify-between {
       justify-content: space-between;
     }
+    .lg\:self-auto {
+      align-self: auto;
+    }
     .lg\:justify-self-end {
       justify-self: flex-end;
+    }
+    .lg\:border-t-0 {
+      border-top-style: var(--tw-border-style);
+      border-top-width: 0px;
     }
     .lg\:border-l {
       border-left-style: var(--tw-border-style);

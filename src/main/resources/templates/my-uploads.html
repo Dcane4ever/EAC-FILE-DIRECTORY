@@ -75,8 +75,9 @@
         <div class="space-y-3" th:unless="${files.empty}">
             <div th:each="file : ${files.content}" class="bg-white rounded-xl border border-eac-border p-5">
                 <div class="flex items-center justify-between gap-4">
-                    <div>
-                        <h3 class="font-semibold text-eac-text" th:text="${file.title}"></h3>
+                    <div class="min-w-0">
+                        <a th:href="@{/files/{id}(id=${file.id})}"
+                           class="font-semibold text-eac-text hover:text-eac-red transition" th:text="${file.title}"></a>
                         <p class="text-xs text-eac-text-light mt-1" th:text="${file.category.name} + ' · ' + ${file.department.code}"></p>
                         <p th:if="${file.status.name() == 'REJECTED' and file.rejectionReason != null}"
                            class="text-xs text-red-600 mt-1" th:text="'Reason: ' + ${file.rejectionReason}"></p>
@@ -100,8 +101,12 @@
                         <option value="AUTO_APPROVE" th:selected="${file.accessDecisionPolicy.name() == 'AUTO_APPROVE'}">Auto-approve</option>
                         <option value="AUTO_REJECT" th:selected="${file.accessDecisionPolicy.name() == 'AUTO_REJECT'}">Auto-decline</option>
                     </select>
-                    <a th:href="@{/files/{id}/edit(id=${file.id})}"
-                       class="ml-auto text-xs font-semibold text-eac-red hover:underline">Edit metadata</a>
+                    <div class="ml-auto flex items-center gap-3">
+                        <a th:href="@{/files/{id}(id=${file.id})}"
+                           class="text-xs font-semibold text-eac-maroon hover:text-eac-red transition">View file</a>
+                        <a th:href="@{/files/{id}/edit(id=${file.id})}"
+                           class="text-xs font-semibold text-eac-red hover:underline">Edit metadata</a>
+                    </div>
                 </form>
             </div>
         </div>

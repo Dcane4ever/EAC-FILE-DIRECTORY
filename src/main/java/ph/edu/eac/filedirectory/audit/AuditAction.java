@@ -24,6 +24,7 @@ public enum AuditAction {
     FILE_RESTORED,
     FILE_DOWNLOADED,
     FILE_ACCESS_POLICY_CHANGED,
+    FILE_VERSION_UPLOADED,
 
     // --- Access requests ---
     ACCESS_REQUESTED,

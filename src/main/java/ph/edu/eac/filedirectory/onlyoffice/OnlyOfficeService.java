@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import ph.edu.eac.filedirectory.file.FileEntity;
+import ph.edu.eac.filedirectory.file.FileVersion;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -52,6 +53,7 @@ public class OnlyOfficeService {
 
     /** Claim name for the file id inside a document-access token. */
     private static final String CLAIM_FILE_ID = "fid";
+    private static final String CLAIM_VERSION_NUMBER = "version";
     /** Purpose marker so a token minted for a different feature (there are none today, but future-proofing) can never be replayed here. */
     private static final String CLAIM_PURPOSE = "purpose";
     private static final String PURPOSE_ONLYOFFICE_CONTENT = "onlyoffice-content";
@@ -64,6 +66,10 @@ public class OnlyOfficeService {
 
     public boolean isSupported(FileEntity file) {
         return file.isOfficePreviewable() && OnlyOfficeDocumentType.forExtension(file.extension()) != null;
+    }
+
+    public boolean isSupported(FileVersion version) {
+        return version.isOfficePreviewable() && OnlyOfficeDocumentType.forExtension(version.extension()) != null;
     }
 
     public OnlyOfficeDocumentType determineDocumentType(FileEntity file) {
@@ -84,6 +90,16 @@ public class OnlyOfficeService {
      */
     public String generateDocumentKey(FileEntity file) {
         String raw = file.getId() + ":" + file.getCreatedAt() + ":" + file.getFileSize() + ":" + file.getChecksum();
+        return shortHash(raw);
+    }
+
+    public String generateDocumentKey(FileVersion version) {
+        String raw = version.getFile().getId() + ":" + version.getVersionNumber() + ":" + version.getCreatedAt() + ":"
+                + version.getFileSize() + ":" + version.getChecksum();
+        return shortHash(raw);
+    }
+
+    private String shortHash(String raw) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(raw.getBytes(StandardCharsets.UTF_8));
@@ -103,7 +119,7 @@ public class OnlyOfficeService {
      * differ (see OnlyOfficeProperties' class comment).
      */
     public String generateSecureDocumentUrl(FileEntity file) {
-        String token = generateDocumentAccessToken(file);
+        String token = generateDocumentAccessToken(file.getId(), null);
         return UriComponentsBuilder.fromUriString(properties.appBaseUrl())
                 .path("/files/{id}/onlyoffice-content")
                 .queryParam("token", token)
@@ -111,15 +127,26 @@ public class OnlyOfficeService {
                 .toUriString();
     }
 
-    private String generateDocumentAccessToken(FileEntity file) {
+    public String generateSecureDocumentUrl(FileVersion version) {
+        String token = generateDocumentAccessToken(version.getFile().getId(), version.getVersionNumber());
+        return UriComponentsBuilder.fromUriString(properties.appBaseUrl())
+                .path("/files/{id}/versions/{versionNumber}/onlyoffice-content")
+                .queryParam("token", token)
+                .buildAndExpand(version.getFile().getId(), version.getVersionNumber())
+                .toUriString();
+    }
+
+    private String generateDocumentAccessToken(Long fileId, Integer versionNumber) {
         Instant now = Instant.now();
-        return Jwts.builder()
-                .claim(CLAIM_FILE_ID, file.getId())
-                .claim(CLAIM_PURPOSE, PURPOSE_ONLYOFFICE_CONTENT)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(Duration.ofMinutes(properties.documentTokenTtlMinutes()))))
-                .signWith(signingKey())
-                .compact();
+        var builder = Jwts.builder()
+            .claim(CLAIM_FILE_ID, fileId)
+            .claim(CLAIM_PURPOSE, PURPOSE_ONLYOFFICE_CONTENT)
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(now.plus(Duration.ofMinutes(properties.documentTokenTtlMinutes()))));
+        if (versionNumber != null) {
+            builder.claim(CLAIM_VERSION_NUMBER, versionNumber);
+        }
+        return builder.signWith(signingKey()).compact();
     }
 
     public record DocumentAccessTokenResult(boolean valid, Long fileId, String errorReason) {
@@ -141,6 +168,10 @@ public class OnlyOfficeService {
      * does or doesn't exist.
      */
     public DocumentAccessTokenResult verifyDocumentAccessToken(String token, Long expectedFileId) {
+        return verifyDocumentAccessToken(token, expectedFileId, null);
+    }
+
+    public DocumentAccessTokenResult verifyDocumentAccessToken(String token, Long expectedFileId, Integer expectedVersionNumber) {
         Claims claims;
         try {
             claims = Jwts.parser()
@@ -159,6 +190,13 @@ public class OnlyOfficeService {
         if (fileIdClaim == null || !expectedFileId.equals(fileIdClaim.longValue())) {
             return DocumentAccessTokenResult.invalid("Token does not match the requested file");
         }
+        Number versionClaim = claims.get(CLAIM_VERSION_NUMBER, Number.class);
+        if (expectedVersionNumber != null && (versionClaim == null || expectedVersionNumber.intValue() != versionClaim.intValue())) {
+            return DocumentAccessTokenResult.invalid("Token does not match the requested version");
+        }
+        if (expectedVersionNumber == null && versionClaim != null) {
+            return DocumentAccessTokenResult.invalid("Version token cannot fetch the current file");
+        }
         return DocumentAccessTokenResult.ok(fileIdClaim.longValue());
     }
 
@@ -175,12 +213,25 @@ public class OnlyOfficeService {
         if (type == null) {
             throw new IllegalArgumentException("Unsupported file type for ONLYOFFICE preview: " + file.extension());
         }
+        return createPreviewConfig(file.extension(), file.getOriginalFilename(), generateDocumentKey(file),
+                generateSecureDocumentUrl(file), type);
+    }
 
+    public Map<String, Object> createPreviewConfig(FileVersion version) {
+        OnlyOfficeDocumentType type = OnlyOfficeDocumentType.forExtension(version.extension());
+        if (type == null) {
+            throw new IllegalArgumentException("Unsupported file type for ONLYOFFICE preview: " + version.extension());
+        }
+        return createPreviewConfig(version.extension(), version.getOriginalFilename(), generateDocumentKey(version),
+                generateSecureDocumentUrl(version), type);
+    }
+
+    private Map<String, Object> createPreviewConfig(String extension, String title, String key, String url, OnlyOfficeDocumentType type) {
         Map<String, Object> document = new LinkedHashMap<>();
-        document.put("fileType", file.extension());
-        document.put("key", generateDocumentKey(file));
-        document.put("title", file.getOriginalFilename());
-        document.put("url", generateSecureDocumentUrl(file));
+        document.put("fileType", extension);
+        document.put("key", key);
+        document.put("title", title);
+        document.put("url", url);
         Map<String, Object> permissions = new LinkedHashMap<>();
         // Read-only preview, not the collaborative editor - see class
         // comment and roadmap: this is Google-Drive-style "look, don't
