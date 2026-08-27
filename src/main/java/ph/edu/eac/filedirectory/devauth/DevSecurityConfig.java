@@ -30,7 +30,8 @@ public class DevSecurityConfig {
                 // behind the normal authenticated() gate - same reasoning
                 // applies in this profile too.
                 .requestMatchers("/files/*/onlyoffice-content").permitAll()
-                .requestMatchers("/admin/users/**", "/admin/departments/**", "/admin/taxonomy/**").hasRole("ADMIN")
+                .requestMatchers("/admin/users", "/admin/users/**", "/admin/departments/**",
+                        "/admin/taxonomy", "/admin/taxonomy/**", "/admin/reports", "/admin/reports/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "MODERATOR")
                 .anyRequest().authenticated()
             )

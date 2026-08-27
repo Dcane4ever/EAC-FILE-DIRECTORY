@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <style>@keyframes admin-rise{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}.admin-rise{animation:admin-rise 520ms cubic-bezier(.2,.8,.2,1) both}@media(prefers-reduced-motion:reduce){.admin-rise{animation:none}}</style>
+</head>
+<body class="min-h-screen bg-[#f7f7f8] text-eac-text">
+    <div class="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-eac-border bg-white lg:flex lg:flex-col">
+            <div class="flex h-[84px] items-center gap-3 px-6">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="h-12 w-12 shrink-0">
+                <div class="min-w-0">
+                    <p class="truncate text-base font-black text-eac-maroon">EAC File Directory</p>
+                    <p class="text-xs font-semibold text-eac-red">Admin</p>
+                </div>
+            </div>
+            <nav th:replace="~{fragments/admin-sidebar-nav :: nav('reports', null, false)}"></nav>
+            <div class="p-4">
+                <div class="rounded-2xl border border-eac-border bg-eac-bg p-5">
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Reports</p>
+                    <p class="mt-3 text-3xl font-black text-eac-maroon" th:text="${storageUsed}">0 B</p>
+                    <p class="mt-1 text-sm font-semibold text-eac-text-light">stored file volume</p>
+                    <a th:href="@{/admin/files}" class="mt-4 block rounded-xl bg-eac-red px-4 py-3 text-center text-xs font-black text-white transition hover:bg-eac-red-hover">Inspect files</a>
+                </div>
+            </div>
+        </aside>
+
+        <div id="mobileOverlay" class="fixed inset-0 z-30 hidden bg-black/30 lg:hidden"></div>
+
+        <div class="min-w-0 lg:col-start-2">
+            <header class="sticky top-0 z-20 border-b border-eac-border bg-white/95 backdrop-blur">
+                <div class="flex h-[84px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-9">
+                    <button type="button" id="navToggle" aria-label="Open menu" class="grid h-10 w-10 place-items-center rounded-xl border border-eac-border text-eac-maroon lg:hidden">=</button>
+                    <form th:action="@{/admin/files}" method="get" class="hidden w-full max-w-xl items-center rounded-2xl border border-eac-border bg-white px-4 py-3 shadow-sm sm:flex">
+                        <input type="text" name="q" placeholder="Search files from reports..." class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-eac-text-light">
+                        <span class="rounded-lg border border-eac-border px-2 py-1 text-xs font-bold text-eac-text-light">Ctrl + K</span>
+                    </form>
+                    <form th:action="@{/logout}" method="post" class="ml-auto"><button type="submit" class="rounded-xl bg-eac-red px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover">Sign Out</button></form>
+                </div>
+            </header>
+
+            <main class="admin-rise px-4 py-8 sm:px-6 lg:px-9 lg:py-10">
+                <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Repository intelligence</p>
+                        <h1 class="mt-3 text-3xl font-black text-eac-text sm:text-4xl">Reports Dashboard</h1>
+                        <p class="mt-2 max-w-2xl text-base font-medium leading-7 text-eac-text-light">Track file growth, request pressure, storage usage, and the materials students are opening most.</p>
+                    </div>
+                    <div class="rounded-2xl border border-eac-border bg-white px-5 py-4 shadow-sm">
+                        <p class="text-3xl font-black text-eac-maroon" th:text="${totalFiles}">0</p>
+                        <p class="text-sm font-bold text-eac-text-light">total repository records</p>
+                    </div>
+                </section>
+
+                <section class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <a th:href="@{/admin/files(status='APPROVED')}" class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30">
+                        <p class="text-sm font-black text-eac-text-light">Approved Files</p>
+                        <p class="mt-4 text-4xl font-black text-eac-maroon" th:text="${approvedFiles}">0</p>
+                        <p class="mt-2 text-xs font-semibold text-eac-text-light">Available to signed-in EAC users</p>
+                    </a>
+                    <a th:href="@{/admin/queue}" class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30">
+                        <p class="text-sm font-black text-eac-text-light">Pending Reviews</p>
+                        <p class="mt-4 text-4xl font-black text-eac-red" th:text="${pendingFiles}">0</p>
+                        <p class="mt-2 text-xs font-semibold text-eac-text-light">Files waiting for staff action</p>
+                    </a>
+                    <div class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm">
+                        <p class="text-sm font-black text-eac-text-light">Pending Requests</p>
+                        <p class="mt-4 text-4xl font-black text-eac-maroon" th:text="${pendingRequests}">0</p>
+                        <p class="mt-2 text-xs font-semibold text-eac-text-light">Controlled-access requests still open</p>
+                    </div>
+                    <a th:href="@{/admin/files}" class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30">
+                        <p class="text-sm font-black text-eac-text-light">Total Downloads</p>
+                        <p class="mt-4 text-4xl font-black text-eac-maroon" th:text="${totalDownloads}">0</p>
+                        <p class="mt-2 text-xs font-semibold text-eac-text-light">Recorded file downloads</p>
+                    </a>
+                </section>
+
+                <section class="mt-6 grid gap-6 xl:grid-cols-[1fr_380px]">
+                    <article class="rounded-2xl border border-eac-border bg-white p-5 shadow-sm sm:p-6">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 class="text-lg font-black text-eac-text">File Status Mix</h2>
+                                <p class="mt-1 text-sm font-medium text-eac-text-light">Current moderation and archive state.</p>
+                            </div>
+                            <a th:href="@{/admin/files}" class="rounded-xl border border-red-100 px-4 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Open manager</a>
+                        </div>
+                        <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                            <div class="rounded-2xl bg-green-50 p-4"><p class="text-xs font-black uppercase tracking-wide text-green-700">Approved</p><p class="mt-2 text-3xl font-black text-green-700" th:text="${approvedFiles}">0</p></div>
+                            <div class="rounded-2xl bg-amber-50 p-4"><p class="text-xs font-black uppercase tracking-wide text-amber-700">Pending</p><p class="mt-2 text-3xl font-black text-amber-700" th:text="${pendingFiles}">0</p></div>
+                            <div class="rounded-2xl bg-red-50 p-4"><p class="text-xs font-black uppercase tracking-wide text-red-700">Rejected</p><p class="mt-2 text-3xl font-black text-red-700" th:text="${rejectedFiles}">0</p></div>
+                            <div class="rounded-2xl bg-eac-bg p-4"><p class="text-xs font-black uppercase tracking-wide text-eac-text-light">Archived</p><p class="mt-2 text-3xl font-black text-eac-maroon" th:text="${archivedFiles}">0</p></div>
+                        </div>
+                    </article>
+
+                    <article class="rounded-2xl border border-eac-border bg-white p-5 shadow-sm sm:p-6">
+                        <h2 class="text-lg font-black text-eac-text">Storage & Access</h2>
+                        <p class="mt-1 text-sm font-medium text-eac-text-light">Database-tracked file volume and request outcomes.</p>
+                        <div class="mt-6 space-y-4">
+                            <div class="flex items-center justify-between rounded-2xl bg-eac-bg px-4 py-3"><span class="text-sm font-bold text-eac-text-light">Storage used</span><strong class="text-eac-maroon" th:text="${storageUsed}">0 B</strong></div>
+                            <div class="flex items-center justify-between rounded-2xl bg-eac-bg px-4 py-3"><span class="text-sm font-bold text-eac-text-light">Approved requests</span><strong class="text-eac-maroon" th:text="${approvedRequests}">0</strong></div>
+                            <div class="flex items-center justify-between rounded-2xl bg-eac-bg px-4 py-3"><span class="text-sm font-bold text-eac-text-light">Denied requests</span><strong class="text-eac-maroon" th:text="${deniedRequests}">0</strong></div>
+                            <div class="flex items-center justify-between rounded-2xl bg-eac-bg px-4 py-3"><span class="text-sm font-bold text-eac-text-light">Expired requests</span><strong class="text-eac-maroon" th:text="${expiredRequests}">0</strong></div>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="mt-6 grid gap-6 xl:grid-cols-2">
+                    <article class="rounded-2xl border border-eac-border bg-white shadow-sm">
+                        <div class="border-b border-eac-border p-5 sm:p-6">
+                            <h2 class="text-lg font-black text-eac-text">Top Downloaded Files</h2>
+                            <p class="mt-1 text-sm font-medium text-eac-text-light">Approved files with the highest recorded downloads.</p>
+                        </div>
+                        <div th:if="${#lists.isEmpty(topFiles)}" class="p-8 text-center text-sm font-semibold text-eac-text-light">No approved downloads recorded yet.</div>
+                        <div th:unless="${#lists.isEmpty(topFiles)}" class="divide-y divide-eac-border">
+                            <a th:each="file : ${topFiles}" th:href="@{/files/{id}(id=${file.id})}" class="flex items-start justify-between gap-4 p-5 transition hover:bg-eac-bg/70">
+                                <div class="min-w-0">
+                                    <p class="line-clamp-2 font-black text-eac-maroon" th:text="${file.title}">File title</p>
+                                    <p class="mt-1 text-xs font-semibold text-eac-text-light" th:text="${file.department.code + ' / ' + file.category.name}">Department / Category</p>
+                                </div>
+                                <span class="shrink-0 rounded-full bg-eac-red-soft px-3 py-1 text-xs font-black text-eac-red" th:text="${file.downloadCount} + ' downloads'">0 downloads</span>
+                            </a>
+                        </div>
+                    </article>
+
+                    <article class="rounded-2xl border border-eac-border bg-white shadow-sm">
+                        <div class="border-b border-eac-border p-5 sm:p-6">
+                            <h2 class="text-lg font-black text-eac-text">Department Activity</h2>
+                            <p class="mt-1 text-sm font-medium text-eac-text-light">Departments with the most file records.</p>
+                        </div>
+                        <div th:if="${#lists.isEmpty(departmentBreakdown)}" class="p-8 text-center text-sm font-semibold text-eac-text-light">No department activity yet.</div>
+                        <div th:unless="${#lists.isEmpty(departmentBreakdown)}" class="divide-y divide-eac-border">
+                            <div th:each="row : ${departmentBreakdown}" class="flex items-center justify-between gap-4 p-5">
+                                <p class="font-bold text-eac-text" th:text="${row.name}">Department</p>
+                                <span class="rounded-full bg-eac-bg px-3 py-1 text-xs font-black text-eac-maroon" th:text="${row.fileCount} + ' files'">0 files</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="rounded-2xl border border-eac-border bg-white shadow-sm xl:col-span-2">
+                        <div class="border-b border-eac-border p-5 sm:p-6">
+                            <h2 class="text-lg font-black text-eac-text">Category Coverage</h2>
+                            <p class="mt-1 text-sm font-medium text-eac-text-light">Document categories currently represented in the archive.</p>
+                        </div>
+                        <div th:if="${#lists.isEmpty(categoryBreakdown)}" class="p-8 text-center text-sm font-semibold text-eac-text-light">No category coverage yet.</div>
+                        <div th:unless="${#lists.isEmpty(categoryBreakdown)}" class="grid divide-y divide-eac-border sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
+                            <div th:each="row : ${categoryBreakdown}" class="p-5">
+                                <p class="text-sm font-black text-eac-maroon" th:text="${row.name}">Category</p>
+                                <p class="mt-2 text-3xl font-black text-eac-text" th:text="${row.fileCount}">0</p>
+                                <p class="mt-1 text-xs font-semibold text-eac-text-light">file records</p>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>var sidebar=document.getElementById('sidebar'),navToggle=document.getElementById('navToggle'),overlay=document.getElementById('mobileOverlay');function openSidebar(){sidebar.classList.remove('hidden');sidebar.classList.add('flex');overlay.classList.remove('hidden')}function closeSidebar(){sidebar.classList.add('hidden');sidebar.classList.remove('flex');overlay.classList.add('hidden')}if(navToggle&&sidebar&&overlay){navToggle.addEventListener('click',openSidebar);overlay.addEventListener('click',closeSidebar)}</script>
+</body>
+</html>

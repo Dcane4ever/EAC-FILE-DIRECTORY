@@ -26,6 +26,43 @@ public interface FileRepository extends JpaRepository<FileEntity, Long>, JpaSpec
 
     long countByStatus(FileStatus status);
 
+    @Query("""
+            select coalesce(sum(f.fileSize), 0)
+            from FileEntity f
+            """)
+    long sumFileSize();
+
+    @Query("""
+            select coalesce(sum(f.downloadCount), 0)
+            from FileEntity f
+            """)
+    long sumDownloadCount();
+
+    @Query("""
+            select f.department.name as name, count(f) as fileCount
+            from FileEntity f
+            group by f.department.name
+            order by count(f) desc, f.department.name asc
+            """)
+    List<NameCount> countFilesByDepartment(Pageable pageable);
+
+    @Query("""
+            select f.category.name as name, count(f) as fileCount
+            from FileEntity f
+            group by f.category.name
+            order by count(f) desc, f.category.name asc
+            """)
+    List<NameCount> countFilesByCategory(Pageable pageable);
+
+    @Query("""
+            select f.status as status, count(f) as fileCount
+            from FileEntity f
+            group by f.status
+            """)
+    List<StatusCount> countFilesByStatus();
+
+    List<FileEntity> findByStatusOrderByDownloadCountDescCreatedAtDesc(FileStatus status, Pageable pageable);
+
     long countByStatusAndCategoryId(FileStatus status, Long categoryId);
 
     long countByStatusAndCategoryIdIn(FileStatus status, java.util.Collection<Long> categoryIds);
@@ -101,6 +138,16 @@ public interface FileRepository extends JpaRepository<FileEntity, Long>, JpaSpec
 
     interface CategoryContribution {
         String getName();
+        long getFileCount();
+    }
+
+    interface NameCount {
+        String getName();
+        long getFileCount();
+    }
+
+    interface StatusCount {
+        FileStatus getStatus();
         long getFileCount();
     }
 }

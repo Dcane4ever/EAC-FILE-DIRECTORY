@@ -27,6 +27,8 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
 
     long countByFile_UploaderAndStatus(AppUser uploader, AccessRequestStatus status);
 
+    long countByStatus(AccessRequestStatus status);
+
     /** Sweep target for the scheduled cleanup job (see AccessRequestService) - PENDING requests old enough for the moderator fallback window to potentially apply, or APPROVED-but-unused-and-past-expiry requests that need to flip to EXPIRED. */
     List<AccessRequest> findByStatusAndCreatedAtBefore(AccessRequestStatus status, Instant cutoff);
 }
