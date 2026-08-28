@@ -368,6 +368,8 @@
         const courseSelect = document.getElementById('courseSelect');
         const programComboInput = document.querySelector('[data-combobox="programCombo"] .combobox-input');
         const courseComboInput = document.querySelector('[data-combobox="courseCombo"] .combobox-input');
+        const programsApiUrl = /*[[@{/api/programs}]]*/ '/api/programs';
+        const coursesApiUrl = /*[[@{/api/courses}]]*/ '/api/courses';
 
         departmentSelect.addEventListener('change', async () => {
             const departmentId = departmentSelect.value;
@@ -380,8 +382,8 @@
             if (!departmentId) return;
 
             const [programs, courses] = await Promise.all([
-                fetch(`/api/programs?departmentId=${departmentId}`).then(r => r.json()),
-                fetch(`/api/courses?departmentId=${departmentId}`).then(r => r.json())
+                fetch(`${programsApiUrl}?departmentId=${encodeURIComponent(departmentId)}`).then(r => r.json()),
+                fetch(`${coursesApiUrl}?departmentId=${encodeURIComponent(departmentId)}`).then(r => r.json())
             ]);
             for (const p of programs) {
                 const opt = document.createElement('option');

@@ -128,10 +128,12 @@
         </section>
     </main>
 
-    <script>
+    <script th:inline="javascript">
         const departmentSelect = document.getElementById('departmentSelect');
         const programSelect = document.getElementById('programSelect');
         const courseSelect = document.getElementById('courseSelect');
+        const programsApiUrl = /*[[@{/api/programs}]]*/ '/api/programs';
+        const coursesApiUrl = /*[[@{/api/courses}]]*/ '/api/courses';
 
         if (departmentSelect && programSelect && courseSelect) {
             departmentSelect.addEventListener('change', async function () {
@@ -141,8 +143,8 @@
                 if (!departmentId) return;
 
                 const [programs, courses] = await Promise.all([
-                    fetch('/api/programs?departmentId=' + encodeURIComponent(departmentId)).then(r => r.json()),
-                    fetch('/api/courses?departmentId=' + encodeURIComponent(departmentId)).then(r => r.json())
+                    fetch(programsApiUrl + '?departmentId=' + encodeURIComponent(departmentId)).then(r => r.json()),
+                    fetch(coursesApiUrl + '?departmentId=' + encodeURIComponent(departmentId)).then(r => r.json())
                 ]);
                 for (const p of programs) {
                     const opt = document.createElement('option');
