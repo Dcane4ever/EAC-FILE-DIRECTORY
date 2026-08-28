@@ -17,6 +17,7 @@ import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.Tag;
 import ph.edu.eac.filedirectory.file.TagRepository;
+import ph.edu.eac.filedirectory.reference.AuthorDetectionService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.taxonomy.Category;
 import ph.edu.eac.filedirectory.taxonomy.CategoryRepository;
@@ -49,19 +50,22 @@ public class FileMetadataController {
     private final CourseRepository courseRepository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
+    private final AuthorDetectionService authorDetectionService;
 
     public FileMetadataController(FileRepository fileRepository,
                                   DepartmentRepository departmentRepository,
                                   ProgramRepository programRepository,
                                   CourseRepository courseRepository,
                                   CategoryRepository categoryRepository,
-                                  TagRepository tagRepository) {
+                                  TagRepository tagRepository,
+                                  AuthorDetectionService authorDetectionService) {
         this.fileRepository = fileRepository;
         this.departmentRepository = departmentRepository;
         this.programRepository = programRepository;
         this.courseRepository = courseRepository;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
+        this.authorDetectionService = authorDetectionService;
     }
 
     @GetMapping("/files/{id}/edit")
@@ -162,6 +166,7 @@ public class FileMetadataController {
                 .map(Tag::getName)
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(java.util.stream.Collectors.joining(", ")));
+        model.addAttribute("detectedAuthors", authorDetectionService.detect(file));
     }
 
     private String safeReturnTo(String returnTo, EacUserDetails principal) {

@@ -29,6 +29,7 @@ import ph.edu.eac.filedirectory.file.FileStorageService;
 import ph.edu.eac.filedirectory.file.FileVersionRepository;
 import ph.edu.eac.filedirectory.follow.FollowService;
 import ph.edu.eac.filedirectory.follow.FollowType;
+import ph.edu.eac.filedirectory.reference.ReferenceExtractionService;
 import ph.edu.eac.filedirectory.saved.SavedFileRepository;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.user.AppUser;
@@ -70,13 +71,15 @@ public class FileDetailController {
     private final FileVersionRepository fileVersionRepository;
     private final FollowService followService;
     private final CitationService citationService;
+    private final ReferenceExtractionService referenceExtractionService;
 
     public FileDetailController(FileRepository fileRepository, FileStorageService storageService,
                                  AuditService auditService, AccessRequestRepository accessRequestRepository,
                                  SavedFileRepository savedFileRepository,
                                  FileVersionRepository fileVersionRepository,
                                  FollowService followService,
-                                 CitationService citationService) {
+                                 CitationService citationService,
+                                 ReferenceExtractionService referenceExtractionService) {
         this.fileRepository = fileRepository;
         this.storageService = storageService;
         this.auditService = auditService;
@@ -85,6 +88,7 @@ public class FileDetailController {
         this.fileVersionRepository = fileVersionRepository;
         this.followService = followService;
         this.citationService = citationService;
+        this.referenceExtractionService = referenceExtractionService;
     }
 
     @GetMapping("/files/{id}")
@@ -141,6 +145,7 @@ public class FileDetailController {
                 .buildAndExpand(file.getId())
                 .toUriString();
         model.addAttribute("citations", citationService.citationsFor(file, fileUrl));
+        model.addAttribute("extractedReferences", referenceExtractionService.extract(file));
         model.addAttribute("savedByCurrentUser", principal != null
                 && savedFileRepository.existsByUserAndFile(principal.getAppUser(), file));
         model.addAttribute("followingDepartment", principal != null

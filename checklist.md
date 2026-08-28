@@ -1,6 +1,6 @@
 # EAC File Directory Checklist
 
-Updated: August 27, 2026
+Updated: August 28, 2026
 
 ## Done
 
@@ -88,6 +88,16 @@ Updated: August 27, 2026
   - Citations can be copied from the Citations section.
   - Citations are generated from current metadata and are not stored separately.
 
+- [x] Extract references from uploaded papers
+  - File detail page now reads supported uploaded files and detects sections like References, Bibliography, Works Cited, or Literature Cited.
+  - Extracted reference entries are shown separately from Citation Export.
+  - Phase 1 supports TXT and DOCX without changing the original uploaded files or adding preview infrastructure.
+
+- [x] Detect authors from uploaded papers
+  - Edit Metadata now suggests likely authors from supported TXT/DOCX title pages.
+  - Uploaders/admins can review and apply detected authors manually.
+  - Citation Export continues to use saved metadata only.
+
 ## Next
 
 - [x] Production SMTP account
@@ -126,14 +136,9 @@ Updated: August 27, 2026
 
 ## Later Improvements
 
-- [ ] Full-text document search
-  - Search inside PDF, DOCX, PPTX, and TXT content, not just metadata.
-  - Requires indexing extracted text.
-
-- [ ] Extract references from uploaded papers
-  - Read document content and detect sections like References, Bibliography, Works Cited, or Literature Cited.
-  - Extract cited sources listed inside the paper.
-  - Keep this separate from Citation Export, which cites the uploaded file itself.
+- [x] In-document preview search
+  - OnlyOffice already provides search inside supported Office documents during preview.
+  - PDF/TXT preview search remains handled by the browser/viewer experience where available.
 
 - [ ] Private EAC sharing
   - Allow a file to be shared internally with a specific verified `@eac.edu.ph` user.
