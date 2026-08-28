@@ -59,4 +59,10 @@ public class NotificationService {
                 "Your request for \"" + fileTitle + "\" was denied." + suffix,
                 "/my-requests");
     }
+
+    public void followedFilePublished(AppUser recipient, String fileTitle, Long fileId) {
+        notify(recipient, NotificationType.FOLLOWED_FILE_PUBLISHED,
+                "A new approved file matches something you follow: \"" + fileTitle + "\".",
+                "/files/" + fileId);
+    }
 }

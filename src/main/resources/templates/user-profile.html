@@ -51,6 +51,14 @@
                             <p class="text-sm font-black uppercase tracking-[0.24em] text-white/68">Uploader profile</p>
                             <h1 class="mt-3 text-4xl font-black leading-tight tracking-normal sm:text-5xl" th:text="${displayName}">Juan Dela Cruz</h1>
                             <p class="mt-3 text-base font-medium text-white/76" th:text="${profileUser.email}">student@eac.edu.ph</p>
+                            <form th:if="${!isOwnProfile and followingUploader}" class="mt-5" th:action="@{/unfollow/{type}/{targetId}(type='UPLOADER',targetId=${profileUser.id})}" method="post">
+                                <input type="hidden" name="returnTo" th:value="${'/users/' + profileUser.id}">
+                                <button type="submit" class="rounded-xl border border-white/30 bg-white/12 px-4 py-2.5 text-sm font-black text-white transition hover:bg-white hover:text-eac-maroon">Following</button>
+                            </form>
+                            <form th:if="${!isOwnProfile and !followingUploader}" class="mt-5" th:action="@{/follow/{type}/{targetId}(type='UPLOADER',targetId=${profileUser.id})}" method="post">
+                                <input type="hidden" name="returnTo" th:value="${'/users/' + profileUser.id}">
+                                <button type="submit" class="rounded-xl border border-white/30 bg-white/12 px-4 py-2.5 text-sm font-black text-white transition hover:bg-white hover:text-eac-maroon">Follow uploader</button>
+                            </form>
                         </div>
                     </div>
                     <div class="rounded-2xl border border-white/16 bg-white/12 p-5 backdrop-blur">

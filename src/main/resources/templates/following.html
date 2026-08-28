@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Following - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg text-eac-text">
+<header th:replace="~{fragments/user-header :: header('following')}"></header>
+<main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+    <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Your research signals</p>
+    <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div><h1 class="text-3xl font-black text-eac-maroon sm:text-4xl">Following</h1><p class="mt-2 text-sm leading-6 text-eac-text-light">New approved files matching these areas appear in Notifications.</p></div>
+        <a th:href="@{/browse}" class="text-sm font-black text-eac-red transition hover:text-eac-maroon">Browse files</a>
+    </div>
+    <section class="mt-7 overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+        <div th:if="${#lists.isEmpty(follows)}" class="px-6 py-14 text-center sm:px-10"><p class="font-bold text-eac-text">You are not following anything yet.</p><p class="mt-2 text-sm text-eac-text-light">Follow a department or tag on a file, or follow an uploader from their profile.</p></div>
+        <div th:unless="${#lists.isEmpty(follows)}" class="divide-y divide-eac-border">
+            <article th:each="follow : ${follows}" class="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <div><p class="text-xs font-black uppercase tracking-[0.14em] text-eac-red" th:text="${follow.description}">Type</p><a th:href="${follow.targetUrl}" class="mt-1 inline-block text-lg font-black text-eac-maroon transition hover:text-eac-red" th:text="${follow.label}">Label</a></div>
+                <form th:action="@{/unfollow/{type}/{targetId}(type=${follow.type},targetId=${follow.targetId})}" method="post"><input type="hidden" name="returnTo" value="/following"><button type="submit" class="rounded-xl border border-eac-border px-4 py-2.5 text-sm font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Unfollow</button></form>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -22,6 +22,7 @@ import ph.edu.eac.filedirectory.file.FileSpecifications;
 import ph.edu.eac.filedirectory.file.FileTypeValidator;
 import ph.edu.eac.filedirectory.file.FileVersion;
 import ph.edu.eac.filedirectory.file.FileVersionRepository;
+import ph.edu.eac.filedirectory.follow.FollowService;
 import ph.edu.eac.filedirectory.notification.NotificationService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.taxonomy.CategoryRepository;
@@ -60,17 +61,19 @@ public class AdminController {
     private final CategoryRepository categoryRepository;
     private final FileVersionRepository fileVersionRepository;
     private final NotificationService notificationService;
+    private final FollowService followService;
     private final AuditService auditService;
 
     public AdminController(FileRepository fileRepository, DepartmentRepository departmentRepository,
                             CategoryRepository categoryRepository,
                             FileVersionRepository fileVersionRepository,
-                            NotificationService notificationService, AuditService auditService) {
+                            NotificationService notificationService, FollowService followService, AuditService auditService) {
         this.fileRepository = fileRepository;
         this.departmentRepository = departmentRepository;
         this.categoryRepository = categoryRepository;
         this.fileVersionRepository = fileVersionRepository;
         this.notificationService = notificationService;
+        this.followService = followService;
         this.auditService = auditService;
     }
 
@@ -391,6 +394,7 @@ public class AdminController {
         fileRepository.save(file);
 
         notificationService.uploadApproved(file.getUploader(), file.getTitle(), file.getId());
+        followService.filePublished(file);
         auditService.fileApproved(moderator, file.getId(), file.getTitle());
     }
 

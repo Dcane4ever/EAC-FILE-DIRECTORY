@@ -18,6 +18,7 @@ import ph.edu.eac.filedirectory.access.AccessRequestRepository;
 import ph.edu.eac.filedirectory.access.AccessRequestStatus;
 import ph.edu.eac.filedirectory.audit.AuditService;
 import ph.edu.eac.filedirectory.file.*;
+import ph.edu.eac.filedirectory.follow.FollowService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.security.ratelimit.RateLimiter;
 import ph.edu.eac.filedirectory.settings.SystemSettingService;
@@ -53,6 +54,7 @@ public class UploadController {
     private final AuditService auditService;
     private final SystemSettingService systemSettingService;
     private final AccessRequestRepository accessRequestRepository;
+    private final FollowService followService;
 
     public UploadController(DepartmentRepository departmentRepository,
                              ProgramRepository programRepository,
@@ -65,7 +67,8 @@ public class UploadController {
                              RateLimiter rateLimiter,
                              AuditService auditService,
                              SystemSettingService systemSettingService,
-                             AccessRequestRepository accessRequestRepository) {
+                             AccessRequestRepository accessRequestRepository,
+                             FollowService followService) {
         this.departmentRepository = departmentRepository;
         this.programRepository = programRepository;
         this.courseRepository = courseRepository;
@@ -78,6 +81,7 @@ public class UploadController {
         this.auditService = auditService;
         this.systemSettingService = systemSettingService;
         this.accessRequestRepository = accessRequestRepository;
+        this.followService = followService;
     }
 
     @GetMapping("/upload")
@@ -257,6 +261,10 @@ public class UploadController {
         }
 
         fileRepository.save(entity);
+
+        if (entity.getStatus() == FileStatus.APPROVED) {
+            followService.filePublished(entity);
+        }
 
         auditService.fileUploaded(uploader, entity.getId(), entity.getTitle());
 

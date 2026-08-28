@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departments - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+<body class="min-h-screen bg-eac-bg text-eac-text">
+<header th:replace="~{fragments/user-header :: header('departments')}"></header>
+
+<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+    <section class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+        <div class="border-b border-eac-border bg-gradient-to-br from-eac-maroon to-eac-red px-6 py-8 text-white sm:px-8">
+            <p class="text-xs font-black uppercase tracking-[0.18em] text-white/70">Academic departments</p>
+            <div class="mt-3 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <h1 class="max-w-3xl text-3xl font-black leading-tight sm:text-5xl">Follow the schools that match your work.</h1>
+                    <p class="mt-3 max-w-2xl text-sm leading-6 text-white/78 sm:text-base">Browse approved files by department, then follow the departments you want to track. New approved uploads appear in Notifications.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur">
+                        <p class="text-2xl font-black" th:text="${totalDepartments}">0</p>
+                        <p class="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-white/70">Departments</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur">
+                        <p class="text-2xl font-black" th:text="${totalApprovedFiles}">0</p>
+                        <p class="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-white/70">Approved files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 py-6 sm:px-8">
+            <div th:if="${#lists.isEmpty(departments)}" class="rounded-2xl border border-dashed border-eac-border bg-eac-bg px-6 py-12 text-center">
+                <p class="font-black text-eac-maroon">No departments available yet.</p>
+                <p class="mt-2 text-sm text-eac-text-light">Departments will appear here after the taxonomy is seeded.</p>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(departments)}" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <article th:each="department : ${departments}" class="flex min-h-[210px] flex-col justify-between rounded-2xl border border-eac-border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-eac-red/30 hover:shadow-md">
+                    <div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-eac-red-soft text-sm font-black text-eac-red" th:text="${department.code}">DEP</div>
+                            <span class="rounded-full bg-eac-bg px-3 py-1 text-xs font-black text-eac-text-light" th:text="${department.approvedFileCount + ' files'}">0 files</span>
+                        </div>
+                        <h2 class="mt-5 text-xl font-black leading-snug text-eac-maroon" th:text="${department.name}">Department name</h2>
+                        <p class="mt-2 text-sm leading-6 text-eac-text-light">View approved records from this department and follow future approved uploads.</p>
+                    </div>
+
+                    <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+                        <a th:href="@{/browse(departmentId=${department.id})}" class="inline-flex flex-1 items-center justify-center rounded-xl bg-eac-red px-4 py-3 text-sm font-black text-white transition hover:bg-eac-red-hover">Browse files</a>
+                        <form th:if="${department.following}" th:action="@{/unfollow/{type}/{targetId}(type='DEPARTMENT',targetId=${department.id})}" method="post" class="flex-1">
+                            <input type="hidden" name="returnTo" value="/departments">
+                            <button type="submit" class="w-full rounded-xl border border-eac-red/30 bg-eac-red-soft px-4 py-3 text-sm font-black text-eac-red transition hover:border-eac-red/50">Following</button>
+                        </form>
+                        <form th:unless="${department.following}" th:action="@{/follow/{type}/{targetId}(type='DEPARTMENT',targetId=${department.id})}" method="post" class="flex-1">
+                            <input type="hidden" name="returnTo" value="/departments">
+                            <button type="submit" class="w-full rounded-xl border border-eac-border px-4 py-3 text-sm font-black text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">Follow</button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

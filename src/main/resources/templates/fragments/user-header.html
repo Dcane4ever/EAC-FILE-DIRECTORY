@@ -1,48 +1,68 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<header th:fragment="header(active)" class="sticky top-0 z-30 border-b border-eac-border bg-white/95 backdrop-blur">
-    <div class="mx-auto flex h-[84px] max-w-[1440px] items-center justify-between gap-5 px-5 sm:px-8">
-        <a th:href="@{/home}" class="flex shrink-0 items-center gap-3">
-            <img th:src="@{/images/emblem.png}" alt="EAC" class="h-12 w-12 shrink-0">
-            <span class="text-xl font-black tracking-normal text-eac-maroon">EAC File Directory</span>
+<header th:fragment="header(active)" class="sticky top-0 z-30 border-b border-eac-border bg-white/95 shadow-[0_10px_35px_rgba(107,17,24,0.06)] backdrop-blur">
+    <div class="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 xl:px-8">
+        <a th:href="@{/home}" class="flex min-w-0 shrink-0 items-center gap-3">
+            <img th:src="@{/images/emblem.png}" alt="EAC" class="h-11 w-11 shrink-0">
+            <span class="hidden text-lg font-black tracking-normal text-eac-maroon sm:block xl:text-xl">EAC File Directory</span>
         </a>
 
-        <nav sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" class="hidden items-stretch gap-1 text-sm font-bold lg:flex">
-            <a th:href="@{/browse}" th:classappend="${active == 'browse'} ? ' text-eac-red after:scale-x-100' : ' text-eac-text-light hover:text-eac-red after:scale-x-0'" class="relative inline-flex h-[84px] items-center gap-2 px-4 transition after:absolute after:bottom-0 after:left-3 after:right-3 after:h-1 after:origin-center after:rounded-t-full after:bg-eac-red after:transition-transform">
-                <span class="grid h-5 w-5 place-items-center"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h.01"/><path d="M11 8h6"/><path d="M7 12h.01"/><path d="M11 12h6"/><path d="M7 16h.01"/><path d="M11 16h6"/></svg></span>
+        <nav sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" class="hidden items-center gap-1 text-sm font-bold lg:flex">
+            <a th:href="@{/browse}" th:classappend="${active == 'browse'} ? ' bg-eac-red-soft text-eac-red shadow-sm' : ' text-eac-text-light hover:bg-eac-bg hover:text-eac-maroon'" class="group relative inline-flex h-11 items-center gap-2 rounded-2xl px-4 transition duration-200 ease-out">
+                <span class="grid h-5 w-5 place-items-center transition group-hover:-translate-y-0.5"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h.01"/><path d="M11 8h6"/><path d="M7 12h.01"/><path d="M11 12h6"/><path d="M7 16h.01"/><path d="M11 16h6"/></svg></span>
                 Browse
             </a>
-            <a th:href="@{/saved-files}" th:classappend="${active == 'saved'} ? ' text-eac-red after:scale-x-100' : ' text-eac-text-light hover:text-eac-red after:scale-x-0'" class="relative inline-flex h-[84px] items-center gap-2 px-4 transition after:absolute after:bottom-0 after:left-3 after:right-3 after:h-1 after:origin-center after:rounded-t-full after:bg-eac-red after:transition-transform">
-                <span class="grid h-5 w-5 place-items-center"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg></span>
-                Saved Files
+            <a th:href="@{/departments}" th:classappend="${active == 'departments'} ? ' bg-eac-red-soft text-eac-red shadow-sm' : ' text-eac-text-light hover:bg-eac-bg hover:text-eac-maroon'" class="group relative inline-flex h-11 items-center gap-2 rounded-2xl px-4 transition duration-200 ease-out">
+                <span class="grid h-5 w-5 place-items-center transition group-hover:-translate-y-0.5"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M16 14v.01"/><path d="M16 17v.01"/></svg></span>
+                Departments
             </a>
-            <a th:href="@{/upload}" th:classappend="${active == 'upload'} ? ' text-eac-red after:scale-x-100' : ' text-eac-text-light hover:text-eac-red after:scale-x-0'" class="relative inline-flex h-[84px] items-center gap-2 px-4 transition after:absolute after:bottom-0 after:left-3 after:right-3 after:h-1 after:origin-center after:rounded-t-full after:bg-eac-red after:transition-transform">
-                <span class="grid h-5 w-5 place-items-center"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></span>
+            <a th:href="@{/upload}" th:classappend="${active == 'upload'} ? ' bg-eac-red-soft text-eac-red shadow-sm' : ' text-eac-text-light hover:bg-eac-bg hover:text-eac-maroon'" class="group relative inline-flex h-11 items-center gap-2 rounded-2xl px-4 transition duration-200 ease-out">
+                <span class="grid h-5 w-5 place-items-center transition group-hover:-translate-y-0.5"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></span>
                 Upload
             </a>
-            <a th:href="@{/my-uploads}" th:classappend="${active == 'uploads'} ? ' text-eac-red after:scale-x-100' : ' text-eac-text-light hover:text-eac-red after:scale-x-0'" class="relative inline-flex h-[84px] items-center gap-2 px-4 transition after:absolute after:bottom-0 after:left-3 after:right-3 after:h-1 after:origin-center after:rounded-t-full after:bg-eac-red after:transition-transform">
-                <span class="grid h-5 w-5 place-items-center"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg></span>
-                My Uploads
-            </a>
-            <a th:href="@{/my-requests}" th:classappend="${active == 'requests'} ? ' text-eac-red after:scale-x-100' : ' text-eac-text-light hover:text-eac-red after:scale-x-0'" class="relative inline-flex h-[84px] items-center gap-2 px-4 transition after:absolute after:bottom-0 after:left-3 after:right-3 after:h-1 after:origin-center after:rounded-t-full after:bg-eac-red after:transition-transform">
-                <span class="grid h-5 w-5 place-items-center"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5"/></svg></span>
-                My Requests
-            </a>
-            <a th:href="@{/notifications}" th:classappend="${active == 'notifications'} ? ' text-eac-red after:scale-x-100' : ' text-eac-text-light hover:text-eac-red after:scale-x-0'" class="relative inline-flex h-[84px] items-center gap-2 px-4 transition after:absolute after:bottom-0 after:left-3 after:right-3 after:h-1 after:origin-center after:rounded-t-full after:bg-eac-red after:transition-transform">
-                <span class="relative grid h-5 w-5 place-items-center"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8a6 6 0 0 0-12 0c0 4.499-1.411 5.956-2.738 7.326"/></svg><span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}" class="absolute -right-3 -top-3 grid h-5 min-w-5 place-items-center rounded-full bg-eac-red px-1 text-[10px] font-black text-white"></span></span>
-                Notifications
-            </a>
+
+            <div class="relative ml-1" id="workspaceMenu">
+                <button type="button" id="workspaceToggle" aria-haspopup="true" aria-expanded="false"
+                        th:classappend="${active == 'uploads' or active == 'saved' or active == 'following' or active == 'requests'} ? ' bg-eac-red-soft text-eac-red shadow-sm' : ' text-eac-text-light hover:bg-eac-bg hover:text-eac-maroon'"
+                        class="group inline-flex h-11 items-center gap-2 rounded-2xl px-4 font-bold transition duration-200 ease-out">
+                    <span class="grid h-5 w-5 place-items-center transition group-hover:-translate-y-0.5"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2a2 2 0 0 1-1.6-.8L10.4 4A2 2 0 0 0 8.8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span>
+                    My Workspace
+                    <svg class="h-4 w-4 transition duration-200" id="workspaceChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div id="workspaceDropdown" class="pointer-events-none invisible absolute left-0 top-14 w-64 origin-top-left scale-95 rounded-2xl border border-eac-border bg-white p-2 opacity-0 shadow-[0_22px_55px_rgba(107,17,24,0.14)] transition duration-150 ease-out">
+                    <a th:href="@{/my-uploads}" th:classappend="${active == 'uploads'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-maroon'" class="flex items-center gap-3 rounded-xl px-3 py-3 font-bold transition">
+                        <span class="grid h-9 w-9 place-items-center rounded-xl bg-eac-red-soft text-eac-red"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg></span>
+                        My Uploads
+                    </a>
+                    <a th:href="@{/saved-files}" th:classappend="${active == 'saved'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-maroon'" class="flex items-center gap-3 rounded-xl px-3 py-3 font-bold transition">
+                        <span class="grid h-9 w-9 place-items-center rounded-xl bg-eac-red-soft text-eac-red"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg></span>
+                        Saved Files
+                    </a>
+                    <a th:href="@{/following}" th:classappend="${active == 'following'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-maroon'" class="flex items-center gap-3 rounded-xl px-3 py-3 font-bold transition">
+                        <span class="grid h-9 w-9 place-items-center rounded-xl bg-eac-red-soft text-eac-red"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+                        Following
+                    </a>
+                    <a th:href="@{/my-requests}" th:classappend="${active == 'requests'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-maroon'" class="flex items-center gap-3 rounded-xl px-3 py-3 font-bold transition">
+                        <span class="grid h-9 w-9 place-items-center rounded-xl bg-eac-red-soft text-eac-red"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5"/></svg></span>
+                        My Requests
+                    </a>
+                </div>
+            </div>
         </nav>
 
         <a sec:authorize="hasAnyRole('ADMIN','MODERATOR')" th:href="@{/admin/home}" class="hidden rounded-xl border border-eac-border px-4 py-2.5 text-sm font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red lg:inline-flex">Admin Dashboard</a>
 
         <div class="hidden items-center gap-3 lg:flex">
+            <a sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" th:href="@{/notifications}" th:classappend="${active == 'notifications'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text-light hover:bg-eac-bg hover:text-eac-maroon'" class="relative grid h-11 w-11 place-items-center rounded-2xl transition duration-200 ease-out" aria-label="Notifications">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8a6 6 0 0 0-12 0c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+                <span th:if="${unreadNotificationCount > 0}" th:text="${unreadNotificationCount}" class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-eac-red px-1 text-[10px] font-black text-white"></span>
+            </a>
             <div class="grid h-11 w-11 place-items-center rounded-full bg-eac-red-soft text-eac-red">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             <form th:action="@{/logout}" method="post">
-                <button type="submit" class="rounded-xl bg-eac-red px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover">Sign Out</button>
+                <button type="submit" class="rounded-xl bg-eac-red px-4 py-2.5 text-sm font-bold text-white shadow-[0_12px_25px_rgba(200,16,46,0.18)] transition hover:-translate-y-0.5 hover:bg-eac-red-hover active:translate-y-0">Sign Out</button>
             </form>
         </div>
 
@@ -54,10 +74,15 @@
     <div id="navPanel" class="hidden border-t border-eac-border bg-white px-5 py-4 text-sm font-bold lg:hidden">
         <div sec:authorize="!hasAnyRole('ADMIN','MODERATOR')" class="space-y-1">
             <a th:href="@{/browse}" th:classappend="${active == 'browse'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">Browse</a>
-            <a th:href="@{/saved-files}" th:classappend="${active == 'saved'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">Saved Files</a>
+            <a th:href="@{/departments}" th:classappend="${active == 'departments'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">Departments</a>
             <a th:href="@{/upload}" th:classappend="${active == 'upload'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">Upload</a>
-            <a th:href="@{/my-uploads}" th:classappend="${active == 'uploads'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">My Uploads</a>
-            <a th:href="@{/my-requests}" th:classappend="${active == 'requests'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">My Requests</a>
+            <div class="my-3 border-t border-eac-border pt-3">
+                <p class="px-4 pb-2 text-[11px] font-black uppercase tracking-[0.14em] text-eac-text-light">My Workspace</p>
+                <a th:href="@{/my-uploads}" th:classappend="${active == 'uploads'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">My Uploads</a>
+                <a th:href="@{/saved-files}" th:classappend="${active == 'saved'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">Saved Files</a>
+                <a th:href="@{/following}" th:classappend="${active == 'following'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">Following</a>
+                <a th:href="@{/my-requests}" th:classappend="${active == 'requests'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">My Requests</a>
+            </div>
             <a th:href="@{/notifications}" th:classappend="${active == 'notifications'} ? 'bg-eac-red-soft text-eac-red' : 'text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="block rounded-xl px-4 py-3 transition">Notifications</a>
         </div>
         <a sec:authorize="hasAnyRole('ADMIN','MODERATOR')" th:href="@{/admin/home}" class="block rounded-xl px-4 py-3 font-bold text-eac-maroon transition hover:bg-eac-bg hover:text-eac-red">Admin Dashboard</a>
@@ -65,6 +90,51 @@
             <button type="submit" class="w-full rounded-xl bg-eac-red px-5 py-3 text-sm font-bold text-white transition hover:bg-eac-red-hover">Sign Out</button>
         </form>
     </div>
+
+    <script>
+        (() => {
+            const navToggle = document.getElementById('navToggle');
+            const navPanel = document.getElementById('navPanel');
+            const toggle = document.getElementById('workspaceToggle');
+            const menu = document.getElementById('workspaceMenu');
+            const dropdown = document.getElementById('workspaceDropdown');
+            const chevron = document.getElementById('workspaceChevron');
+
+            if (navToggle && navPanel) {
+                navToggle.addEventListener('click', (event) => {
+                    event.stopImmediatePropagation();
+                    navPanel.classList.toggle('hidden');
+                });
+            }
+
+            if (!toggle || !menu || !dropdown) return;
+
+            const setOpen = (open) => {
+                toggle.setAttribute('aria-expanded', String(open));
+                dropdown.classList.toggle('invisible', !open);
+                dropdown.classList.toggle('pointer-events-none', !open);
+                dropdown.classList.toggle('opacity-0', !open);
+                dropdown.classList.toggle('scale-95', !open);
+                dropdown.classList.toggle('opacity-100', open);
+                dropdown.classList.toggle('scale-100', open);
+                if (chevron) chevron.classList.toggle('rotate-180', open);
+            };
+
+            toggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+            });
+            document.addEventListener('click', (event) => {
+                if (!menu.contains(event.target)) setOpen(false);
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    setOpen(false);
+                    toggle.focus();
+                }
+            });
+        })();
+    </script>
 </header>
 </body>
 </html>

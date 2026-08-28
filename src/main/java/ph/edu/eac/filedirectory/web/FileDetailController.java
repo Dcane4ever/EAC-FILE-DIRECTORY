@@ -15,16 +15,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.HttpStatus;
 import ph.edu.eac.filedirectory.access.AccessRequest;
 import ph.edu.eac.filedirectory.access.AccessRequestRepository;
 import ph.edu.eac.filedirectory.access.AccessRequestStatus;
 import ph.edu.eac.filedirectory.audit.AuditService;
+import ph.edu.eac.filedirectory.citation.CitationService;
 import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.FileStorageService;
 import ph.edu.eac.filedirectory.file.FileVersionRepository;
+import ph.edu.eac.filedirectory.follow.FollowService;
+import ph.edu.eac.filedirectory.follow.FollowType;
 import ph.edu.eac.filedirectory.saved.SavedFileRepository;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.user.AppUser;
@@ -64,17 +68,23 @@ public class FileDetailController {
     private final AccessRequestRepository accessRequestRepository;
     private final SavedFileRepository savedFileRepository;
     private final FileVersionRepository fileVersionRepository;
+    private final FollowService followService;
+    private final CitationService citationService;
 
     public FileDetailController(FileRepository fileRepository, FileStorageService storageService,
                                  AuditService auditService, AccessRequestRepository accessRequestRepository,
                                  SavedFileRepository savedFileRepository,
-                                 FileVersionRepository fileVersionRepository) {
+                                 FileVersionRepository fileVersionRepository,
+                                 FollowService followService,
+                                 CitationService citationService) {
         this.fileRepository = fileRepository;
         this.storageService = storageService;
         this.auditService = auditService;
         this.accessRequestRepository = accessRequestRepository;
         this.savedFileRepository = savedFileRepository;
         this.fileVersionRepository = fileVersionRepository;
+        this.followService = followService;
+        this.citationService = citationService;
     }
 
     @GetMapping("/files/{id}")
@@ -126,8 +136,19 @@ public class FileDetailController {
                 file.getCourse() == null ? null : file.getCourse().getId(),
                 relatedTagIds,
                 PageRequest.of(0, 4)));
+        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/files/{id}")
+                .buildAndExpand(file.getId())
+                .toUriString();
+        model.addAttribute("citations", citationService.citationsFor(file, fileUrl));
         model.addAttribute("savedByCurrentUser", principal != null
                 && savedFileRepository.existsByUserAndFile(principal.getAppUser(), file));
+        model.addAttribute("followingDepartment", principal != null
+                && followService.isFollowing(principal.getAppUser(), FollowType.DEPARTMENT, file.getDepartment().getId()));
+        model.addAttribute("followedTagIds", principal == null ? Set.of() : file.getTags().stream()
+                .map(tag -> tag.getId())
+                .filter(tagId -> followService.isFollowing(principal.getAppUser(), FollowType.TAG, tagId))
+                .collect(java.util.stream.Collectors.toSet()));
         if (!canDownloadDirectly && principal != null) {
             List<AccessRequest> pendingRequests = accessRequestRepository
                     .findByFileAndRequesterAndStatus(file, principal.getAppUser(), AccessRequestStatus.PENDING);

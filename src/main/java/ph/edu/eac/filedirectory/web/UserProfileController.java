@@ -11,6 +11,8 @@ import org.springframework.web.server.ResponseStatusException;
 import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
+import ph.edu.eac.filedirectory.follow.FollowService;
+import ph.edu.eac.filedirectory.follow.FollowType;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.user.AppUser;
 import ph.edu.eac.filedirectory.user.AppUserRepository;
@@ -27,10 +29,12 @@ public class UserProfileController {
 
     private final AppUserRepository userRepository;
     private final FileRepository fileRepository;
+    private final FollowService followService;
 
-    public UserProfileController(AppUserRepository userRepository, FileRepository fileRepository) {
+    public UserProfileController(AppUserRepository userRepository, FileRepository fileRepository, FollowService followService) {
         this.userRepository = userRepository;
         this.fileRepository = fileRepository;
+        this.followService = followService;
     }
 
     @GetMapping("/users/{id}")
@@ -53,6 +57,8 @@ public class UserProfileController {
         model.addAttribute("displayName", displayName(profileUser));
         model.addAttribute("initials", initials(profileUser));
         model.addAttribute("isOwnProfile", isOwnProfile(profileUser, principal));
+        model.addAttribute("followingUploader", principal != null && !isOwnProfile(profileUser, principal)
+                && followService.isFollowing(principal.getAppUser(), FollowType.UPLOADER, profileUser.getId()));
         model.addAttribute("approvedCount", approvedCount);
         model.addAttribute("pendingCount", pendingCount);
         model.addAttribute("downloadCount", downloads);

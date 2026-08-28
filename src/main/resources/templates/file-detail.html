@@ -48,10 +48,18 @@
                        class="mt-4 max-w-3xl text-sm sm:text-base leading-7 text-eac-text"
                        th:text="${file.description}"></p>
 
-                    <div class="flex flex-wrap gap-2 mt-6" th:if="${!file.tags.isEmpty()}">
-                        <a th:each="tag : ${file.tags}" th:text="${'#' + tag.name}"
-                           th:href="@{/browse(tag=${tag.name})}"
-                           class="text-xs font-semibold bg-eac-red-soft text-eac-red px-3 py-1.5 rounded-full hover:bg-eac-red hover:text-white transition"></a>
+                    <div class="flex flex-wrap items-center gap-2 mt-6" th:if="${!file.tags.isEmpty()}">
+                        <div th:each="tag : ${file.tags}" class="inline-flex items-center gap-1 rounded-full bg-eac-red-soft pr-1 text-xs font-semibold text-eac-red">
+                            <a th:text="${'#' + tag.name}" th:href="@{/browse(tag=${tag.name})}" class="px-3 py-1.5 hover:text-eac-maroon"></a>
+                            <form th:if="${#sets.contains(followedTagIds, tag.id)}" th:action="@{/unfollow/{type}/{targetId}(type='TAG',targetId=${tag.id})}" method="post">
+                                <input type="hidden" name="returnTo" th:value="${'/files/' + file.id}">
+                                <button type="submit" class="rounded-full bg-white px-2 py-1 text-[10px] font-black text-eac-red transition hover:bg-eac-red hover:text-white">Following</button>
+                            </form>
+                            <form th:unless="${#sets.contains(followedTagIds, tag.id)}" th:action="@{/follow/{type}/{targetId}(type='TAG',targetId=${tag.id})}" method="post">
+                                <input type="hidden" name="returnTo" th:value="${'/files/' + file.id}">
+                                <button type="submit" class="rounded-full bg-white px-2 py-1 text-[10px] font-black text-eac-red transition hover:bg-eac-red hover:text-white">Follow</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -128,7 +136,7 @@
                 </aside>
             </div>
 
-            <nav class="border-t border-eac-border grid grid-cols-3 text-sm font-semibold text-eac-text-light">
+            <nav class="border-t border-eac-border grid grid-cols-2 sm:grid-cols-4 text-sm font-semibold text-eac-text-light">
                 <a href="#overview" class="flex items-center justify-center gap-2 px-4 py-4 text-eac-red border-b-2 border-eac-red">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                     Overview
@@ -140,6 +148,10 @@
                 <a href="#details" class="flex items-center justify-center gap-2 px-4 py-4 hover:text-eac-red transition">
                     <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
                     Details
+                </a>
+                <a href="#citations" class="flex items-center justify-center gap-2 px-4 py-4 hover:text-eac-red transition">
+                    <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>
+                    Citations
                 </a>
             </nav>
         </section>
@@ -331,7 +343,16 @@
                     </span>
                     <div>
                         <dt class="text-eac-text-light">Department</dt>
-                        <dd class="font-semibold text-eac-text" th:text="${file.department.name}"></dd>
+                        <dd class="mt-1 flex flex-wrap items-center gap-2 font-semibold text-eac-text"><span th:text="${file.department.name}"></span>
+                            <form th:if="${followingDepartment}" th:action="@{/unfollow/{type}/{targetId}(type='DEPARTMENT',targetId=${file.department.id})}" method="post">
+                                <input type="hidden" name="returnTo" th:value="${'/files/' + file.id}">
+                                <button type="submit" class="rounded-full border border-eac-red/20 px-2.5 py-1 text-[10px] font-black text-eac-red transition hover:bg-eac-red hover:text-white">Following</button>
+                            </form>
+                            <form th:unless="${followingDepartment}" th:action="@{/follow/{type}/{targetId}(type='DEPARTMENT',targetId=${file.department.id})}" method="post">
+                                <input type="hidden" name="returnTo" th:value="${'/files/' + file.id}">
+                                <button type="submit" class="rounded-full border border-eac-red/20 px-2.5 py-1 text-[10px] font-black text-eac-red transition hover:bg-eac-red hover:text-white">Follow</button>
+                            </form>
+                        </dd>
                     </div>
                 </div>
                 <div class="flex gap-3">
@@ -421,6 +442,40 @@
                     </div>
                 </div>
             </dl>
+        </section>
+
+        <section id="citations" class="mt-5 bg-white rounded-xl border border-eac-border shadow-sm overflow-hidden">
+            <div class="flex flex-col gap-2 border-b border-eac-border px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.16em] text-eac-red">Citation export</p>
+                    <h2 class="mt-1 text-lg font-bold text-eac-maroon">Cite this file</h2>
+                    <p class="mt-1 text-sm text-eac-text-light">Generated from the current file metadata.</p>
+                </div>
+                <span class="inline-flex w-fit rounded-full bg-eac-red-soft px-3 py-1 text-xs font-black text-eac-red" th:text="${file.academicYear != null ? file.academicYear : 'n.d.'}">2026</span>
+            </div>
+            <div class="grid gap-4 p-5 sm:p-6 lg:grid-cols-3">
+                <article class="flex min-h-[220px] flex-col rounded-xl border border-eac-border bg-eac-bg/40 p-4">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <h3 class="font-black text-eac-maroon">APA</h3>
+                        <button type="button" data-copy-citation="apaCitation" class="copy-citation-btn rounded-lg border border-eac-border bg-white px-3 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Copy</button>
+                    </div>
+                    <p id="apaCitation" class="flex-1 text-sm leading-6 text-eac-text" th:text="${citations.apa}">APA citation</p>
+                </article>
+                <article class="flex min-h-[220px] flex-col rounded-xl border border-eac-border bg-eac-bg/40 p-4">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <h3 class="font-black text-eac-maroon">MLA</h3>
+                        <button type="button" data-copy-citation="mlaCitation" class="copy-citation-btn rounded-lg border border-eac-border bg-white px-3 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Copy</button>
+                    </div>
+                    <p id="mlaCitation" class="flex-1 text-sm leading-6 text-eac-text" th:text="${citations.mla}">MLA citation</p>
+                </article>
+                <article class="flex min-h-[220px] flex-col rounded-xl border border-eac-border bg-eac-bg/40 p-4">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <h3 class="font-black text-eac-maroon">EAC Basic</h3>
+                        <button type="button" data-copy-citation="eacCitation" class="copy-citation-btn rounded-lg border border-eac-border bg-white px-3 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Copy</button>
+                    </div>
+                    <p id="eacCitation" class="flex-1 text-sm leading-6 text-eac-text" th:text="${citations.eac}">EAC citation</p>
+                </article>
+            </div>
         </section>
 
         <section th:if="${!#lists.isEmpty(similarFiles)}" class="mt-5 bg-white rounded-xl border border-eac-border shadow-sm overflow-hidden">
@@ -587,6 +642,22 @@
                 }
             });
         }
+
+        document.querySelectorAll('.copy-citation-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var citation = document.getElementById(button.dataset.copyCitation);
+                if (!citation || !navigator.clipboard) return;
+                var originalText = button.textContent;
+                navigator.clipboard.writeText(citation.textContent.trim()).then(function () {
+                    button.textContent = 'Copied';
+                    button.classList.add('bg-eac-red', 'text-white');
+                    setTimeout(function () {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-eac-red', 'text-white');
+                    }, 1400);
+                });
+            });
+        });
 
         var flashToast = document.getElementById('flashToast');
         if (flashToast) {
