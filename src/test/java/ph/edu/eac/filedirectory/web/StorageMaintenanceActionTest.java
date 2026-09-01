@@ -176,6 +176,13 @@ class StorageMaintenanceActionTest {
                 .andExpect(view().name("admin/maintenance"));
     }
 
+    @Test
+    void adminDashboardRendersItsLiveStorageOverview() throws Exception {
+        mockMvc.perform(get("/admin/home").with(user(new EacUserDetails(admin))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/home"));
+    }
+
     private AppUser verifiedUser(String email, String name, Role role) {
         AppUser user = AppUser.registerManually(email, name, passwordEncoder.encode("SomePassword1"));
         user.setEmailVerified(true);

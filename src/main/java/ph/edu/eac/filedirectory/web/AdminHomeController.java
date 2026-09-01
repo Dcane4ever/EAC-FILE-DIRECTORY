@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.FileVersionRepository;
+import ph.edu.eac.filedirectory.maintenance.StorageOverviewService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.taxonomy.DepartmentRepository;
 import ph.edu.eac.filedirectory.user.AppUserRepository;
@@ -28,15 +29,18 @@ public class AdminHomeController {
     private final FileVersionRepository fileVersionRepository;
     private final DepartmentRepository departmentRepository;
     private final AppUserRepository userRepository;
+    private final StorageOverviewService storageOverviewService;
 
     public AdminHomeController(FileRepository fileRepository,
                                 FileVersionRepository fileVersionRepository,
                                 DepartmentRepository departmentRepository,
-                                AppUserRepository userRepository) {
+                                AppUserRepository userRepository,
+                                StorageOverviewService storageOverviewService) {
         this.fileRepository = fileRepository;
         this.fileVersionRepository = fileVersionRepository;
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
+        this.storageOverviewService = storageOverviewService;
     }
 
     @GetMapping("/admin/home")
@@ -51,6 +55,7 @@ public class AdminHomeController {
         model.addAttribute("userCount", userRepository.count());
         model.addAttribute("adminCount", userRepository.countByRole(Role.ADMIN));
         model.addAttribute("moderatorCount", userRepository.countByRole(Role.MODERATOR));
+        model.addAttribute("storageOverview", storageOverviewService.currentOverview());
         return "admin/home";
     }
 }
