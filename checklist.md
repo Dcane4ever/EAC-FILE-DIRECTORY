@@ -1,6 +1,6 @@
 # EAC File Directory Checklist
 
-Updated: August 28, 2026
+Updated: September 2, 2026
 
 ## Done
 
@@ -118,8 +118,9 @@ Updated: August 28, 2026
   - Confirm JWT secret/base URL settings match production.
 
 - [ ] Storage maintenance tools
-  - Detect missing files, orphaned file rows, duplicate checksums, and storage usage.
-  - Add admin-only maintenance/report view or command.
+  - [x] Phase 1: Admin-only, read-only maintenance report detects missing stored files, orphaned disk files, duplicate checksums, and physical storage usage.
+  - [x] Phase 1: CSV exports are available for every report category.
+  - [ ] Phase 2: Add explicit, audited maintenance actions only after the retention policy is approved.
 
 - [ ] Backup and restore procedure
   - Document MySQL backup.
@@ -133,6 +134,41 @@ Updated: August 28, 2026
   - Add or verify rate limits.
   - Review admin audit logs.
   - Review access-token expiry behavior.
+
+## Storage and Recovery Implementation Plan
+
+### Phase 1: Read-only storage maintenance report (Complete)
+
+- [x] Define an admin-only maintenance route and navigation entry.
+- [x] Scan every database file record and report records whose stored disk file is missing.
+- [x] Scan the storage root and report disk files not referenced by a database record.
+- [x] Report duplicate SHA-256 checksums, including the linked file records and versions.
+- [x] Calculate total storage usage, file counts, and storage use by department.
+- [x] Show summary counts and detailed results in an EAC-styled admin view.
+- [x] Add CSV export for each report category.
+- [x] Add tests covering normal files, missing files, orphaned files, duplicate checksums, and path-safety checks.
+- [x] Keep Phase 1 report-only: no automatic deletion, restoration, or database modification.
+
+### Phase 2: Controlled maintenance actions
+
+- [ ] Decide and document the retention policy for archived files and orphaned disk files.
+- [ ] Add an explicit, admin-confirmed action to archive records with missing disk files.
+- [ ] Add a reviewed cleanup workflow for confirmed orphaned disk files.
+- [ ] Require a reason and create an audit-log event for every maintenance action.
+- [ ] Add a downloadable maintenance activity report.
+
+### Phase 3: Backup and restore procedure
+
+- [ ] Choose a backup location separate from the Tomcat server disk when possible.
+- [ ] Create a MySQL backup command for the `eac_directory` database.
+- [ ] Create an uploaded-files backup command for `C:\\eac-filedirectory\\data`.
+- [ ] Create a dated backup folder structure that stores the database dump and uploaded files together.
+- [ ] Define retention: daily, weekly, and monthly backup copies.
+- [ ] Write `BACKUP-RESTORE.md` with prerequisites, backup commands, restore commands, and validation steps.
+- [ ] Configure a scheduled Windows task to run the backup after the procedure is manually verified.
+- [ ] Test a restore into a separate MySQL database and separate temporary storage directory.
+- [ ] Verify restored login, metadata, version history, permissions, preview, and download behavior.
+- [ ] Record the restore test date, result, operator, and any follow-up action.
 
 ## Later Improvements
 

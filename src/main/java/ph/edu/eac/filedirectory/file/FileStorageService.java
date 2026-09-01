@@ -94,6 +94,15 @@ public class FileStorageService {
         return target;
     }
 
+    /**
+     * The configured root is exposed for the read-only maintenance scanner.
+     * Callers must not use it to mutate storage; file writes remain owned by
+     * store(), and Phase 1 maintenance only inspects this directory.
+     */
+    public Path storageRoot() {
+        return storageRoot;
+    }
+
     private String copyAndHash(InputStream in, Path target) throws IOException {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

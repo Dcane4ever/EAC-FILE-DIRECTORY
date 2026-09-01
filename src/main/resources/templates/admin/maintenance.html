@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storage Maintenance - EAC File Directory</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+    <style>@keyframes admin-rise{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}.admin-rise{animation:admin-rise 520ms cubic-bezier(.2,.8,.2,1) both}@media(prefers-reduced-motion:reduce){.admin-rise{animation:none}}</style>
+</head>
+<body class="min-h-screen bg-[#f7f7f8] text-eac-text">
+    <div class="min-h-screen lg:grid lg:grid-cols-[272px_1fr]">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-eac-border bg-white lg:flex lg:flex-col">
+            <div class="flex h-[84px] items-center gap-3 px-6">
+                <img th:src="@{/images/emblem.png}" alt="EAC" class="h-12 w-12 shrink-0">
+                <div class="min-w-0"><p class="truncate text-base font-black text-eac-maroon">EAC File Directory</p><p class="text-xs font-semibold text-eac-red">Admin</p></div>
+            </div>
+            <nav th:replace="~{fragments/admin-sidebar-nav :: nav('maintenance', null, false)}"></nav>
+            <div class="mt-auto p-4">
+                <div class="rounded-2xl border border-eac-border bg-eac-bg p-5">
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Read-only scan</p>
+                    <p class="mt-3 text-3xl font-black text-eac-maroon" th:text="${report.diskStorageLabel}">0 B</p>
+                    <p class="mt-1 text-sm font-semibold text-eac-text-light">physical storage inspected</p>
+                    <a th:href="@{/admin/maintenance}" class="mt-4 block rounded-xl bg-eac-red px-4 py-3 text-center text-xs font-black text-white transition hover:bg-eac-red-hover">Run fresh scan</a>
+                </div>
+            </div>
+        </aside>
+
+        <div id="mobileOverlay" class="fixed inset-0 z-30 hidden bg-black/30 lg:hidden"></div>
+
+        <div class="min-w-0 lg:col-start-2">
+            <header class="sticky top-0 z-20 border-b border-eac-border bg-white/95 backdrop-blur">
+                <div class="flex h-[84px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-9">
+                    <button type="button" id="navToggle" aria-label="Open menu" class="grid h-10 w-10 place-items-center rounded-xl border border-eac-border text-eac-maroon lg:hidden">=</button>
+                    <div class="hidden min-w-0 sm:block"><p class="text-sm font-black text-eac-maroon">Storage Maintenance</p><p class="text-xs font-semibold text-eac-text-light">Admin-only repository integrity report</p></div>
+                    <form th:action="@{/logout}" method="post" class="ml-auto"><button type="submit" class="rounded-xl bg-eac-red px-4 py-2.5 text-sm font-bold text-white transition hover:bg-eac-red-hover">Sign Out</button></form>
+                </div>
+            </header>
+
+            <main class="admin-rise px-4 py-8 sm:px-6 lg:px-9 lg:py-10">
+                <section class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-eac-red">Repository integrity</p>
+                        <h1 class="mt-3 text-3xl font-black text-eac-text sm:text-4xl">Storage maintenance</h1>
+                        <p class="mt-2 max-w-2xl text-base font-medium leading-7 text-eac-text-light">Compare database records with the files physically present in storage. This scan only reports findings and does not change files or database records.</p>
+                    </div>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <p class="text-sm font-semibold text-eac-text-light">Scanned <span class="font-black text-eac-maroon" th:text="${#temporals.format(report.scannedAt, 'MMM d, yyyy h:mm a')}">now</span> against <span class="font-black text-eac-maroon" th:text="${report.storageRoot}">storage root</span></p>
+                        <a th:href="@{/admin/maintenance}" class="rounded-xl border border-eac-red/30 bg-white px-4 py-2.5 text-center text-sm font-black text-eac-red transition hover:border-eac-red hover:bg-eac-red-soft">Run fresh scan</a>
+                    </div>
+                </section>
+
+                <section class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <article class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm"><p class="text-sm font-black text-eac-text-light">Database References</p><p class="mt-4 text-4xl font-black text-eac-maroon" th:text="${report.databaseReferenceCount}">0</p><p class="mt-2 text-xs font-semibold text-eac-text-light">current files and versions tracked</p></article>
+                    <article class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm"><p class="text-sm font-black text-eac-text-light">Disk Files</p><p class="mt-4 text-4xl font-black text-eac-maroon" th:text="${report.diskFileCount}">0</p><p class="mt-2 text-xs font-semibold text-eac-text-light" th:text="${report.diskStorageLabel} + ' physical storage used'">0 B physical storage used</p></article>
+                    <article class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm"><p class="text-sm font-black text-eac-text-light">Missing Stored Files</p><p class="mt-4 text-4xl font-black text-amber-700" th:text="${#lists.size(report.missingStoredFiles)}">0</p><p class="mt-2 text-xs font-semibold text-eac-text-light">database references without disk content</p></article>
+                    <article class="rounded-2xl border border-eac-border bg-white p-6 shadow-sm"><p class="text-sm font-black text-eac-text-light">Orphaned Disk Files</p><p class="mt-4 text-4xl font-black text-eac-red" th:text="${#lists.size(report.orphanedStoredFiles)}">0</p><p class="mt-2 text-xs font-semibold text-eac-text-light">disk files with no database reference</p></article>
+                </section>
+
+                <section class="mt-6 grid gap-6 2xl:grid-cols-2">
+                    <article class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+                        <div class="flex flex-col gap-3 border-b border-eac-border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"><div><h2 class="text-lg font-black text-eac-text">Missing stored files</h2><p class="mt-1 text-sm font-medium text-eac-text-light">Records that point to a file no longer present on disk.</p></div><a th:href="@{/admin/maintenance/export/missing}" class="rounded-xl border border-eac-border px-3 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Export CSV</a></div>
+                        <div th:if="${#lists.isEmpty(report.missingStoredFiles)}" class="p-8 text-center text-sm font-semibold text-green-700">No missing stored files found.</div>
+                        <div th:unless="${#lists.isEmpty(report.missingStoredFiles)}" class="max-h-[420px] divide-y divide-eac-border overflow-auto">
+                            <div th:each="item : ${report.missingStoredFiles}" class="p-5"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><p class="font-black text-eac-maroon" th:text="${item.title}">File title</p><p class="mt-1 break-all text-xs font-semibold text-eac-text-light" th:text="${item.relativePath}">path</p></div><span class="shrink-0 rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700" th:text="${item.recordType}">Current file</span></div><p class="mt-2 text-xs font-semibold text-eac-text-light">File #<span th:text="${item.fileId}">0</span><span th:if="${item.versionNumber != null}" th:text="${' / version ' + item.versionNumber}"></span></p></div>
+                        </div>
+                    </article>
+
+                    <article class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+                        <div class="flex flex-col gap-3 border-b border-eac-border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"><div><h2 class="text-lg font-black text-eac-text">Orphaned disk files</h2><p class="mt-1 text-sm font-medium text-eac-text-light">Physical files that no database record currently references.</p></div><a th:href="@{/admin/maintenance/export/orphaned}" class="rounded-xl border border-eac-border px-3 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Export CSV</a></div>
+                        <div th:if="${#lists.isEmpty(report.orphanedStoredFiles)}" class="p-8 text-center text-sm font-semibold text-green-700">No orphaned disk files found.</div>
+                        <div th:unless="${#lists.isEmpty(report.orphanedStoredFiles)}" class="max-h-[420px] divide-y divide-eac-border overflow-auto">
+                            <div th:each="item : ${report.orphanedStoredFiles}" class="flex items-start justify-between gap-4 p-5"><p class="min-w-0 break-all text-sm font-bold text-eac-maroon" th:text="${item.relativePath}">path</p><span class="shrink-0 text-sm font-black text-eac-text-light" th:text="${item.sizeLabel}">0 B</span></div>
+                        </div>
+                    </article>
+
+                    <article class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+                        <div class="flex flex-col gap-3 border-b border-eac-border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"><div><h2 class="text-lg font-black text-eac-text">Duplicate content</h2><p class="mt-1 text-sm font-medium text-eac-text-light">Checksum matches across more than one physical stored file.</p></div><a th:href="@{/admin/maintenance/export/duplicates}" class="rounded-xl border border-eac-border px-3 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Export CSV</a></div>
+                        <div th:if="${#lists.isEmpty(report.duplicateChecksums)}" class="p-8 text-center text-sm font-semibold text-green-700">No duplicate physical files found.</div>
+                        <div th:unless="${#lists.isEmpty(report.duplicateChecksums)}" class="max-h-[420px] divide-y divide-eac-border overflow-auto">
+                            <div th:each="group : ${report.duplicateChecksums}" class="p-5"><div class="flex items-start justify-between gap-3"><p class="min-w-0 break-all font-mono text-xs font-bold text-eac-maroon" th:text="${group.checksum}">checksum</p><span class="shrink-0 rounded-full bg-eac-red-soft px-3 py-1 text-xs font-black text-eac-red" th:text="${group.distinctPhysicalFileCount} + ' files'">0 files</span></div><p class="mt-3 text-xs font-semibold text-eac-text-light" th:text="${#lists.size(group.references)} + ' database references'">0 references</p></div>
+                        </div>
+                    </article>
+
+                    <article class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm">
+                        <div class="flex flex-col gap-3 border-b border-eac-border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"><div><h2 class="text-lg font-black text-eac-text">Storage by department</h2><p class="mt-1 text-sm font-medium text-eac-text-light">Actual disk usage grouped from the department storage path.</p></div><a th:href="@{/admin/maintenance/export/departments}" class="rounded-xl border border-eac-border px-3 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Export CSV</a></div>
+                        <div th:if="${#lists.isEmpty(report.departmentStorage)}" class="p-8 text-center text-sm font-semibold text-eac-text-light">No stored files found.</div>
+                        <div th:unless="${#lists.isEmpty(report.departmentStorage)}" class="max-h-[420px] divide-y divide-eac-border overflow-auto">
+                            <div th:each="item : ${report.departmentStorage}" class="flex items-center justify-between gap-4 p-5"><div><p class="font-black text-eac-maroon" th:text="${item.departmentCode}">SET</p><p class="mt-1 text-xs font-semibold text-eac-text-light" th:text="${item.fileCount} + ' stored files'">0 stored files</p></div><span class="text-sm font-black text-eac-text" th:text="${item.storageLabel}">0 B</span></div>
+                        </div>
+                    </article>
+
+                    <article class="overflow-hidden rounded-2xl border border-eac-border bg-white shadow-sm 2xl:col-span-2">
+                        <div class="flex flex-col gap-3 border-b border-eac-border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"><div><h2 class="text-lg font-black text-eac-text">Largest stored files</h2><p class="mt-1 text-sm font-medium text-eac-text-light">The ten largest physical files currently found under the configured storage root.</p></div><a th:href="@{/admin/maintenance/export/largest}" class="rounded-xl border border-eac-border px-3 py-2 text-xs font-black text-eac-red transition hover:border-eac-red/40">Export CSV</a></div>
+                        <div th:if="${#lists.isEmpty(report.largestStoredFiles)}" class="p-8 text-center text-sm font-semibold text-eac-text-light">No stored files found.</div>
+                        <div th:unless="${#lists.isEmpty(report.largestStoredFiles)}" class="divide-y divide-eac-border">
+                            <div th:each="item : ${report.largestStoredFiles}" class="flex items-start justify-between gap-4 p-5"><p class="min-w-0 break-all text-sm font-bold text-eac-maroon" th:text="${item.relativePath}">path</p><span class="shrink-0 text-sm font-black text-eac-text" th:text="${item.sizeLabel}">0 B</span></div>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="mt-6 rounded-2xl border border-eac-red/20 bg-eac-red-soft/40 p-5 sm:p-6"><h2 class="text-base font-black text-eac-maroon">Phase 1 safeguard</h2><p class="mt-2 max-w-3xl text-sm font-medium leading-6 text-eac-text-light">This page is diagnostic only. It does not delete, archive, restore, move, or modify stored files and it does not change database records. Any repair action will be a separate, confirmed, audited Phase 2 workflow.</p></section>
+            </main>
+        </div>
+    </div>
+    <script>var sidebar=document.getElementById('sidebar'),navToggle=document.getElementById('navToggle'),overlay=document.getElementById('mobileOverlay');function openSidebar(){sidebar.classList.remove('hidden');sidebar.classList.add('flex');overlay.classList.remove('hidden')}function closeSidebar(){sidebar.classList.add('hidden');sidebar.classList.remove('flex');overlay.classList.add('hidden')}if(navToggle&&sidebar&&overlay){navToggle.addEventListener('click',openSidebar);overlay.addEventListener('click',closeSidebar)}</script>
+</body>
+</html>

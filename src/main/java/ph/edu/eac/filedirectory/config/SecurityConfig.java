@@ -71,7 +71,8 @@ public class SecurityConfig {
                 // - a MODERATOR can approve uploads but should not be able to
                 // promote/demote accounts or turn off moderation for a department.
                 .requestMatchers("/admin/users", "/admin/users/**", "/admin/departments/**",
-                        "/admin/taxonomy", "/admin/taxonomy/**", "/admin/reports", "/admin/reports/**").hasRole("ADMIN")
+                        "/admin/taxonomy", "/admin/taxonomy/**", "/admin/reports", "/admin/reports/**",
+                        "/admin/maintenance", "/admin/maintenance/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "MODERATOR")
                 .anyRequest().authenticated()
             )

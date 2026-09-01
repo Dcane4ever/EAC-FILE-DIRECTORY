@@ -41,6 +41,12 @@
         </span>
         <span>Reports</span>
     </a>
+    <a th:href="@{/admin/maintenance}" sec:authorize="hasRole('ADMIN')" th:classappend="${active == 'maintenance'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/><path d="M19 3v5h-5"/></svg>
+        </span>
+        <span>Maintenance</span>
+    </a>
     <a th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')" th:classappend="${active == 'users'} ? ' bg-eac-red-soft text-eac-red' : ' text-eac-text hover:bg-eac-bg hover:text-eac-red'" class="flex items-center gap-3 rounded-2xl px-4 py-3 transition">
         <span class="flex h-5 w-5 shrink-0 items-center justify-center">
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
