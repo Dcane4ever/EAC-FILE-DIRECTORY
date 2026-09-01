@@ -17,6 +17,7 @@ import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileSearchCriteria;
 import ph.edu.eac.filedirectory.file.FileSortOption;
+import ph.edu.eac.filedirectory.file.FileStorageService;
 import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.FileSpecifications;
 import ph.edu.eac.filedirectory.file.FileTypeValidator;
@@ -63,11 +64,13 @@ public class AdminController {
     private final NotificationService notificationService;
     private final FollowService followService;
     private final AuditService auditService;
+    private final FileStorageService storageService;
 
     public AdminController(FileRepository fileRepository, DepartmentRepository departmentRepository,
                             CategoryRepository categoryRepository,
                             FileVersionRepository fileVersionRepository,
-                            NotificationService notificationService, FollowService followService, AuditService auditService) {
+                            NotificationService notificationService, FollowService followService, AuditService auditService,
+                            FileStorageService storageService) {
         this.fileRepository = fileRepository;
         this.departmentRepository = departmentRepository;
         this.categoryRepository = categoryRepository;
@@ -75,6 +78,7 @@ public class AdminController {
         this.notificationService = notificationService;
         this.followService = followService;
         this.auditService = auditService;
+        this.storageService = storageService;
     }
 
     public record DepartmentGroup(Department department, List<FileEntity> files, String icon) {
@@ -286,6 +290,11 @@ public class AdminController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         if (file.getStatus() == FileStatus.ARCHIVED) {
+            if (!storageService.storedFileExists(file.getFilePath())) {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Cannot restore \"" + file.getTitle() + "\" because its stored file is still missing.");
+                return "redirect:/files/" + file.getId();
+            }
             FileStatus restoredStatus = file.getStatusBeforeArchive() == null
                     ? FileStatus.APPROVED
                     : file.getStatusBeforeArchive();

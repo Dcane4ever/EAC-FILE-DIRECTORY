@@ -6,12 +6,24 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ph.edu.eac.filedirectory.audit.AuditService;
+import ph.edu.eac.filedirectory.file.FileEntity;
+import ph.edu.eac.filedirectory.file.FileRepository;
+import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.maintenance.StorageMaintenanceReport;
 import ph.edu.eac.filedirectory.maintenance.StorageMaintenanceService;
+import ph.edu.eac.filedirectory.security.EacUserDetails;
+import ph.edu.eac.filedirectory.user.AppUser;
+import ph.edu.eac.filedirectory.user.Role;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.nio.charset.StandardCharsets;
 
@@ -22,15 +34,68 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class StorageMaintenanceController {
 
     private final StorageMaintenanceService storageMaintenanceService;
+    private final FileRepository fileRepository;
+    private final AuditService auditService;
 
-    public StorageMaintenanceController(StorageMaintenanceService storageMaintenanceService) {
+    public StorageMaintenanceController(StorageMaintenanceService storageMaintenanceService,
+                                        FileRepository fileRepository,
+                                        AuditService auditService) {
         this.storageMaintenanceService = storageMaintenanceService;
+        this.fileRepository = fileRepository;
+        this.auditService = auditService;
     }
 
     @GetMapping("/admin/maintenance")
     public String maintenance(Model model) {
         model.addAttribute("report", storageMaintenanceService.scan());
         return "admin/maintenance";
+    }
+
+    /**
+     * Phase 2's only mutation: archive a current record whose file is still
+     * absent from disk. Historical version findings remain report-only so a
+     * missing old version cannot hide a working current document.
+     */
+    @PostMapping("/admin/maintenance/files/{id}/archive-missing")
+    @Transactional
+    public String archiveMissingCurrentFile(@PathVariable Long id,
+                                            @RequestParam String reason,
+                                            @AuthenticationPrincipal EacUserDetails principal,
+                                            RedirectAttributes redirectAttributes) {
+        AppUser admin = requireAdmin(principal);
+        FileEntity file = fileRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+        String cleanReason = reason == null ? "" : reason.trim();
+
+        if (cleanReason.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Give a reason before archiving a missing-file record.");
+            return "redirect:/admin/maintenance";
+        }
+        if (cleanReason.length() > 400) {
+            redirectAttributes.addFlashAttribute("errorMessage", "The archive reason must be 400 characters or fewer.");
+            return "redirect:/admin/maintenance";
+        }
+        if (file.getStatus() == FileStatus.ARCHIVED) {
+            redirectAttributes.addFlashAttribute("infoMessage", "This file is already archived.");
+            return "redirect:/admin/maintenance";
+        }
+        if (storageMaintenanceService.storedFileExists(file.getFilePath())) {
+            redirectAttributes.addFlashAttribute("infoMessage", "The stored file is available again, so no archive action was taken.");
+            return "redirect:/admin/maintenance";
+        }
+
+        FileStatus previousStatus = file.getStatus();
+        String archiveReason = "Storage maintenance: " + cleanReason;
+        file.setStatusBeforeArchive(previousStatus);
+        file.setStatus(FileStatus.ARCHIVED);
+        file.setArchivedBy(admin);
+        file.setArchivedAt(java.time.Instant.now());
+        file.setArchiveReason(archiveReason);
+        fileRepository.save(file);
+        auditService.fileArchived(admin, file.getId(), file.getTitle(), previousStatus.name(), archiveReason);
+
+        redirectAttributes.addFlashAttribute("infoMessage", "Archived missing-file record \"" + file.getTitle() + "\".");
+        return "redirect:/admin/maintenance";
     }
 
     @GetMapping("/admin/maintenance/export/{reportType}")
@@ -102,5 +167,12 @@ public class StorageMaintenanceController {
             safe = "'" + safe;
         }
         return '"' + safe.replace("\"", "\"\"") + '"';
+    }
+
+    private AppUser requireAdmin(EacUserDetails principal) {
+        if (principal == null || principal.getAppUser().getRole() != Role.ADMIN) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN);
+        }
+        return principal.getAppUser();
     }
 }

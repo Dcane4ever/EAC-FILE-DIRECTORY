@@ -94,14 +94,8 @@ public class StorageMaintenanceService {
         return references;
     }
 
-    private boolean storedFileExists(String relativePath) {
-        try {
-            return relativePath != null && Files.isRegularFile(storageService.resolve(relativePath));
-        } catch (IllegalArgumentException ignored) {
-            // A malformed database path is reported as missing, while
-            // FileStorageService still prevents the scan from escaping root.
-            return false;
-        }
+    public boolean storedFileExists(String relativePath) {
+        return storageService.storedFileExists(relativePath);
     }
 
     private Map<String, DiskFile> diskFiles() {

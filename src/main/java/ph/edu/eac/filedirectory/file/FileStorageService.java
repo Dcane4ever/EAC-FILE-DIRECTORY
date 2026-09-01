@@ -103,6 +103,15 @@ public class FileStorageService {
         return storageRoot;
     }
 
+    /** Returns false for a missing or malformed relative path without ever leaving storageRoot. */
+    public boolean storedFileExists(String relativePath) {
+        try {
+            return relativePath != null && Files.isRegularFile(resolve(relativePath));
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+    }
+
     private String copyAndHash(InputStream in, Path target) throws IOException {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
