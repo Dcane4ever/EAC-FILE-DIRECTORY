@@ -112,6 +112,18 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Deletes one already-reviewed orphan from local storage. Callers must
+     * establish that the path is unreferenced immediately before this action.
+     */
+    public boolean deleteStoredFile(String relativePath) {
+        try {
+            return Files.deleteIfExists(resolve(relativePath));
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not delete stored file: " + relativePath, e);
+        }
+    }
+
     private String copyAndHash(InputStream in, Path target) throws IOException {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

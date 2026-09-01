@@ -122,7 +122,8 @@ Updated: September 2, 2026
   - [x] Phase 1: CSV exports are available for every report category.
   - [x] Phase 2: Admin-only archive action for missing current-file records, with a required reason and audit event.
   - [x] Phase 2: Archived records cannot be restored while their stored file remains missing.
-  - [ ] Phase 2: Orphaned-disk cleanup remains disabled until the retention policy and backups are approved.
+  - [x] Phase 2: Orphaned-disk cleanup uses a 30-day, admin-reviewed queue with a required backup reference, final confirmation, and audit events.
+  - [ ] Apply `sql/add-orphan-cleanup-entries.sql` on Tomcat deployments that use `JPA_DDL_AUTO=none`.
 
 - [ ] Backup and restore procedure
   - Document MySQL backup.
@@ -153,9 +154,9 @@ Updated: September 2, 2026
 
 ### Phase 2: Controlled maintenance actions
 
-- [ ] Decide and document the retention policy for archived files and orphaned disk files.
+- [x] Decide and document the retention policy: keep archived records; retain reviewed orphaned disk files for 30 days before manual deletion.
 - [x] Add an explicit, admin-confirmed action to archive current records with missing disk files.
-- [ ] Add a reviewed cleanup workflow for confirmed orphaned disk files.
+- [x] Add a reviewed cleanup workflow for confirmed orphaned disk files.
 - [x] Require a reason and create an audit-log event for every implemented maintenance action.
 - [x] Block restoring an archived record until its current stored file exists again.
 - [ ] Add a downloadable maintenance activity report.

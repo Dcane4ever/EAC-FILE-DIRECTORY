@@ -18,7 +18,10 @@ import ph.edu.eac.filedirectory.file.FileEntity;
 import ph.edu.eac.filedirectory.file.FileRepository;
 import ph.edu.eac.filedirectory.file.FileStatus;
 import ph.edu.eac.filedirectory.file.FileVersionRepository;
+import ph.edu.eac.filedirectory.file.FileStorageService;
 import ph.edu.eac.filedirectory.notification.NotificationRepository;
+import ph.edu.eac.filedirectory.maintenance.OrphanCleanupEntryRepository;
+import ph.edu.eac.filedirectory.maintenance.OrphanCleanupStatus;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.taxonomy.Category;
 import ph.edu.eac.filedirectory.taxonomy.CategoryRepository;
@@ -34,8 +37,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -54,7 +59,9 @@ class StorageMaintenanceActionTest {
     @Autowired private AuditEventRepository auditEventRepository;
     @Autowired private EmailVerificationTokenRepository emailVerificationTokenRepository;
     @Autowired private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Autowired private OrphanCleanupEntryRepository orphanCleanupEntryRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private FileStorageService storageService;
 
     @MockitoBean private JavaMailSender mailSender;
 
@@ -69,6 +76,7 @@ class StorageMaintenanceActionTest {
         accessGrantTokenRepository.deleteAll();
         accessRequestRepository.deleteAll();
         notificationRepository.deleteAll();
+        orphanCleanupEntryRepository.deleteAll();
         fileVersionRepository.deleteAll();
         fileRepository.deleteAll();
         emailVerificationTokenRepository.deleteAll();
@@ -130,6 +138,42 @@ class StorageMaintenanceActionTest {
 
         assertThat(fileRepository.findById(file.getId()).orElseThrow().getStatus()).isEqualTo(FileStatus.ARCHIVED);
         assertThat(auditEventRepository.findAll()).noneMatch(event -> event.getAction() == AuditAction.FILE_RESTORED);
+    }
+
+    @Test
+    void adminCanScheduleAnOrphanedPathOnlyWithARecordedBackupReference() throws Exception {
+        java.nio.file.Path orphan = java.nio.file.Files.createTempFile("storage-maintenance-orphan-", ".txt");
+        String storedPath = "TEST/" + orphan.getFileName();
+        java.nio.file.Path storedFile = storageService.storageRoot().resolve(storedPath);
+        try {
+            java.nio.file.Path rootPath = storageService.storageRoot();
+            java.nio.file.Files.createDirectories(rootPath.resolve("TEST"));
+            java.nio.file.Files.move(orphan, storedFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            mockMvc.perform(post("/admin/maintenance/orphans/schedule")
+                            .with(user(new EacUserDetails(admin))).with(csrf())
+                            .param("storedPath", storedPath)
+                            .param("sizeBytes", "1")
+                            .param("reason", "Confirmed against current database references.")
+                            .param("backupReference", "backup-2026-09-01"))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/admin/maintenance"));
+
+            var entry = orphanCleanupEntryRepository.findByStoredPath(storedPath).orElseThrow();
+            assertThat(entry.getStatus()).isEqualTo(OrphanCleanupStatus.SCHEDULED);
+            assertThat(entry.getBackupReference()).isEqualTo("backup-2026-09-01");
+            assertThat(auditEventRepository.findAll()).anySatisfy(event ->
+                    assertThat(event.getAction()).isEqualTo(AuditAction.STORAGE_ORPHAN_SCHEDULED));
+        } finally {
+            java.nio.file.Files.deleteIfExists(storedFile);
+        }
+    }
+
+    @Test
+    void maintenancePageRendersForAnAdmin() throws Exception {
+        mockMvc.perform(get("/admin/maintenance").with(user(new EacUserDetails(admin))))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/maintenance"));
     }
 
     private AppUser verifiedUser(String email, String name, Role role) {

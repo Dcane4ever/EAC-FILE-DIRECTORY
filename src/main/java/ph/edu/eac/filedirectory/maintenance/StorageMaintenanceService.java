@@ -98,6 +98,21 @@ public class StorageMaintenanceService {
         return storageService.storedFileExists(relativePath);
     }
 
+    /** Re-evaluates current database references before a queued cleanup action. */
+    public boolean isOrphanedStoredFile(String relativePath) {
+        if (!storedFileExists(relativePath)) {
+            return false;
+        }
+        return trackedReferences().stream().noneMatch(reference -> reference.relativePath().equals(relativePath));
+    }
+
+    public boolean deleteOrphanedStoredFile(String relativePath) {
+        if (!isOrphanedStoredFile(relativePath)) {
+            return false;
+        }
+        return storageService.deleteStoredFile(relativePath);
+    }
+
     private Map<String, DiskFile> diskFiles() {
         Path root = storageService.storageRoot();
         if (!Files.isDirectory(root)) {

@@ -122,6 +122,21 @@ public class AuditService {
                 .newValue("v" + versionNumber).reason(note));
     }
 
+    public void storageOrphanScheduled(AppUser actor, String storedPath, String reason, String eligibleAt) {
+        record(AuditEvent.builder(AuditAction.STORAGE_ORPHAN_SCHEDULED).actor(actor)
+                .metadata(storedPath).reason(reason).newValue(eligibleAt));
+    }
+
+    public void storageOrphanCancelled(AppUser actor, String storedPath, String reason) {
+        record(AuditEvent.builder(AuditAction.STORAGE_ORPHAN_CANCELLED).actor(actor)
+                .metadata(storedPath).reason(reason));
+    }
+
+    public void storageOrphanDeleted(AppUser actor, String storedPath, String reason) {
+        record(AuditEvent.builder(AuditAction.STORAGE_ORPHAN_DELETED).actor(actor)
+                .metadata(storedPath).reason(reason));
+    }
+
     // --- Access requests ---
 
     public void accessRequested(AppUser actor, Long fileId, String title) {
