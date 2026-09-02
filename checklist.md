@@ -106,13 +106,13 @@ Updated: September 2, 2026
 
 - [x] Local WAR build verification
   - Built the project locally as `target/eacmnl#filedirectory.war`.
-  - Verified local test reports: 157 tests, 0 failures, 0 errors, 0 skipped.
+  - Verified local test reports: 176 tests, 0 failures, 0 errors, 0 skipped.
 
 - [ ] Server deployment dry run
   - Deploy `eacmnl#filedirectory.war` to the target Tomcat server.
   - Test the real server URL, login, upload, preview, download/request-copy, admin queue, and logout.
 
-- [ ] Docker/OnlyOffice production check
+- [x] Docker/OnlyOffice production check
   - Confirm Docker Desktop or Docker Engine is installed correctly on the server.
   - Confirm OnlyOffice container starts automatically and is reachable by both browser and Spring Boot.
   - Confirm JWT secret/base URL settings match production.
@@ -123,7 +123,7 @@ Updated: September 2, 2026
   - [x] Phase 2: Admin-only archive action for missing current-file records, with a required reason and audit event.
   - [x] Phase 2: Archived records cannot be restored while their stored file remains missing.
   - [x] Phase 2: Orphaned-disk cleanup uses a 30-day, admin-reviewed queue with a required backup reference, final confirmation, and audit events.
-  - [ ] Apply `sql/add-orphan-cleanup-entries.sql` on Tomcat deployments that use `JPA_DDL_AUTO=none`.
+  - [x] Applied `sql/add-orphan-cleanup-entries.sql` on the Tomcat deployment database and verified the required queue columns.
 
 - [ ] Backup and restore procedure
   - Document MySQL backup.
@@ -180,8 +180,10 @@ Updated: September 2, 2026
   - OnlyOffice already provides search inside supported Office documents during preview.
   - PDF/TXT preview search remains handled by the browser/viewer experience where available.
 
-- [ ] Private EAC sharing
-  - Allow a file to be shared internally with a specific verified `@eac.edu.ph` user.
+- [x] Private EAC sharing
+  - Uploaders can grant and revoke direct download access for a specific verified `@eac.edu.ph` user.
+  - Shared access is limited to the file's current approved content; it does not grant editing or version-management rights.
+  - Apply `sql/add-file-shares.sql` on Tomcat deployments using `JPA_DDL_AUTO=none`.
 
 - [ ] Comments or private notes
   - Allow notes or discussion around files.

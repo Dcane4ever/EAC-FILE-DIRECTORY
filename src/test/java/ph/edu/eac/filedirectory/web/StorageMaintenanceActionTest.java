@@ -22,6 +22,8 @@ import ph.edu.eac.filedirectory.file.FileStorageService;
 import ph.edu.eac.filedirectory.notification.NotificationRepository;
 import ph.edu.eac.filedirectory.maintenance.OrphanCleanupEntryRepository;
 import ph.edu.eac.filedirectory.maintenance.OrphanCleanupStatus;
+import ph.edu.eac.filedirectory.share.FileShareRepository;
+import ph.edu.eac.filedirectory.share.PrivateShareService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.taxonomy.Category;
 import ph.edu.eac.filedirectory.taxonomy.CategoryRepository;
@@ -62,12 +64,15 @@ class StorageMaintenanceActionTest {
     @Autowired private OrphanCleanupEntryRepository orphanCleanupEntryRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private FileStorageService storageService;
+    @Autowired private FileShareRepository fileShareRepository;
+    @Autowired private PrivateShareService privateShareService;
 
     @MockitoBean private JavaMailSender mailSender;
 
     private AppUser admin;
     private AppUser moderator;
     private AppUser uploader;
+    private AppUser recipient;
     private Department department;
     private Category category;
 
@@ -77,6 +82,7 @@ class StorageMaintenanceActionTest {
         accessRequestRepository.deleteAll();
         notificationRepository.deleteAll();
         orphanCleanupEntryRepository.deleteAll();
+        fileShareRepository.deleteAll();
         fileVersionRepository.deleteAll();
         fileRepository.deleteAll();
         emailVerificationTokenRepository.deleteAll();
@@ -87,6 +93,7 @@ class StorageMaintenanceActionTest {
         admin = userRepository.save(verifiedUser("admin@eac.edu.ph", "Admin", Role.ADMIN));
         moderator = userRepository.save(verifiedUser("moderator@eac.edu.ph", "Moderator", Role.MODERATOR));
         uploader = userRepository.save(verifiedUser("uploader@eac.edu.ph", "Uploader", Role.USER));
+        recipient = userRepository.save(verifiedUser("recipient@eac.edu.ph", "Recipient", Role.USER));
         department = departmentRepository.findAll().stream().findFirst()
                 .orElseGet(() -> departmentRepository.save(new Department(1, "ENGR", "School of Engineering")));
         category = categoryRepository.findAll().stream().findFirst()
@@ -181,6 +188,38 @@ class StorageMaintenanceActionTest {
         mockMvc.perform(get("/admin/home").with(user(new EacUserDetails(admin))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/home"));
+    }
+
+    @Test
+    void uploaderCanGrantAndRevokePrivateDirectDownloadAccess() {
+        FileEntity file = missingFile("Shareable report");
+        file.setStatus(FileStatus.APPROVED);
+        fileRepository.save(file);
+
+        var grant = privateShareService.share(file, uploader, recipient.getEmail());
+
+        assertThat(grant.changed()).isTrue();
+        assertThat(privateShareService.hasDirectDownload(file, recipient)).isTrue();
+        var share = fileShareRepository.findByFileAndRecipient(file, recipient).orElseThrow();
+
+        var revoke = privateShareService.revoke(file, share.getId(), uploader);
+
+        assertThat(revoke.changed()).isTrue();
+        assertThat(privateShareService.hasDirectDownload(file, recipient)).isFalse();
+        assertThat(auditEventRepository.findAll()).extracting(event -> event.getAction())
+                .contains(AuditAction.FILE_SHARED, AuditAction.FILE_SHARE_REVOKED);
+    }
+
+    @Test
+    void privateShareRejectsUnknownOrUnverifiedRecipients() {
+        FileEntity file = missingFile("Verified recipient required");
+        file.setStatus(FileStatus.APPROVED);
+        fileRepository.save(file);
+
+        var result = privateShareService.share(file, uploader, "unknown@eac.edu.ph");
+
+        assertThat(result.changed()).isFalse();
+        assertThat(fileShareRepository.findAll()).isEmpty();
     }
 
     private AppUser verifiedUser(String email, String name, Role role) {

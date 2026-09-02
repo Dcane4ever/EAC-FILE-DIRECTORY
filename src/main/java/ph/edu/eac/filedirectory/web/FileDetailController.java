@@ -31,6 +31,7 @@ import ph.edu.eac.filedirectory.follow.FollowService;
 import ph.edu.eac.filedirectory.follow.FollowType;
 import ph.edu.eac.filedirectory.reference.ReferenceExtractionService;
 import ph.edu.eac.filedirectory.saved.SavedFileRepository;
+import ph.edu.eac.filedirectory.share.PrivateShareService;
 import ph.edu.eac.filedirectory.security.EacUserDetails;
 import ph.edu.eac.filedirectory.user.AppUser;
 import ph.edu.eac.filedirectory.user.Role;
@@ -72,6 +73,7 @@ public class FileDetailController {
     private final FollowService followService;
     private final CitationService citationService;
     private final ReferenceExtractionService referenceExtractionService;
+    private final PrivateShareService privateShareService;
 
     public FileDetailController(FileRepository fileRepository, FileStorageService storageService,
                                  AuditService auditService, AccessRequestRepository accessRequestRepository,
@@ -79,7 +81,8 @@ public class FileDetailController {
                                  FileVersionRepository fileVersionRepository,
                                  FollowService followService,
                                  CitationService citationService,
-                                 ReferenceExtractionService referenceExtractionService) {
+                                 ReferenceExtractionService referenceExtractionService,
+                                 PrivateShareService privateShareService) {
         this.fileRepository = fileRepository;
         this.storageService = storageService;
         this.auditService = auditService;
@@ -89,6 +92,7 @@ public class FileDetailController {
         this.followService = followService;
         this.citationService = citationService;
         this.referenceExtractionService = referenceExtractionService;
+        this.privateShareService = privateShareService;
     }
 
     @GetMapping("/files/{id}")
@@ -113,8 +117,13 @@ public class FileDetailController {
 
         boolean canDownloadDirectly = principal != null && canDownloadDirectly(file, principal.getAppUser());
         model.addAttribute("canDownloadDirectly", canDownloadDirectly);
-        model.addAttribute("canEditMetadata", principal != null && canEditMetadata(file, principal.getAppUser()));
-        boolean canManageVersions = principal != null && canDownloadDirectly(file, principal.getAppUser());
+        boolean canManageFile = principal != null && canManageFile(file, principal.getAppUser());
+        model.addAttribute("canEditMetadata", canManageFile);
+        model.addAttribute("canManagePrivateShares", principal != null && isUploader(file, principal.getAppUser())
+                && file.getStatus() == FileStatus.APPROVED);
+        model.addAttribute("privateShares", principal != null && isUploader(file, principal.getAppUser())
+                ? privateShareService.activeShares(file) : List.of());
+        boolean canManageVersions = canManageFile;
         model.addAttribute("canManageVersions", canManageVersions);
         var versions = fileVersionRepository.findByFileOrderByVersionNumberDesc(file);
         if (!canManageVersions) {
@@ -154,13 +163,11 @@ public class FileDetailController {
                 .map(tag -> tag.getId())
                 .filter(tagId -> followService.isFollowing(principal.getAppUser(), FollowType.TAG, tagId))
                 .collect(java.util.stream.Collectors.toSet()));
-        if (!canDownloadDirectly && principal != null) {
+        if (principal != null) {
             List<AccessRequest> pendingRequests = accessRequestRepository
                     .findByFileAndRequesterAndStatus(file, principal.getAppUser(), AccessRequestStatus.PENDING);
-            model.addAttribute("pendingAccessRequest", pendingRequests.stream()
-                    .filter(request -> request.getRequestedVersionNumber() == null)
-                    .findFirst()
-                    .orElse(null));
+            model.addAttribute("pendingAccessRequest", canDownloadDirectly ? null : pendingRequests.stream()
+                    .filter(request -> request.getRequestedVersionNumber() == null).findFirst().orElse(null));
             model.addAttribute("pendingVersionRequestNumbers", pendingRequests.stream()
                     .map(AccessRequest::getRequestedVersionNumber)
                     .filter(java.util.Objects::nonNull)
@@ -309,13 +316,19 @@ public class FileDetailController {
     }
 
     private boolean canDownloadDirectly(FileEntity file, AppUser user) {
-        boolean isOwner = user.getId().equals(file.getUploader().getId());
-        boolean isModerator = user.getRole() == Role.MODERATOR || user.getRole() == Role.ADMIN;
-        return isOwner || isModerator;
+        return canManageFile(file, user) || privateShareService.hasDirectDownload(file, user);
     }
 
     private boolean canEditMetadata(FileEntity file, AppUser user) {
-        return canDownloadDirectly(file, user);
+        return canManageFile(file, user);
+    }
+
+    private boolean canManageFile(FileEntity file, AppUser user) {
+        return isUploader(file, user) || user.getRole() == Role.MODERATOR || user.getRole() == Role.ADMIN;
+    }
+
+    private boolean isUploader(FileEntity file, AppUser user) {
+        return user.getId().equals(file.getUploader().getId());
     }
 
     private String safeReturnTo(String returnTo, EacUserDetails principal) {

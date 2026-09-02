@@ -122,6 +122,16 @@ public class AuditService {
                 .newValue("v" + versionNumber).reason(note));
     }
 
+    public void fileShared(AppUser actor, Long fileId, String title, String recipientEmail) {
+        record(AuditEvent.builder(AuditAction.FILE_SHARED).actor(actor)
+                .target(AuditTargetType.FILE, fileId).metadata(title).newValue(recipientEmail));
+    }
+
+    public void fileShareRevoked(AppUser actor, Long fileId, String title, String recipientEmail) {
+        record(AuditEvent.builder(AuditAction.FILE_SHARE_REVOKED).actor(actor)
+                .target(AuditTargetType.FILE, fileId).metadata(title).previousValue(recipientEmail));
+    }
+
     public void storageOrphanScheduled(AppUser actor, String storedPath, String reason, String eligibleAt) {
         record(AuditEvent.builder(AuditAction.STORAGE_ORPHAN_SCHEDULED).actor(actor)
                 .metadata(storedPath).reason(reason).newValue(eligibleAt));

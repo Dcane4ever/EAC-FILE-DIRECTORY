@@ -65,4 +65,10 @@ public class NotificationService {
                 "A new approved file matches something you follow: \"" + fileTitle + "\".",
                 "/files/" + fileId);
     }
+
+    public void fileShared(AppUser recipient, AppUser sharedBy, String fileTitle, Long fileId) {
+        notify(recipient, NotificationType.FILE_SHARED,
+                sharedBy.getFullName() + " shared \"" + fileTitle + "\" with you.",
+                "/files/" + fileId);
+    }
 }

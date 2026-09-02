@@ -81,6 +81,27 @@
                             <svg class="w-4 h-4 text-eac-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
                             Edit metadata
                         </a>
+                        <div th:if="${canManagePrivateShares}" class="rounded-lg border border-eac-border bg-eac-bg p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-bold text-eac-maroon">Private EAC sharing</p>
+                                    <p class="mt-1 text-xs leading-5 text-eac-text-light">Grant direct download access to one verified EAC account.</p>
+                                </div>
+                                <span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-eac-red" th:text="${#lists.size(privateShares)} + ' active'">0 active</span>
+                            </div>
+                            <form th:action="@{/files/{id}/private-shares(id=${file.id})}" method="post" class="mt-3 flex gap-2">
+                                <input type="email" name="recipientEmail" required maxlength="255" placeholder="name@eac.edu.ph" class="min-w-0 flex-1 rounded-lg border border-eac-border bg-white px-3 py-2 text-xs outline-none transition focus:border-eac-red focus:ring-2 focus:ring-eac-red/15">
+                                <button type="submit" class="rounded-lg bg-eac-red px-3 py-2 text-xs font-bold text-white transition hover:bg-eac-red-hover">Grant</button>
+                            </form>
+                            <div th:if="${!#lists.isEmpty(privateShares)}" class="mt-3 divide-y divide-eac-border rounded-lg border border-eac-border bg-white">
+                                <div th:each="share : ${privateShares}" class="flex items-center justify-between gap-2 px-3 py-2">
+                                    <div class="min-w-0"><p class="truncate text-xs font-bold text-eac-text" th:text="${share.recipient.fullName}">Recipient</p><p class="truncate text-[11px] text-eac-text-light" th:text="${share.recipient.email}">recipient@eac.edu.ph</p></div>
+                                    <form th:action="@{/files/{id}/private-shares/{shareId}/revoke(id=${file.id},shareId=${share.id})}" method="post">
+                                        <button type="submit" onclick="return confirm('Revoke this user\'s private download access?');" class="text-xs font-bold text-eac-red hover:text-eac-red-hover">Revoke</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                         <a th:if="${canDownloadDirectly}" th:href="@{/files/{id}/download(id=${file.id})}"
                            class="w-full inline-flex items-center justify-center gap-2 bg-eac-red hover:bg-eac-red-hover transition text-white text-sm font-bold px-5 py-3 rounded-lg">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
@@ -301,15 +322,15 @@
                                                 data-office-config-url=@{/files/{id}/versions/{versionNumber}/onlyoffice-config(id=${file.id},versionNumber=${version.versionNumber})}">
                                         Preview
                                     </button>
-                                    <a th:if="${canDownloadDirectly}" th:href="@{/files/{id}/versions/{versionNumber}/download(id=${file.id},versionNumber=${version.versionNumber})}"
+                                    <a th:if="${canManageVersions}" th:href="@{/files/{id}/versions/{versionNumber}/download(id=${file.id},versionNumber=${version.versionNumber})}"
                                        class="inline-flex items-center justify-center rounded-lg border border-eac-border bg-white px-3 py-2 text-xs font-bold text-eac-maroon transition hover:border-eac-red/40 hover:text-eac-red">
                                         Download
                                     </a>
-                                    <span th:if="${!canDownloadDirectly and #sets.contains(pendingVersionRequestNumbers, version.versionNumber)}"
+                                    <span th:if="${!canManageVersions and #sets.contains(pendingVersionRequestNumbers, version.versionNumber)}"
                                           class="inline-flex items-center justify-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
                                         Request pending
                                     </span>
-                                    <form th:if="${!canDownloadDirectly and !#sets.contains(pendingVersionRequestNumbers, version.versionNumber)}"
+                                    <form th:if="${!canManageVersions and !#sets.contains(pendingVersionRequestNumbers, version.versionNumber)}"
                                           th:action="@{/files/{id}/versions/{versionNumber}/request-access(id=${file.id},versionNumber=${version.versionNumber})}" method="post">
                                         <button type="submit"
                                                 class="inline-flex items-center justify-center rounded-lg border border-eac-red/20 bg-white px-3 py-2 text-xs font-bold text-eac-red transition hover:bg-eac-red hover:text-white">
